@@ -5,20 +5,33 @@ import user from '../assets/user.png';
 import { Link } from 'react-router-dom';
 
 const NotificationBar = () => {
-    const [visible, setVisible] = useState(true);
-
+    const [showBar, setShowBar] = useState(true);
+    const [lastScrollY, setLastScrollY] = useState(0);
+  
     useEffect(() => {
-        const isLoggedIn = localStorage.getItem('token');
-        if (isLoggedIn) {
-            setVisible(false);
+      const isLoggedIn = localStorage.getItem('token');
+      if (isLoggedIn) {
+        setShowBar(false);
+        return;
+      }
+  
+      const handleScroll = () => {
+        const currentScrollY = window.scrollY;
+  
+        if (currentScrollY > lastScrollY) {
+          setShowBar(false);
+        } else {
+          setShowBar(true);
         }
-    }, []);
-
-    const handleDismiss = () => {
-        setVisible(false);
-    };
-
-    if (!visible) return null;
+  
+        setLastScrollY(currentScrollY);
+      };
+  
+      window.addEventListener('scroll', handleScroll);
+      return () => window.removeEventListener('scroll', handleScroll);
+    }, [lastScrollY]);
+  
+    if (!showBar) return null;
 
     return (
         <div
