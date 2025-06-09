@@ -1,18 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import AdminDashboard from './pages/Admin/AdminDashboard';
+import UsersDashboard from './pages/Users/UsersDashboard';
+import EmployeeDashboard from './pages/Employee/EmployeeDashboard';
 
 function App() {
-  const [msg, setMsg] = useState('');
-
-  useEffect(() => {
-    fetch('http://localhost:5000/api/hello')
-      .then(res => res.json())
-      .then(data => setMsg(data.message));
-  }, []);
-
   return (
-    <div>
-      <h1>{msg}</h1>
-    </div>
+    <BrowserRouter>
+
+          <Routes>
+            <Route path="/" element={<AdminDashboard />} />
+            <Route path="/Users" element={<UsersDashboard />} />
+            <Route path="/Employee" element={<EmployeeDashboard />} />
+            {/* Add other routes here */}
+          </Routes>
+    </BrowserRouter>
   );
 }
 
