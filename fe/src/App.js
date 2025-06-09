@@ -1,19 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import NotificationBar from './components/notificationbar'; 
+import './index.css';
 
-function App() {
-  const [msg, setMsg] = useState('');
-
-  useEffect(() => {
-    fetch('http://localhost:5000/api/hello')
-      .then(res => res.json())
-      .then(data => setMsg(data.message));
-  }, []);
-
+const App = () => {
   return (
     <div>
-      <h1>{msg}</h1>
+      <NotificationBar />
+      <div className="mt-16 p-4">
+        
+      </div>
     </div>
   );
-}
+};
 
 export default App;
