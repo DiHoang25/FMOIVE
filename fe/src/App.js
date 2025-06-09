@@ -1,17 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import LoginPage from './pages/LoginPage';
 
 function App() {
-  const [msg, setMsg] = useState('');
-
-  useEffect(() => {
-    fetch('http://localhost:5000/api/hello')
-      .then(res => res.json())
-      .then(data => setMsg(data.message));
-  }, []);
-
   return (
-    <div>
-      <h1>{msg}</h1>
+    <div className="App">
+      <LoginPage />
     </div>
   );
 }
