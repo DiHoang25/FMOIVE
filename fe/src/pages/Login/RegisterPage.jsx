@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import anhnenloginImage from '../../assets/anhnenlogin.jpg';
 
 function RegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const navigate = useNavigate();
   
   const { 
     register, 
@@ -30,37 +33,42 @@ function RegisterPage() {
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     setIsSubmitting(false);
-    // Xử lý thành công - ví dụ: chuyển hướng đến trang login
-    alert('Đăng ký thành công!');
+    // Hiển thị modal thành công thay vì alert
+    setShowSuccessModal(true);
+  };
+
+  const handleSuccessConfirm = () => {
+    setShowSuccessModal(false);
+    navigate('/login');
   };
 
   const validateForm = (data) => {
     const errors = {};
-    
+
     if (!data.account || data.account.length < 3) {
       errors.account = 'Tài khoản phải có ít nhất 3 ký tự';
     }
-    
+
     if (!data.password || data.password.length < 6) {
       errors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
     }
-    
+
     if (data.password !== data.confirmPassword) {
       errors.confirmPassword = 'Mật khẩu xác nhận không khớp';
     }
-    
+
     if (!data.fullName) {
       errors.fullName = 'Họ tên là bắt buộc';
     }
-    
+
     if (!data.dateOfBirth) {
       errors.dateOfBirth = 'Ngày sinh là bắt buộc';
     }
-    
+
     if (!data.agreeToTerms) {
       errors.agreeToTerms = 'Bạn phải đồng ý với điều khoản và điều kiện';
     }
-    
+
     return errors;
   };
 
@@ -75,7 +83,7 @@ function RegisterPage() {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2 p-4 bg-gray-700 rounded-lg">
+            <div className="space-y-2 p-4 bg-gray-700 rounded-lg overflow-y-auto max-h-[60vh]">
               <div>
                 <label htmlFor="account" className="block text-sm font-medium mb-1">
                   Account
@@ -174,6 +182,85 @@ function RegisterPage() {
                   <span className="ml-2">Female</span>
                 </label>
               </div>
+
+              {/* Thêm các trường mới */}
+              <div>
+                <label htmlFor="identityCard" className="block text-sm font-medium mb-1">
+                  Identity Card
+                </label>
+                <input
+                  id="identityCard"
+                  type="text"
+                  className="w-full px-3 py-2 border rounded-md text-black"
+                  {...register('identityCard', {
+                    required: 'Identity card number is required',
+                    pattern: {
+                      value: /^[0-9]{9,12}$/,
+                      message: 'Please enter a valid identity card number (9-12 digits)'
+                    }
+                  })}
+                />
+                {errors.identityCard && (
+                  <p className="text-red-500 text-sm mt-1">{errors.identityCard.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium mb-1">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  className="w-full px-3 py-2 border rounded-md text-black"
+                  {...register('email', {
+                    required: 'Email is required',
+                    pattern: {
+                      value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                      message: 'Please enter a valid email address'
+                    }
+                  })}
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="phone" className="block text-sm font-medium mb-1">
+                  Phone Number
+                </label>
+                <input
+                  id="phone"
+                  type="tel"
+                  className="w-full px-3 py-2 border rounded-md text-black"
+                  {...register('phone', {
+                    required: 'Phone number is required',
+                    pattern: {
+                      value: /^[0-9]{10,11}$/,
+                      message: 'Please enter a valid phone number (10-11 digits)'
+                    }
+                  })}
+                />
+                {errors.phone && (
+                  <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="address" className="block text-sm font-medium mb-1">
+                  Address
+                </label>
+                <textarea
+                  id="address"
+                  className="w-full px-3 py-2 border rounded-md text-black resize-none"
+                  rows="3"
+                  {...register('address', { required: 'Address is required' })}
+                ></textarea>
+                {errors.address && (
+                  <p className="text-red-500 text-sm mt-1">{errors.address.message}</p>
+                )}
+              </div>
             </div>
 
             <div className="flex items-start">
@@ -182,8 +269,8 @@ function RegisterPage() {
                   id="agreeToTerms"
                   type="checkbox"
                   className="form-checkbox h-4 w-4"
-                  {...register('agreeToTerms', { 
-                    required: 'You must agree to terms and conditions' 
+                  {...register('agreeToTerms', {
+                    required: 'You must agree to terms and conditions'
                   })}
                 />
               </div>
@@ -209,16 +296,37 @@ function RegisterPage() {
           </form>
         </div>
       </div>
-      
-      <div className="w-1/2 bg-black">
-        <div className="h-full flex items-center justify-center">
-          <img 
-            src="/images/cinema.jpg" 
-            alt="Cinema" 
-            className="h-full w-full object-cover"
-          />
-        </div>
+
+      <div className="w-1/2 bg-gray-900">
+        <img
+          src={anhnenloginImage}
+          alt="Cinema"
+          className="h-full w-full object-cover"
+        />
       </div>
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <div className="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+            <div className="text-center">
+              <div className="mb-4 flex justify-center">
+                <svg className="w-16 h-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-4">Registration Successful!</h3>
+              <p className="text-gray-300 mb-6">Your account has been successfully created. You can now login with your credentials.</p>
+              <button
+                onClick={handleSuccessConfirm}
+                className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-200"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
