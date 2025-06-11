@@ -5,6 +5,7 @@ import UsersDashboard from './pages/Users/UsersDashboard';
 import EmployeeDashboard from './pages/Employee/EmployeeDashboard';
 import LoginPage from './pages/Login/LoginPage';
 import NotificationBar from './components/notificationbar';
+import Navbar from './components/navbar';
 import Footer from './components/footer';
 import HomePage from './pages/Homepage/HomePage';
 import RegisterPage from './pages/Login/RegisterPage';
@@ -24,6 +25,7 @@ function AppContent() {
     <>
       {!hideLayout && <NotificationBar />}
       <div className={!hideLayout ? 'pt-[60px]' : ''}>
+        {!hideLayout && <Navbar />}
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/Users" element={<UsersDashboard />} />
