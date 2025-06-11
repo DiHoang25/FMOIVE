@@ -16,6 +16,11 @@ import MovieDetails from './pages/Movie/MovieDetails';
 import MovieNews from './pages/Movie/MovieNews';
 import EmployeeProfile from './pages/Employee/EmployeeProfile';
 import ViewMembersList from './pages/Employee/ViewMembersList';
+import ShowtimePage from './pages/Users/ShowtimePage';
+import SeatSelectionPage from './pages/Users/SeatSelectionPage';
+import ComboSelection from './pages/Users/ComboSelection';
+import BookingConfirmationPage from './pages/Users/BookingConfirmationPage';
+import ConfirmBooking from './pages/Users/ConfirmBooking';
 
 function AppContent() {
   const location = useLocation();
@@ -41,6 +46,18 @@ function AppContent() {
           <Route path="/employee/employee-profile" element={<EmployeeProfile />} />
           <Route path="/moviedetails" element={<MovieDetails/>} />
             <Route path="/movienews" element={<MovieNews />} />
+
+
+            {/* Movie Showtime and Ticket Route*/}
+            <Route path="/showtimes" element={<ShowtimePage/>} />      
+             <Route path="/select-seats" element={<SeatSelectionPage />} />
+            <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
+            <Route path="/select-seats" element={<SeatSelectionPage />} />
+            <Route path="/combo" element={<ComboSelection />} />
+            <Route path="/confirm-booking" element={<ConfirmBooking />} />
+
+
+
         </Routes>
         {!hideLayout && <Footer />}
       </div>
