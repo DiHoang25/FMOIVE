@@ -5,7 +5,6 @@ import UsersDashboard from './pages/Users/UsersDashboard';
 import EmployeeDashboard from './pages/Employee/EmployeeDashboard';
 import LoginPage from './pages/Login/LoginPage';
 import NotificationBar from './components/notificationbar';
-import Navbar from './components/navbar';
 import Footer from './components/footer';
 import HomePage from './pages/Homepage/HomePage';
 import RegisterPage from './pages/Login/RegisterPage';
@@ -13,7 +12,8 @@ import ViewMembers from './pages/Admin/ViewMembers';
 import EmployeeList from './pages/Employee/EmployeeList';
 import ViewEmployeeList from './pages/Employee/ViewEmployeeList';
 import AdminProfile from './pages/Admin/AdminProfile';
-import EmployeeProfile from './pages/Employee/EmployeeProfile';
+import MovieDetails from './pages/Movie/MovieDetails';
+import MovieNews from './pages/Movie/MovieNews';
 
 function AppContent() {
   const location = useLocation();
@@ -24,7 +24,6 @@ function AppContent() {
     <>
       {!hideLayout && <NotificationBar />}
       <div className={!hideLayout ? 'pt-[60px]' : ''}>
-        {!hideLayout && <Navbar />}
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/Users" element={<UsersDashboard />} />
@@ -37,6 +36,8 @@ function AppContent() {
           <Route path="/admin/admin-profile" element={<AdminProfile />} />
           <Route path="/Employee/employees-list" element={<ViewEmployeeList />} />
           <Route path="/Employee/employee-profile" element={<EmployeeProfile />} />
+          <Route path="/moviedetails" element={<MovieDetails/>} />
+            <Route path="/movienews" element={<MovieNews />} />
         </Routes>
         {!hideLayout && <Footer />}
       </div>
