@@ -10,7 +10,7 @@ import Footer from './components/footer';
 import HomePage from './pages/Homepage/HomePage';
 import RegisterPage from './pages/Login/RegisterPage';
 import MovieDetails from './pages/Movie/MovieDetails';
-import MovieNews from './pages/Movie/movie-news';
+import MovieNews from './pages/Movie/MovieNews';
 function App() {
   return (
     <BrowserRouter>
