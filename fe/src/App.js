@@ -9,9 +9,6 @@ import Navbar from './components/navbar';
 import Footer from './components/footer';
 import HomePage from './pages/Homepage/HomePage';
 import RegisterPage from './pages/Login/RegisterPage';
-import ForgotPasswordPage from './pages/Login/ForgotPasswordPage';
-import ResetPasswordPage from './pages/Login/ResetPasswordPage';
-import NewPasswordPage from './pages/Login/NewPasswordPage';
 import ViewMembers from './pages/Admin/ViewMembers';
 import EmployeeList from './pages/Admin/EmployeeList';
 import AdminProfile from './pages/Admin/AdminProfile';
@@ -23,6 +20,7 @@ import ViewMembersList from './pages/Employee/ViewMembersList';
 function AppContent() {
   const location = useLocation();
   const hideLayout = location.pathname.startsWith('/admin') || location.pathname.startsWith('/employee');
+
 
   return (
     <>
@@ -41,11 +39,8 @@ function AppContent() {
           <Route path="/admin/admin-profile" element={<AdminProfile />} />
           <Route path="/employee/members-list" element={<ViewMembersList />} />
           <Route path="/employee/employee-profile" element={<EmployeeProfile />} />
-          <Route path="/moviedetails" element={<MovieDetails />} />
-          <Route path="/movienews" element={<MovieNews />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/new-password" element={<NewPasswordPage />} />
+          <Route path="/moviedetails" element={<MovieDetails/>} />
+            <Route path="/movienews" element={<MovieNews />} />
         </Routes>
         {!hideLayout && <Footer />}
       </div>
