@@ -12,7 +12,7 @@ const Navbar = () => {
           label="Movies"
           items={[
             { label: 'Movie Search', href: '/movie-search' },
-            { label: 'Movie News', href: '/movie-news' },
+            { label: 'Movie News', href: '/MovieNews' },
           ]}
         />
         <NavItem label="Promotions" showArrow={false} />
