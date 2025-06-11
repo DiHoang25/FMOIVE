@@ -34,7 +34,7 @@ function EmployeeDashboard() {
             </div>
             
             {/* User Avatar */}
-            <Link to="/Employee/employee-profile">
+            <Link to="/employee/employee-profile">
               <div className="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center text-white font-bold">
                 E
               </div>

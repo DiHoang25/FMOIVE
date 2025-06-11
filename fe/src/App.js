@@ -10,15 +10,16 @@ import Footer from './components/footer';
 import HomePage from './pages/Homepage/HomePage';
 import RegisterPage from './pages/Login/RegisterPage';
 import ViewMembers from './pages/Admin/ViewMembers';
-import EmployeeList from './pages/Employee/EmployeeList';
-import ViewEmployeeList from './pages/Employee/ViewEmployeeList';
+import EmployeeList from './pages/Admin/EmployeeList';
 import AdminProfile from './pages/Admin/AdminProfile';
 import MovieDetails from './pages/Movie/MovieDetails';
 import MovieNews from './pages/Movie/MovieNews';
+import EmployeeProfile from './pages/Employee/EmployeeProfile';
+import ViewMembersList from './pages/Employee/ViewMembersList';
 
 function AppContent() {
   const location = useLocation();
-  const hideLayout = location.pathname.startsWith('/admin') || location.pathname.startsWith('/Employee');
+  const hideLayout = location.pathname.startsWith('/admin') || location.pathname.startsWith('/employee');
 
 
   return (
@@ -29,15 +30,15 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/Users" element={<UsersDashboard />} />
-          <Route path="/Employee" element={<EmployeeDashboard />} />
+          <Route path="/employee" element={<EmployeeDashboard />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/view-members" element={<ViewMembers />} />
-          <Route path="/admin/employees" element={<EmployeeList />} />
+          <Route path="/admin/view-employees" element={<EmployeeList />} />
           <Route path="/admin/admin-profile" element={<AdminProfile />} />
-          <Route path="/Employee/employees-list" element={<ViewEmployeeList />} />
-          <Route path="/Employee/employee-profile" element={<EmployeeProfile />} />
+          <Route path="/employee/members-list" element={<ViewMembersList />} />
+          <Route path="/employee/employee-profile" element={<EmployeeProfile />} />
           <Route path="/moviedetails" element={<MovieDetails/>} />
             <Route path="/movienews" element={<MovieNews />} />
         </Routes>

@@ -40,7 +40,7 @@ const EmployeeProfile = () => {
         </header>
 
         <div className="bg-gray-900 p-4 flex items-center justify-between">
-          <Link to="/Employee" className="text-gray-400 hover:text-gray-300 flex items-center mr-4">
+          <Link to="/employee" className="text-gray-400 hover:text-gray-300 flex items-center mr-4">
             <div className="mr-1" /> Back
           </Link>
         </div>

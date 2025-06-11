@@ -23,11 +23,11 @@ const Sidebar = () => {
   };
 
   const menuItems = [
-    { name: 'Dashboard Overview', path: '/Employee' },
+    { name: 'Dashboard Overview', path: '/employee' },
     { name: 'Confirm Tickets', path: '/confirm' },
     { name: 'Booking List', path: '/bookings' },
     { name: 'Ticket Information', path: '/tickets' },
-    { name: 'View Members', path: '/Employee/employees-list' },
+    { name: 'View Members', path: '/employee/members-list' },
   ];
 
   return (

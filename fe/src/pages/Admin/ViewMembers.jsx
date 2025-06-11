@@ -13,7 +13,7 @@ const ViewMembers = () => {
     { 
       id: 1, 
       fullName: "Tran Van Tan", 
-      idCard: "1996-11-21", 
+      DOB: "1996-11-21", 
       email: "tantran@gmail.com", 
       phone: "0912345678", 
       address: "Hue", 
@@ -22,7 +22,7 @@ const ViewMembers = () => {
     { 
       id: 2, 
       fullName: "Nguyen Thi Hoa", 
-      idCard: "1993-05-12", 
+      DOB: "1993-05-12", 
       email: "hoanguyen@gmail.com", 
       phone: "0978654321", 
       address: "Da Nang", 
@@ -31,7 +31,7 @@ const ViewMembers = () => {
     { 
       id: 3, 
       fullName: "Le Van Long", 
-      idCard: "1988-08-30", 
+      DOB: "1988-08-30", 
       email: "longvl@yahoo.com", 
       phone: "0903124567", 
       address: "Hanoi", 
@@ -40,7 +40,7 @@ const ViewMembers = () => {
     { 
       id: 4, 
       fullName: "Pham Thi Mai", 
-      idCard: "1985-02-25", 
+      DOB: "1985-02-25", 
       email: "maipham@gmail.com", 
       phone: "0834223333", 
       address: "Can Tho", 
@@ -49,7 +49,7 @@ const ViewMembers = () => {
     { 
       id: 5, 
       fullName: "Do Minh Tuan", 
-      idCard: "1990-12-15", 
+      DOB: "1990-12-15", 
       email: "tuando@gmail.com", 
       phone: "0981233445", 
       address: "Ho Chi Minh City", 
@@ -58,7 +58,7 @@ const ViewMembers = () => {
     { 
       id: 6, 
       fullName: "Nguyen Trung Hieu", 
-      idCard: "2004-08-24", 
+      DOB: "2004-08-24", 
       email: "hieunguyen@gmail.com", 
       phone: "0369779578", 
       address: "Gia Lai", 
@@ -67,7 +67,7 @@ const ViewMembers = () => {
     { 
       id: 7, 
       fullName: "Do Minh Khoa", 
-      idCard: "1992-03-11", 
+      DOB: "1992-03-11", 
       email: "khoadominh@gmail.com", 
       phone: "0905123456", 
       address: "Ho Chi Minh City", 
@@ -76,7 +76,7 @@ const ViewMembers = () => {
     { 
       id: 8, 
       fullName: "Vu Minh Tuan", 
-      idCard: "1990-12-16", 
+      DOB: "1990-12-16", 
       email: "tuanvu@gmail.com", 
       phone: "0989999888", 
       address: "Bien Hoa", 
@@ -85,7 +85,7 @@ const ViewMembers = () => {
     { 
       id: 9, 
       fullName: "Do Van Thanh", 
-      idCard: "1991-07-09", 
+      DOB: "1991-07-09", 
       email: "thanhdo@gmail.com", 
       phone: "0977333444", 
       address: "Ho Chi Minh City", 
@@ -181,7 +181,7 @@ const ViewMembers = () => {
                     Full Name
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    ID Card
+                    DOB
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Email
@@ -209,7 +209,7 @@ const ViewMembers = () => {
                       {member.fullName}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      {member.idCard}
+                      {member.DOB}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       {member.email}

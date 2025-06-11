@@ -30,7 +30,7 @@ const Sidebar = () => {
     { name: 'Confirm Tickets', path: '/confirm' },
     { name: 'Booking List', path: '/bookings' },
     { name: 'Ticket Information', path: '/tickets' },
-    { name: 'View Employees', path: '/admin/employees' },
+    { name: 'View Employees', path: '/admin/view-employees' },
     { name: 'Movie List', path: '/movies' },
     { name: 'Cinema Rooms', path: '/rooms' },
     { name: 'Promotions', path: '/promotions' },
