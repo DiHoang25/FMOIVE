@@ -9,6 +9,8 @@ import Navbar from './components/navbar';
 import Footer from './components/footer';
 import HomePage from './pages/Homepage/HomePage';
 import RegisterPage from './pages/Login/RegisterPage';
+import MovieDetails from './pages/Movie/MovieDetails';
+import MovieNews from './pages/Movie/movie-news';
 function App() {
   return (
     <BrowserRouter>
@@ -22,6 +24,8 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/moviedetails" element={<MovieDetails/>} />
+            <Route path="/movienews" element={<MovieNews />} />
             {/* Add other routes here */}
           </Routes>
     </div>
