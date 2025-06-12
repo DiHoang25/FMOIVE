@@ -16,7 +16,9 @@ import MovieDetails from './pages/Movie/MovieDetails';
 import MovieNews from './pages/Movie/MovieNews';
 import EmployeeProfile from './pages/Employee/EmployeeProfile';
 import ViewMembersList from './pages/Employee/ViewMembersList';
-
+import ForgotPasswordPage from './pages/Login/ForgotPasswordPage';
+import ResetPasswordPage from './pages/Login/ResetPasswordPage';
+import NewPasswordPage from './pages/Login/NewPasswordPage';
 function AppContent() {
   const location = useLocation();
   const hideLayout = location.pathname.startsWith('/admin') || location.pathname.startsWith('/employee');
@@ -40,7 +42,12 @@ function AppContent() {
           <Route path="/employee/members-list" element={<ViewMembersList />} />
           <Route path="/employee/employee-profile" element={<EmployeeProfile />} />
           <Route path="/moviedetails" element={<MovieDetails/>} />
-            <Route path="/movienews" element={<MovieNews />} />
+          <Route path="/movienews" element={<MovieNews />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/new-password" element={<NewPasswordPage />} />
+
+
         </Routes>
         {!hideLayout && <Footer />}
       </div>

@@ -101,9 +101,9 @@ const ViewMembers = () => {
   // Filter members based on search term
   const filteredMembers = members.filter(member => 
     member.id.toString().includes(searchTerm) ||
-    member.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.address.toLowerCase().includes(searchTerm.toLowerCase())
+    member.fullName.trim().toLowerCase().includes(searchTerm.toLowerCase().trim()) ||
+    member.email.trim().toLowerCase().includes(searchTerm.toLowerCase().trim()) ||
+    member.address.trim().toLowerCase().includes(searchTerm.toLowerCase().trim())
   );
 
   return (

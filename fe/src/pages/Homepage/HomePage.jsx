@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from 'antd';
 import { Link } from 'react-router-dom';
 import ReactPlayer from 'react-player/youtube';
@@ -16,80 +16,64 @@ import nextbanner from '../../assets/nextbanner.png';
 import prevbanner from '../../assets/prevbanner.png';
 
 const moviesNowShowing = [
-  {
-    title: 'Spider-Man',
-    image: spiderman,
-    trailer: 'https://www.youtube.com/watch?v=JfVOs4VSpmA',
-  },
-  {
-    title: 'Avengers',
-    image: avengers,
-    trailer: 'https://www.youtube.com/watch?v=eOrNdBpGMv8',
-  },
-  {
-    title: 'Bat Man',
-    image: batman,
-    trailer: 'https://www.youtube.com/watch?v=oz7wymKGzOU',
-  },
-  {
-    title: 'Avengers',
-    image: avengers,
-    trailer: 'https://www.youtube.com/watch?v=eOrNdBpGMv8',
-  },
-  {
-    title: 'Avengers',
-    image: avengers,
-    trailer: 'https://www.youtube.com/watch?v=eOrNdBpGMv8',
-  },
-  {
-    title: 'Cyberpunk',
-    image: cyberpunk,
-    trailer: 'https://www.youtube.com/watch?v=ax5YUmkWf_Y',
-  },
+  { title: 'Cyberpunk', image: cyberpunk, trailer: 'https://www.youtube.com/watch?v=ax5YUmkWf_Y' },
+  { title: 'Spider-Man', image: spiderman, trailer: 'https://www.youtube.com/watch?v=JfVOs4VSpmA' },
+  { title: 'Cyberpunk', image: cyberpunk, trailer: 'https://www.youtube.com/watch?v=ax5YUmkWf_Y' },
+  { title: 'Avengers', image: avengers, trailer: 'https://www.youtube.com/watch?v=eOrNdBpGMv8' },
+  { title: 'Bat Man', image: batman, trailer: 'https://www.youtube.com/watch?v=oz7wymKGzOU' },
+  { title: 'Spider-Man', image: spiderman, trailer: 'https://www.youtube.com/watch?v=JfVOs4VSpmA' },
+  { title: 'Avengers', image: avengers, trailer: 'https://www.youtube.com/watch?v=eOrNdBpGMv8' },
+  { title: 'Spider-Man', image: spiderman, trailer: 'https://www.youtube.com/watch?v=JfVOs4VSpmA' },
+  { title: 'Bat Man', image: batman, trailer: 'https://www.youtube.com/watch?v=oz7wymKGzOU' },
+  { title: 'Cyberpunk', image: cyberpunk, trailer: 'https://www.youtube.com/watch?v=ax5YUmkWf_Y' },
+  { title: 'Spider-Man', image: spiderman, trailer: 'https://www.youtube.com/watch?v=JfVOs4VSpmA' },
+  { title: 'Cyberpunk', image: cyberpunk, trailer: 'https://www.youtube.com/watch?v=ax5YUmkWf_Y' },
 ];
 
 const moviesComingSoon = [
-  {
-    title: 'Spider-Man',
-    image: spiderman,
-    trailer: 'https://www.youtube.com/watch?v=JfVOs4VSpmA',
-  },
-  {
-    title: 'Avengers',
-    image: avengers,
-    trailer: 'https://www.youtube.com/watch?v=eOrNdBpGMv8',
-  },
-  {
-    title: 'Bat Man',
-    image: batman,
-    trailer: 'https://www.youtube.com/watch?v=oz7wymKGzOU',
-  },
-  {
-    title: 'Avengers',
-    image: avengers,
-    trailer: 'https://www.youtube.com/watch?v=eOrNdBpGMv8',
-  },
-  {
-    title: 'Cyberpunk',
-    image: cyberpunk,
-    trailer: 'https://www.youtube.com/watch?v=ax5YUmkWf_Y',
-  },
-  {
-    title: 'Cyberpunk',
-    image: cyberpunk,
-    trailer: 'https://www.youtube.com/watch?v=ax5YUmkWf_Y',
-  },
+  { title: 'Cyberpunk', image: cyberpunk, trailer: 'https://www.youtube.com/watch?v=ax5YUmkWf_Y' },
+  { title: 'Spider-Man', image: spiderman, trailer: 'https://www.youtube.com/watch?v=JfVOs4VSpmA' },
+  { title: 'Cyberpunk', image: cyberpunk, trailer: 'https://www.youtube.com/watch?v=ax5YUmkWf_Y' },
+  { title: 'Avengers', image: avengers, trailer: 'https://www.youtube.com/watch?v=eOrNdBpGMv8' },
+  { title: 'Bat Man', image: batman, trailer: 'https://www.youtube.com/watch?v=oz7wymKGzOU' },
+  { title: 'Spider-Man', image: spiderman, trailer: 'https://www.youtube.com/watch?v=JfVOs4VSpmA' },
+  { title: 'Avengers', image: avengers, trailer: 'https://www.youtube.com/watch?v=eOrNdBpGMv8' },
+  { title: 'Spider-Man', image: spiderman, trailer: 'https://www.youtube.com/watch?v=JfVOs4VSpmA' },
+  { title: 'Bat Man', image: batman, trailer: 'https://www.youtube.com/watch?v=oz7wymKGzOU' },
+  { title: 'Cyberpunk', image: cyberpunk, trailer: 'https://www.youtube.com/watch?v=ax5YUmkWf_Y' },
+  { title: 'Spider-Man', image: spiderman, trailer: 'https://www.youtube.com/watch?v=JfVOs4VSpmA' },
+  { title: 'Cyberpunk', image: cyberpunk, trailer: 'https://www.youtube.com/watch?v=ax5YUmkWf_Y' },
 ];
 
 const HomePage = () => {
   const [trailerUrl, setTrailerUrl] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [nowShowingPage, setNowShowingPage] = useState(0);
-  const [comingSoonPage, setComingSoonPage] = useState(0);
+  const [nowShowingIndex, setNowShowingIndex] = useState(0);
+  const [comingSoonIndex, setComingSoonIndex] = useState(0);
   const [currentBanner, setCurrentBanner] = useState(0);
 
-  const bannerList = [bannerPoster1, bannerPoster2, bannerPoster3, bannerPoster4, bannerPoster5 ];
+  const bannerList = [bannerPoster1, bannerPoster2, bannerPoster3, bannerPoster4, bannerPoster5];
   const itemsPerPage = 5;
+
+  useEffect(() => {
+    const bannerInterval = setInterval(() => {
+      setCurrentBanner((prev) => (prev + 1) % bannerList.length);
+    }, 4000);
+
+    const nowShowingInterval = setInterval(() => {
+      setNowShowingIndex((prev) => Math.min(prev + 1, moviesNowShowing.length - itemsPerPage));
+    }, 5000);
+
+    const comingSoonInterval = setInterval(() => {
+      setComingSoonIndex((prev) => Math.min(prev + 1, moviesComingSoon.length - itemsPerPage));
+    }, 6000);
+
+    return () => {
+      clearInterval(bannerInterval);
+      clearInterval(nowShowingInterval);
+      clearInterval(comingSoonInterval);
+    };
+  }, []);
 
   const openTrailer = (url) => {
     setTrailerUrl(url);
@@ -101,61 +85,52 @@ const HomePage = () => {
     setTrailerUrl('');
   };
 
-  const renderMovieList = (movies, pageIndex, setPageIndex) => {
-    const totalPages = Math.ceil(movies.length / itemsPerPage);
-    const startIndex = pageIndex * itemsPerPage;
-    const visibleMovies = movies.slice(startIndex, startIndex + itemsPerPage);
-
+  const renderSlidingMovieList = (movies, index, setIndex, nextArrow, prevArrow) => {
+    const maxIndex = movies.length - itemsPerPage;
+    const visible = movies.slice(index, index + itemsPerPage);
+  
     return (
       <div className="space-y-4">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-          {visibleMovies.map((movie, index) => (
-            <div
-              key={index}
-              className="relative cursor-pointer group"
-              onClick={() => openTrailer(movie.trailer)}
-            >
-              <img
-                src={movie.image}
-                alt={movie.title}
-                className="w-full h-[500px] object-cover rounded shadow-lg"
-              />
-              <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition duration-200">
+        <div className="relative">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-4 transition-all duration-500 ease-in-out">
+            {visible.map((movie, i) => (
+              <div
+                key={i}
+                className="relative cursor-pointer group"
+                onClick={() => openTrailer(movie.trailer)}
+              >
                 <img
-                  src={buttonplay}
-                  alt="Play"
-                  className="w-10 h-10 object-contain"
+                  src={movie.image}
+                  alt={movie.title}
+                  className="w-full h-[500px] object-cover rounded shadow-lg"
                 />
+                <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition duration-200">
+                  <img src={buttonplay} alt="Play" className="w-10 h-10 object-contain" />
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {totalPages >= 1 && (
-          <div className="flex justify-center items-center gap-4 mt-2">
+            ))}
+          </div>
+  
+          {/* Arrow controls */}
+          <div className="absolute top-1/2 left-0 transform -translate-y-1/2 z-10">
             <button
-              onClick={() => setPageIndex((prev) => Math.max(prev - 1, 0))}
-              disabled={pageIndex === 0}
-              className="px-3 py-1 bg-red-600 text-white rounded disabled:opacity-30"
+              onClick={() => setIndex((prev) => Math.max(prev - 1, 0))}
+              disabled={index === 0}
+              className="disabled:opacity-30"
             >
-              Back
-            </button>
-            <span className="text-sm text-white-300">
-              Page {pageIndex + 1}
-            </span>
-            <button
-              onClick={() =>
-                setPageIndex((prev) =>
-                  prev + 1 < totalPages ? prev + 1 : prev
-                )
-              }
-              disabled={pageIndex + 1 >= totalPages}
-              className="px-3 py-1 bg-red-600 text-white rounded disabled:opacity-30"
-            >
-              Next
+              <img src={prevbanner} alt="prev" className="w-8 h-8" />
             </button>
           </div>
-        )}
+          <div className="absolute top-1/2 right-0 transform -translate-y-1/2 z-10">
+            <button
+              onClick={() => setIndex((prev) => Math.min(prev + 1, maxIndex))}
+              disabled={index >= maxIndex}
+              className="disabled:opacity-30"
+            >
+              <img src={nextbanner} alt="next" className="w-8 h-8" />
+            </button>
+          </div>
+        </div>
       </div>
     );
   };
@@ -168,50 +143,27 @@ const HomePage = () => {
           alt="Featured Poster"
           className="w-full h-full object-cover"
         />
-        <a
-          onClick={() =>
-            setCurrentBanner((prev) => (prev + 1) % bannerList.length)
-          }
-          className="absolute right-4 top-1/2 transform -translate-y-1/2"
-          style={{ cursor: 'pointer' }}
-        >
+        <button onClick={() => setCurrentBanner((prev) => (prev + 1) % bannerList.length)} className="absolute right-4 top-1/2 transform -translate-y-1/2">
           <img src={nextbanner} alt="Next" className="w-8 h-8" />
-        </a>
-        <a
-          onClick={() =>
-            setCurrentBanner((prev) =>
-              prev === 0 ? bannerList.length - 1 : prev - 1
-            )
-          }
-          className="absolute left-4 top-1/2 transform -translate-y-1/2"
-          style={{ cursor: 'pointer' }}
-        >
+        </button>
+        <button onClick={() => setCurrentBanner((prev) => (prev === 0 ? bannerList.length - 1 : prev - 1))} className="absolute left-4 top-1/2 transform -translate-y-1/2">
           <img src={prevbanner} alt="Previous" className="w-8 h-8" />
-        </a>
+        </button>
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
           {bannerList.map((_, i) => (
-            <div
-              key={i}
-              className={`w-3 h-3 rounded-full ${i === currentBanner ? 'bg-red-500' : 'bg-white opacity-50'
-                }`}
-            ></div>
+            <div key={i} className={`w-3 h-3 rounded-full ${i === currentBanner ? 'bg-red-500' : 'bg-white opacity-50'}`} />
           ))}
         </div>
       </div>
 
-
       <div>
-        <h2 className="text-xl font-semibold mb-4">
-          The movie : <span className="text-red-500">Currently showing</span>
-        </h2>
-        {renderMovieList(moviesNowShowing, nowShowingPage, setNowShowingPage)}
+        <h2 className="text-xl font-semibold mb-4">The movie : <span className="text-red-500">Currently showing</span></h2>
+        {renderSlidingMovieList(moviesNowShowing, nowShowingIndex, setNowShowingIndex)}
       </div>
 
       <div>
-        <h2 className="text-xl font-semibold mb-4">
-          The movie : <span className="text-orange-400">Coming soon</span>
-        </h2>
-        {renderMovieList(moviesComingSoon, comingSoonPage, setComingSoonPage)}
+        <h2 className="text-xl font-semibold mb-4">The movie : <span className="text-orange-400">Coming soon</span></h2>
+        {renderSlidingMovieList(moviesComingSoon, comingSoonIndex, setComingSoonIndex)}
       </div>
 
       <div className="mt-10">
@@ -231,7 +183,7 @@ const HomePage = () => {
                 Description: “The Amazing Spider-Man” is an action-adventure film about Peter Parker becoming a superhero to fight crime.
               </p>
               <Link to="/moviedetails">
-                <button className="bg-red-600 text-white px-3 py-1 rounded text-xl">Book now</button>
+                <button className="bg-red-600 text-white px-3 py-1 rounded text-xl">Movie Details</button>
               </Link>
             </div>
           </div>
@@ -254,6 +206,7 @@ const HomePage = () => {
         </div>
       </div>
 
+
       <Modal
         open={isModalVisible}
         onCancel={closeTrailer}
@@ -269,9 +222,7 @@ const HomePage = () => {
             boxShadow: 'none',
             padding: 0,
           },
-          body: {
-            padding: 0,
-          },
+          body: { padding: 0 },
         }}
       >
         <div className="relative pb-[56.25%] h-0">
