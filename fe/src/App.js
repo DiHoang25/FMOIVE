@@ -19,6 +19,12 @@ import ViewMembersList from './pages/Employee/ViewMembersList';
 import ForgotPasswordPage from './pages/Login/ForgotPasswordPage';
 import ResetPasswordPage from './pages/Login/ResetPasswordPage';
 import NewPasswordPage from './pages/Login/NewPasswordPage';
+import ShowtimePage from './pages/Users/ShowtimePage';
+import SeatSelectionPage from './pages/Users/SeatSelectionPage';
+import ComboSelection from './pages/Users/ComboSelection';
+import BookingConfirmationPage from './pages/Users/BookingConfirmationPage';
+import ConfirmBooking from './pages/Users/ConfirmBooking';
+
 function AppContent() {
   const location = useLocation();
   const hideLayout = location.pathname.startsWith('/admin') || location.pathname.startsWith('/employee');
@@ -27,7 +33,7 @@ function AppContent() {
   return (
     <>
       {!hideLayout && <NotificationBar />}
-      <div className={!hideLayout ? 'pt-[60px]' : ''}>
+      <div className={!hideLayout ? 'pt-[1px]' : ''}>
         {!hideLayout && <Navbar />}
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -46,6 +52,17 @@ function AppContent() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/new-password" element={<NewPasswordPage />} />
+            <Route path="/movienews" element={<MovieNews />} />
+
+
+            {/* Movie Showtime and Ticket Route*/}
+            <Route path="/showtimes" element={<ShowtimePage/>} />      
+             <Route path="/select-seats" element={<SeatSelectionPage />} />
+            <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
+            <Route path="/select-seats" element={<SeatSelectionPage />} />
+            <Route path="/combo" element={<ComboSelection />} />
+            <Route path="/confirm-booking" element={<ConfirmBooking />} />
+
 
 
         </Routes>
