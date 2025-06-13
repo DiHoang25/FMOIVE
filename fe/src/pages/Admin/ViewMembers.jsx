@@ -108,33 +108,16 @@ const ViewMembers = () => {
 
   return (
     <SidebarLayout>
-    <div className="flex h-screen bg-gray-900">
+    <div className="flex h-screen">
 
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Header */}
-        <header className="p-4 flex justify-between items-center border-b border-gray-800">
-          <div className="flex items-center">
-            <h1 className="text-2xl text-gray-300">Admin</h1>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            
-            {/* User Avatar */}
-            <Link to="/admin/admin-profile">
-              <div className="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center text-white font-bold">
-                A
-              </div>
-            </Link>
-          </div>
-        </header>
+        
 
         {/* Back Button and Title */}
-        <div className="bg-gray-900 p-4 flex items-center justify-between">
-          <Link to="/admin" className="text-gray-400 hover:text-gray-300 flex items-center mr-4">
-                  <FaChevronLeft className="mr-1" /> Back
-                </Link>
+        <div className=" p-4 flex items-center justify-between">
           <div className="flex-1 text-center">
             <h2 className="text-2xl text-white font-bold">Member Management</h2>
           </div>

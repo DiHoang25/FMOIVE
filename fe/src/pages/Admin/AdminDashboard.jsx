@@ -27,17 +27,7 @@ function AdminDashboard() {
   return (
     <SidebarLayout>
       <div className="p-1">
-        {/* Top Header */}
-        <header className="px-2 py-1 flex justify-between items-center border-b border-gray-600">
-          <h1 className="text-xl text-white">Admin</h1>
-          <div className="flex items-center space-x-2">
-            <Link to="/admin/admin-profile">
-              <div className="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center text-white font-bold">
-                A
-              </div>
-            </Link>
-          </div>
-        </header>
+        
 
         {/* Dashboard Content */}
         <main className="mt-4">

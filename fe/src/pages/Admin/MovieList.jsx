@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import SidebarLayout from '../../components/Sidebar-Admin';
-import { FaChevronLeft, FaSearch, FaEye, FaEdit, FaTrash } from 'react-icons/fa';
+import { FaSearch, FaEye, FaEdit, FaTrash, FaClipboardList, FaRegBuilding } from 'react-icons/fa';
 
 const MovieList = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,13 +20,8 @@ const MovieList = () => {
     { id: 'MV008', name: 'Thor: Love and Thunder', genres: 'Action', duration: 119, showtime: 16, revenue: '2.8M', status: 'Now showing' },
   ];
 
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleGenreChange = (e) => {
-    setSelectedGenre(e.target.value);
-  };
+  const handleSearch = (e) => setSearchTerm(e.target.value);
+  const handleGenreChange = (e) => setSelectedGenre(e.target.value);
 
   const filteredMovies = movies.filter(movie =>
     movie.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -41,140 +36,111 @@ const MovieList = () => {
 
   const totalMovies = movies.length;
   const nowShowingMovies = movies.filter(movie => movie.status === 'Now showing').length;
-  const upcomingMovies = 6; // Placeholder as per image
-  const todayShowtimes = 156; // Placeholder as per image
+  const upcomingMovies = 6;
+  const todayShowtimes = 156;
 
   return (
     <SidebarLayout>
-      <div className="flex h-screen bg-gray-900 text-gray-300">
-        {/* Main Content */}
+      <div className="flex h-screen text-gray-300">
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Top Header */}
-          <header className="p-2 flex justify-between items-center border-b border-gray-800">
-            <div className="flex items-center">
-              <h1 className="text-xl text-gray-300">Admin</h1>
-            </div>
-            <div className="flex items-center space-x-2">
-              {/* User Avatar */}
-              <Link to="/admin/admin-profile">
-                <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white font-bold text-sm">
-                  A
-                </div>
-              </Link>
-            </div>
-          </header>
+          <div className="p-4 flex items-center justify-center">
+            <h2 className="text-2xl font-bold text-white">Movie List</h2>
+          </div>
 
-          {/* Back Button and Title */}
-          <div className="bg-gray-900 p-2 flex items-center justify-between">
-            <Link to="/admin" className="text-gray-400 hover:text-gray-300 flex items-center mr-2 text-sm">
-              <FaChevronLeft className="mr-1 text-xs" /> Back
-            </Link>
-            <div className="flex-1 text-center">
-              <h2 className="text-xl text-white font-bold">Movie List</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 px-4">
+            <div className="bg-[#1e293b] p-4 rounded-lg shadow flex items-center space-x-4">
+              <FaClipboardList className="text-2xl text-red-500" />
+              <div>
+                <div className="text-xl font-bold text-white">{totalMovies}</div>
+                <div className="text-gray-400 text-sm">Total Movies</div>
+              </div>
+            </div>
+            <div className="bg-[#1e293b] p-4 rounded-lg shadow flex items-center space-x-4">
+              <FaEye className="text-2xl text-green-400" />
+              <div>
+                <div className="text-xl font-bold text-white">{nowShowingMovies}</div>
+                <div className="text-gray-400 text-sm">Now Showing</div>
+              </div>
+            </div>
+            <div className="bg-[#1e293b] p-4 rounded-lg shadow flex items-center space-x-4">
+              <FaEdit className="text-2xl text-yellow-400" />
+              <div>
+                <div className="text-xl font-bold text-white">{upcomingMovies}</div>
+                <div className="text-gray-400 text-sm">Upcoming Movies</div>
+              </div>
+            </div>
+            <div className="bg-[#1e293b] p-4 rounded-lg shadow flex items-center space-x-4">
+              <FaRegBuilding className="text-2xl text-blue-400" />
+              <div>
+                <div className="text-xl font-bold text-white">{todayShowtimes}</div>
+                <div className="text-gray-400 text-sm">Today's Showtimes</div>
+              </div>
             </div>
           </div>
 
-          {/* Stats Section */}
-          <div className="grid grid-cols-4 gap-2 p-2">
-            <div className="bg-gray-800 p-2 rounded-lg text-center">
-              <div className="text-xl font-bold text-white">{totalMovies}</div>
-              <div className="text-gray-400 text-sm">Total Movies</div>
+          <div className="flex justify-between items-center px-4 py-2">
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                placeholder="Search movie name..."
+                className="bg-gray-700 text-white pl-3 pr-8 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 w-56"
+                value={searchTerm}
+                onChange={handleSearch}
+              />
+              <select
+                className="bg-gray-700 text-white pl-3 pr-8 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                value={selectedGenre}
+                onChange={handleGenreChange}
+              >
+                <option>All genres</option>
+                <option>Sci-Fi</option>
+                <option>Action</option>
+                <option>Fantasy</option>
+                <option>Animation</option>
+                <option>Adventure</option>
+              </select>
             </div>
-            <div className="bg-gray-800 p-2 rounded-lg text-center">
-              <div className="text-xl font-bold text-white">{nowShowingMovies}</div>
-              <div className="text-gray-400 text-sm">Now Showing</div>
-            </div>
-            <div className="bg-gray-800 p-2 rounded-lg text-center">
-              <div className="text-xl font-bold text-white">{upcomingMovies}</div>
-              <div className="text-gray-400 text-sm">Upcoming movies</div>
-            </div>
-            <div className="bg-gray-800 p-2 rounded-lg text-center">
-              <div className="text-xl font-bold text-white">{todayShowtimes}</div>
-              <div className="text-gray-400 text-sm">Today's showtimes</div>
-            </div>
-          </div>
-
-          {/* Search and Add Movie */}
-          <div className="flex justify-between items-center p-2">
-            <div className="flex space-x-1">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search movies name...."
-                  className="bg-gray-800 text-gray-300 pl-2 pr-8 py-1 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-700 w-48 text-sm"
-                  value={searchTerm}
-                  onChange={handleSearch}
-                />
-                <FaSearch className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs" />
-              </div>
-              <div className="relative">
-                <select
-                  className="bg-gray-800 text-gray-300 pl-2 pr-8 py-1 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-700 appearance-none text-sm"
-                  value={selectedGenre}
-                  onChange={handleGenreChange}
-                >
-                  <option>All genres</option>
-                  <option>Sci-Fi</option>
-                  <option>Action</option>
-                  <option>Fantasy</option>
-                  <option>Animation</option>
-                  <option>Adventure</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1 text-gray-400">
-                  <svg className="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                </div>
-              </div>
-              <button className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded-md flex items-center text-sm">
-                <FaSearch className="mr-1 text-xs" /> Search
-              </button>
-            </div>
-            <Link to="/admin/add-movie" className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded-md flex items-center text-sm">
-              + Add new movie
+            <Link to="/admin/add-movie" className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md shadow text-sm font-medium">
+              + Add New Movie
             </Link>
           </div>
 
-          {/* Movie List Table */}
-          <div className="flex-1 overflow-y-auto p-2">
-            <div className="text-xs text-gray-400 mb-1">
+          <div className="flex-1 overflow-y-auto px-4 pb-4">
+            <div className="text-xs text-gray-400 mb-2">
               Showing {currentMovies.length} of {filteredMovies.length} movies
             </div>
             <div className="bg-gray-800 rounded-md overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-700">
-                <thead>
-                  <tr className="bg-gray-800">
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">ID #</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Movie name</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Genres</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Duration</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Showtime</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Revenue</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Operation</th>
+              <table className="min-w-full divide-y divide-gray-700 text-sm">
+                <thead className="bg-gray-900">
+                  <tr>
+                    {['ID #', 'Movie name', 'Genres', 'Duration', 'Showtime', 'Revenue', 'Status', 'Action'].map((head) => (
+                      <th key={head} className="px-4 py-2 text-left font-medium text-gray-300 uppercase tracking-wider">
+                        {head}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="bg-gray-800 divide-y divide-gray-700">
                   {currentMovies.map((movie) => (
-                    <tr key={movie.id} className="hover:bg-gray-700">
-                      <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-300">{movie.id}</td>
-                      <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-300">{movie.name}</td>
-                      <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-300">{movie.genres}</td>
-                      <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-300">{movie.duration} minutes</td>
-                      <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-300">{movie.showtime}</td>
-                      <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-300">${movie.revenue}</td>
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          movie.status === 'Now showing'
-                            ? 'bg-green-500 text-white'
-                            : 'bg-red-500 text-white'
-                        }`}>
+                    <tr key={movie.id} className="hover:bg-gray-700 transition-colors duration-200">
+                      <td className="px-4 py-2 text-gray-200">{movie.id}</td>
+                      <td className="px-4 py-2 text-gray-200">{movie.name}</td>
+                      <td className="px-4 py-2 text-gray-400">{movie.genres}</td>
+                      <td className="px-4 py-2 text-gray-400">{movie.duration} min</td>
+                      <td className="px-4 py-2 text-gray-400">{movie.showtime}</td>
+                      <td className="px-4 py-2 text-gray-400">${movie.revenue}</td>
+                      <td className="px-4 py-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          movie.status === 'Now showing' ? 'bg-green-500' : 'bg-red-500'
+                        } text-white`}>
                           {movie.status}
                         </span>
                       </td>
-                      <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">
-                        <div className="flex space-x-1">
-                          <button className="text-blue-500 hover:text-blue-700 text-xs"><FaEye /></button>
-                          <button className="text-yellow-500 hover:text-yellow-700 text-xs"><FaEdit /></button>
-                          <button className="text-red-500 hover:text-red-700 text-xs"><FaTrash /></button>
+                      <td className="px-4 py-2">
+                        <div className="flex space-x-2 text-base">
+                          <button className="text-blue-400 hover:text-blue-600"><FaEye /></button>
+                          <button className="text-yellow-400 hover:text-yellow-600"><FaEdit /></button>
+                          <button className="text-red-400 hover:text-red-600"><FaTrash /></button>
                         </div>
                       </td>
                     </tr>
@@ -183,17 +149,16 @@ const MovieList = () => {
               </table>
             </div>
 
-            {/* Pagination */}
-            <div className="flex justify-center items-center space-x-1 mt-2">
+            <div className="flex justify-center items-center space-x-1 mt-4">
               {Array.from({ length: Math.ceil(filteredMovies.length / moviesPerPage) }, (_, i) => i + 1).map(page => (
                 <button
                   key={page}
                   onClick={() => paginate(page)}
-                  className={`w-6 h-6 rounded-md flex items-center justify-center text-xs ${
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                     currentPage === page
                       ? 'bg-red-500 text-white'
-                      : 'text-gray-400 hover:bg-gray-800'
-                  }`}
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  } transition-colors duration-200`}
                 >
                   {page}
                 </button>

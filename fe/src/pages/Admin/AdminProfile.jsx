@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Sidebar from '../../components/Sidebar-Admin';
+import SidebarLayout from '../../components/Sidebar-Admin';
 
 const AdminProfile = () => {
   return (
-    <div className="flex h-screen bg-gray-900">
-      <Sidebar />
+    <SidebarLayout>
+    <div className="flex h-screen">
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="p-4 flex justify-between items-center border-b border-gray-800">
@@ -21,11 +21,6 @@ const AdminProfile = () => {
           </div>
         </header>
 
-        <div className="bg-gray-900 p-4 flex items-center justify-between">
-          <Link to="/admin" className="text-gray-400 hover:text-gray-300 flex items-center mr-4">
-            <div className="mr-1" /> Back
-          </Link>
-        </div>
 
         <div className="flex-1 overflow-y-auto p-4">
           <div className="bg-gray-800 rounded-lg p-8 shadow-lg">
@@ -48,6 +43,7 @@ const AdminProfile = () => {
         </div>
       </div>
     </div>
+    </SidebarLayout>
   );
 };
 
