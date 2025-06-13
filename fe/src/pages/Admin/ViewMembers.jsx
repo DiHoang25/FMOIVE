@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import Sidebar from '../../components/Sidebar-Admin';
-// import { FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import SidebarLayout from '../../components/Sidebar-Admin';
+import { FaChevronLeft } from 'react-icons/fa';
 
 const ViewMembers = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -101,15 +101,15 @@ const ViewMembers = () => {
   // Filter members based on search term
   const filteredMembers = members.filter(member => 
     member.id.toString().includes(searchTerm) ||
-    member.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.address.toLowerCase().includes(searchTerm.toLowerCase())
+    member.fullName.trim().toLowerCase().includes(searchTerm.toLowerCase().trim()) ||
+    member.email.trim().toLowerCase().includes(searchTerm.toLowerCase().trim()) ||
+    member.address.trim().toLowerCase().includes(searchTerm.toLowerCase().trim())
   );
 
   return (
+    <SidebarLayout>
     <div className="flex h-screen bg-gray-900">
-      {/* Sidebar Component */}
-      <Sidebar />
+
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -120,16 +120,6 @@ const ViewMembers = () => {
           </div>
           
           <div className="flex items-center space-x-4">
-            {/* Search Bar */}
-            <div className="relative">
-              <input 
-                type="text" 
-                placeholder="Search..." 
-                className="bg-gray-800 text-gray-300 pl-4 pr-10 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-700"
-              />
-              <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              </button>
-            </div>
             
             {/* User Avatar */}
             <Link to="/admin/admin-profile">
@@ -143,8 +133,8 @@ const ViewMembers = () => {
         {/* Back Button and Title */}
         <div className="bg-gray-900 p-4 flex items-center justify-between">
           <Link to="/admin" className="text-gray-400 hover:text-gray-300 flex items-center mr-4">
-            <div className="mr-1" /> Back
-          </Link>
+                  <FaChevronLeft className="mr-1" /> Back
+                </Link>
           <div className="flex-1 text-center">
             <h2 className="text-2xl text-white font-bold">Member Management</h2>
           </div>
@@ -271,6 +261,7 @@ const ViewMembers = () => {
         </div>
       </div>
     </div>
+    </SidebarLayout>
   );
 };
 

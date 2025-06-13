@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import Sidebar from '../../components/Sidebar-Employee';
+import SidebarLayoutEmployee from '../../components/Sidebar-Employee';
 // import { FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 const ViewMembers = () => {
@@ -101,15 +101,15 @@ const ViewMembers = () => {
   // Filter members based on search term
   const filteredMembers = members.filter(member => 
     member.id.toString().includes(searchTerm) ||
-    member.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.address.toLowerCase().includes(searchTerm.toLowerCase())
+    member.fullName.trim().toLowerCase().includes(searchTerm.toLowerCase().trim()) ||
+    member.email.trim().toLowerCase().includes(searchTerm.toLowerCase().trim()) ||
+    member.address.trim().toLowerCase().includes(searchTerm.toLowerCase().trim())
   );
 
   return (
+    <SidebarLayoutEmployee>
     <div className="flex h-screen bg-gray-900">
       {/* Sidebar Component */}
-      <Sidebar />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -120,16 +120,6 @@ const ViewMembers = () => {
           </div>
           
           <div className="flex items-center space-x-4">
-            {/* Search Bar */}
-            <div className="relative">
-              <input 
-                type="text" 
-                placeholder="Search..." 
-                className="bg-gray-800 text-gray-300 pl-4 pr-10 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-700"
-              />
-              <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              </button>
-            </div>
             
             {/* User Avatar */}
             <Link to="/employee/employee-profile">
@@ -271,6 +261,7 @@ const ViewMembers = () => {
         </div>
       </div>
     </div>
+    </SidebarLayoutEmployee>
   );
 };
 

@@ -16,6 +16,8 @@ import MovieDetails from './pages/Movie/MovieDetails';
 import MovieNews from './pages/Movie/MovieNews';
 import EmployeeProfile from './pages/Employee/EmployeeProfile';
 import ViewMembersList from './pages/Employee/ViewMembersList';
+import AddMovie from './pages/Admin/AddMovie';
+import MovieList from './pages/Admin/MovieList';
 
 function AppContent() {
   const location = useLocation();
@@ -39,8 +41,10 @@ function AppContent() {
           <Route path="/admin/admin-profile" element={<AdminProfile />} />
           <Route path="/employee/members-list" element={<ViewMembersList />} />
           <Route path="/employee/employee-profile" element={<EmployeeProfile />} />
-          <Route path="/moviedetails" element={<MovieDetails/>} />
-            <Route path="/movienews" element={<MovieNews />} />
+          <Route path="/moviedetails" element={<MovieDetails />} />
+          <Route path="/movienews" element={<MovieNews />} />
+          <Route path="/admin/add-movie" element={<AddMovie />} />
+          <Route path="/admin/movie-list" element={<MovieList />} />
         </Routes>
         {!hideLayout && <Footer />}
       </div>

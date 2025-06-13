@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Sidebar from '../../components/Sidebar-Employee';
+import SidebarLayoutEmployee from '../../components/Sidebar-Employee';
 
 function EmployeeDashboard() {
   const stats = [
@@ -11,9 +11,9 @@ function EmployeeDashboard() {
   ];
 
   return (
+    <SidebarLayoutEmployee>
     <div className="flex h-screen bg-gray-900">
-      {/* Sidebar Component */}
-      <Sidebar />
+
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -66,6 +66,7 @@ function EmployeeDashboard() {
         </main>
       </div>
     </div>
+    </SidebarLayoutEmployee>
   );
 }
 

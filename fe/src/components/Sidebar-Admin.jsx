@@ -1,80 +1,129 @@
+// Sidebar-Admin.jsx
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-// import {
-//   FaHome,
-//   FaUsers,
-//   FaFilm,
-//   FaCouch,
-//   FaTicketAlt,
-//   FaClipboardList,
-//   FaInfoCircle,
-//   FaUserTie,
-//   FaList,
-//   FaDoorOpen,
-//   FaPercentage,
-//   FaBars
-// } from 'react-icons/fa';
+import { useLocation } from 'react-router-dom';
+import {
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  DashboardOutlined
+} from '@ant-design/icons';
+import { FaUserFriends, FaClipboardList, FaRegBuilding } from "react-icons/fa";
+import { IoTicketOutline } from "react-icons/io5";
+import { GiConfirmed } from "react-icons/gi";
+import { AiOutlineBook } from "react-icons/ai";
+import { RiInformation2Line } from "react-icons/ri";
+import { FaUsers } from "react-icons/fa6";
+import { SlPresent } from "react-icons/sl";
+import { Button, Layout, Menu, theme } from 'antd';
 
-const Sidebar = () => {
-  const [isOpen, setIsOpen] = useState(true);
+const { Header, Sider, Content } = Layout;
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-  };
 
-  const menuItems = [
-    { name: 'Dashboard Overview', path: '/admin'},
-    { name: 'View Members', path: '/admin/view-members' },
-    { name: 'Movie & Showtime', path: '/showtimes' },
-    { name: 'Select Seats', path: '/seats' },
-    { name: 'Confirm Tickets', path: '/confirm' },
-    { name: 'Booking List', path: '/bookings' },
-    { name: 'Ticket Information', path: '/tickets' },
-    { name: 'View Employees', path: '/admin/view-employees' },
-    { name: 'Movie List', path: '/movies' },
-    { name: 'Cinema Rooms', path: '/rooms' },
-    { name: 'Promotions', path: '/promotions' },
-  ];
+const SidebarLayout = ({ children }) => {
+  const location = useLocation();
+  const [collapsed, setCollapsed] = useState(false);
+  const {
+    token: { colorBgContainer, borderRadiusLG },
+  } = theme.useToken();
 
   return (
-    <div className="h-screen bg-gray-900 text-gray-300 flex flex-col w-64">
-      {/* Header */}
-      <div className="p-3 border-b border-gray-800 bg-gray-800">
-        <h1 className="text-xl font-bold text-white">Cinema Management</h1>
-        <p className="text-sm text-gray-400">Admin Dashboard</p>
-      </div>
-      
-      {/* Toggle Button */}
-      <button 
-        onClick={toggleSidebar}
-        className="flex items-center justify-center gap-2 m-3 p-2 bg-gray-700 hover:bg-gray-600 rounded text-white"
+    <Layout className="min-h-screen bg-[#0f172a]">
+      <Sider
+        width={260}             // rộng hơn mặc định (200px)
+        collapsedWidth={80}     // giữ collapsed nhỏ gọn
+        trigger={null}
+        collapsible
+        collapsed={collapsed}
       >
-         Toggle Menu
-      </button>
-      {/* Collapsible Menu */}
-      {!isOpen && (
-        <div className="p-3 border-b border-gray-800 bg-gray-800">
-          <ul>
-            {menuItems.map((item, index) => (
-              <li key={index}>
-                <Link
-                  to={item.path}
-                  className={`flex items-center px-4 py-3 ${
-                    item.active 
-                      ? 'bg-blue-500 text-white' 
-                      : 'hover:bg-gray-700'
-                  }`}
-                >
-                  <span className="mr-3">{item.icon}</span>
-                  <span>{item.name}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
+        <div className="demo-logo-vertical" />
+        <Menu
+          theme="dark"
+          mode="inline"
+          selectedKeys={[location.pathname]}
+          items={[
+            {
+              key: '/admin',
+              icon: <DashboardOutlined />,
+              label: <Link to="/admin">Dashboard Overview</Link>,
+            },
+            {
+              key: '/admin/view-members',
+              icon: <FaUserFriends />,
+              label: <Link to="/admin/view-members">View Members</Link>,
+            },
+            {
+              key: '3',
+              icon: <IoTicketOutline />,
+              label: 'Movie & Showtime',
+            },
+            {
+              key: '4',
+              icon: <GiConfirmed />,
+              label: 'Confirm Tickets',
+            },
+            {
+              key: '5',
+              icon: <AiOutlineBook />,
+              label: 'Booking List',
+            },
+            {
+              key: '6',
+              icon: <RiInformation2Line />,
+              label: 'Ticket Information',
+            },
+            {
+              key: '7',
+              icon: <FaUsers />,
+              label: 'View Employees',
+            },
+            {
+              key: '/admin/movie-list',
+              icon: <FaClipboardList />,
+              label: <Link to="/admin/movie-list">Movie List</Link>,
+            },
+            {
+              key: '9',
+              icon: <FaRegBuilding />,
+              label: 'Cinema Rooms',
+            },
+            {
+              key: '10',
+              icon: <SlPresent />,
+              label: 'Promotions',
+            },
+          ]}
+        />
+      </Sider>
+      <Layout>
+        <Header style={{ padding: 0, background: '#001529' }}>
+          <Button
+            type="text"
+            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            onClick={() => setCollapsed(!collapsed)}
+            style={{
+              fontSize: '20px',
+              width: 64,
+              height: 64,
+              color: 'white', // nút toggle màu trắng
+            }}
+          />
+        </Header>
+
+        <Content
+          style={{
+            padding: 24,
+            minHeight: 280,
+            background: '#0d1a2d', // màu nền dark hơn một chút
+            overflowY: 'auto',
+            color: 'white', // văn bản màu trắng
+          }}
+        >
+          {children}
+        </Content>
+
+      </Layout>
+    </Layout>
   );
 };
 
-export default Sidebar;
+export default SidebarLayout;
