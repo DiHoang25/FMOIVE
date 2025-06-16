@@ -3,6 +3,7 @@ import SidebarLayout from '../../components/Sidebar-Admin';
 import DatePicker from '../../components/DatePicker'
 import DropDown from '../../components/DropDown'
 import TimePicker from '../../components/TimePicker'
+import GernesPicker from '../../components/GernesPicker'
 
 
 const AddMovie = () => {
@@ -42,16 +43,16 @@ const AddMovie = () => {
         });
     };
 
-    const handleGenreChange = (e) => {
-        const { name, checked } = e.target;
-        setFormData({
-            ...formData,
-            genres: {
-                ...formData.genres,
-                [name]: checked
-            }
-        });
-    };
+    // const handleGenreChange = (e) => {
+    //     const { name, checked } = e.target;
+    //     setFormData({
+    //         ...formData,
+    //         genres: {
+    //             ...formData.genres,
+    //             [name]: checked
+    //         }
+    //     });
+    // };
 
     // const handleVersionChange = (e) => {
     //     const { name, checked } = e.target;
@@ -271,88 +272,7 @@ const AddMovie = () => {
                                 {/* Genres */}
                                 <div>
                                     <label className="block text-gray-300 mb-1">Genres * (Select all that apply)</label>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <label className="inline-flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                name="action"
-                                                checked={formData.genres.action}
-                                                onChange={handleGenreChange}
-                                                className="form-checkbox text-blue-500"
-                                            />
-                                            <span className="ml-2 text-gray-300">Action</span>
-                                        </label>
-                                        <label className="inline-flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                name="comedy"
-                                                checked={formData.genres.comedy}
-                                                onChange={handleGenreChange}
-                                                className="form-checkbox text-blue-500"
-                                            />
-                                            <span className="ml-2 text-gray-300">Comedy</span>
-                                        </label>
-                                        <label className="inline-flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                name="drama"
-                                                checked={formData.genres.drama}
-                                                onChange={handleGenreChange}
-                                                className="form-checkbox text-blue-500"
-                                            />
-                                            <span className="ml-2 text-gray-300">Drama</span>
-                                        </label>
-                                        <label className="inline-flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                name="horror"
-                                                checked={formData.genres.horror}
-                                                onChange={handleGenreChange}
-                                                className="form-checkbox text-blue-500"
-                                            />
-                                            <span className="ml-2 text-gray-300">Horror</span>
-                                        </label>
-                                        <label className="inline-flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                name="romance"
-                                                checked={formData.genres.romance}
-                                                onChange={handleGenreChange}
-                                                className="form-checkbox text-blue-500"
-                                            />
-                                            <span className="ml-2 text-gray-300">Romance</span>
-                                        </label>
-                                        <label className="inline-flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                name="sciFi"
-                                                checked={formData.genres.sciFi}
-                                                onChange={handleGenreChange}
-                                                className="form-checkbox text-blue-500"
-                                            />
-                                            <span className="ml-2 text-gray-300">Sci-Fi</span>
-                                        </label>
-                                        <label className="inline-flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                name="thriller"
-                                                checked={formData.genres.thriller}
-                                                onChange={handleGenreChange}
-                                                className="form-checkbox text-blue-500"
-                                            />
-                                            <span className="ml-2 text-gray-300">Thriller</span>
-                                        </label>
-                                        <label className="inline-flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                name="animation"
-                                                checked={formData.genres.animation}
-                                                onChange={handleGenreChange}
-                                                className="form-checkbox text-blue-500"
-                                            />
-                                            <span className="ml-2 text-gray-300">Animation</span>
-                                        </label>
-                                    </div>
+                                    <GernesPicker />
                                 </div>
 
                                 {/* Movie Poster */}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import SidebarLayout from '../../components/Sidebar-Admin';
-import { FaSearch, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
 
 const Promotions = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,14 +29,13 @@ const Promotions = () => {
   const indexOfFirstPromotion = indexOfLastPromotion - promotionsPerPage;
   const currentPromotions = filteredPromotions.slice(indexOfFirstPromotion, indexOfLastPromotion);
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
     <SidebarLayout>
       <div className="flex h-screen  text-gray-300">
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          
+
 
           {/* Title */}
           <div className=" p-4 flex items-center justify-center">
@@ -55,11 +54,8 @@ const Promotions = () => {
                   onChange={handleSearch}
                 />
               </div>
-              <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md flex items-center">
-                <FaSearch className="mr-2" /> Search
-              </button>
             </div>
-            <Link to="/admin/add-promotion" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center">
+            <Link to="/admin/add-promotion" className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md flex items-center">
               <FaPlus className="mr-2" /> Add Promotion
             </Link>
           </div>
@@ -94,46 +90,15 @@ const Promotions = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{promotion.discountLevel}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{promotion.detail}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <button className="text-yellow-500 hover:text-yellow-700"><FaEdit /></button>
-                          <button className="text-red-500 hover:text-red-700"><FaTrash /></button>
+                        <div className="flex space-x-3">
+                          <button className="text-yellow-500 hover:text-yellow-700 text-xl"><FaEdit /></button>
+                          <button className="text-red-500 hover:text-red-700 text-xl"><FaTrash /></button>
                         </div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
-
-            {/* Pagination */}
-            <div className="flex justify-center items-center space-x-2 mt-4">
-              <button
-                onClick={() => paginate(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-3 py-1 rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600 disabled:opacity-50"
-              >
-                &lt;
-              </button>
-              {Array.from({ length: Math.ceil(filteredPromotions.length / promotionsPerPage) }, (_, i) => i + 1).map(page => (
-                <button
-                  key={page}
-                  onClick={() => paginate(page)}
-                  className={`px-3 py-1 rounded-md ${
-                    currentPage === page
-                      ? 'bg-red-500 text-white'
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
-              <button
-                onClick={() => paginate(currentPage + 1)}
-                disabled={currentPage === Math.ceil(filteredPromotions.length / promotionsPerPage)}
-                className="px-3 py-1 rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600 disabled:opacity-50"
-              >
-                &gt;
-              </button>
             </div>
           </div>
         </div>

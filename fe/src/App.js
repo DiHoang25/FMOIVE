@@ -29,6 +29,8 @@ import ConfirmBooking from './pages/Users/ConfirmBooking';
 import ViewBookedTickets from './pages/Users/ViewsBookedTicket';
 import ViewScoreHistory from './pages/Users/ScoreHistory';
 import Promotions from './pages/Admin/Promotions';
+import BookingList from './pages/Admin/BookingList';
+
 import TicketDetail from './pages/Users/TicketDetail';
 import PaymentPage from './pages/Users/PaymentMethod';
 function AppContent() {
@@ -55,22 +57,23 @@ function AppContent() {
           <Route path="/employee/employee-profile" element={<EmployeeProfile />} />
           <Route path="/moviedetails" element={<MovieDetails />} />
           <Route path="/movienews" element={<MovieNews />} />
-<Route path="/admin/add-movie" element={<AddMovie />} />
+          <Route path="/admin/add-movie" element={<AddMovie />} />
           <Route path="/admin/movie-list" element={<MovieList />} />
           <Route path="/moviedetails" element={<MovieDetails />} />
           <Route path="/movienews" element={<MovieNews />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/new-password" element={<NewPasswordPage />} />
-            <Route path="/movienews" element={<MovieNews />} />
+          <Route path="/movienews" element={<MovieNews />} />
           <Route path="/viewbookedticket" element={<ViewBookedTickets />} />
           <Route path="/viewscorehistory" element={<ViewScoreHistory />} />
           <Route path="/movienews" element={<MovieNews />} />
           <Route path='/admin/promotions' element={<Promotions />} />
+          <Route path='/admin/booking-list' element={<BookingList />} />
 
 
           {/* Movie Showtime and Ticket Route*/}
-          <Route path="/showtimes" element={<ShowtimePage/>} />      
+          <Route path="/showtimes" element={<ShowtimePage />} />
           <Route path="/select-seats" element={<SeatSelectionPage />} />
           <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
           <Route path="/select-seats" element={<SeatSelectionPage />} />
