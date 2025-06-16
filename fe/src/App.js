@@ -24,6 +24,8 @@ import SeatSelectionPage from './pages/Users/SeatSelectionPage';
 import ComboSelection from './pages/Users/ComboSelection';
 import BookingConfirmationPage from './pages/Users/BookingConfirmationPage';
 import ConfirmBooking from './pages/Users/ConfirmBooking';
+import ViewBookedTickets from './pages/Users/ViewsBookedTicket';
+import ViewScoreHistory from './pages/Users/ScoreHistory';
 
 function AppContent() {
   const location = useLocation();
@@ -53,7 +55,8 @@ function AppContent() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/new-password" element={<NewPasswordPage />} />
             <Route path="/movienews" element={<MovieNews />} />
-
+          <Route path="/viewbookedticket" element={<ViewBookedTickets />} />
+          <Route path="/viewscorehistory" element={<ViewScoreHistory />} />
 
             {/* Movie Showtime and Ticket Route*/}
             <Route path="/showtimes" element={<ShowtimePage/>} />      
