@@ -20,7 +20,7 @@ const Navbar = () => {
         <DropdownItem
           label="Member"
           items={[
-            { label: 'Account', href: '/account' },
+            { label: 'Account', href: '/viewaccount' },
             { label: 'Customer benefits', href: '/authority' },
           ]}
         />

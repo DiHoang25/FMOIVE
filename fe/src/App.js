@@ -29,6 +29,8 @@ import ConfirmBooking from './pages/Users/ConfirmBooking';
 import ViewBookedTickets from './pages/Users/ViewsBookedTicket';
 import ViewScoreHistory from './pages/Users/ScoreHistory';
 import Promotions from './pages/Admin/Promotions';
+import ViewAccount from './pages/Users/ViewAccount';
+import EditAccount from './pages/Users/EditAccount';
 
 function AppContent() {
   const location = useLocation();
@@ -66,6 +68,9 @@ function AppContent() {
           <Route path="/viewscorehistory" element={<ViewScoreHistory />} />
           <Route path="/movienews" element={<MovieNews />} />
           <Route path='/admin/promotions' element={<Promotions />} />
+          <Route path="/viewaccount" element={<ViewAccount />} />
+          <Route path="/editaccount" element={<EditAccount />} />
+
 
 
           {/* Movie Showtime and Ticket Route*/}
