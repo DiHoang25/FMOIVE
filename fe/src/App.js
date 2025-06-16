@@ -29,7 +29,8 @@ import ConfirmBooking from './pages/Users/ConfirmBooking';
 import ViewBookedTickets from './pages/Users/ViewsBookedTicket';
 import ViewScoreHistory from './pages/Users/ScoreHistory';
 import Promotions from './pages/Admin/Promotions';
-
+import TicketDetail from './pages/Users/TicketDetail';
+import PaymentPage from './pages/Users/PaymentMethod';
 function AppContent() {
   const location = useLocation();
   const hideLayout = location.pathname.startsWith('/admin') || location.pathname.startsWith('/employee');
@@ -69,12 +70,14 @@ function AppContent() {
 
 
           {/* Movie Showtime and Ticket Route*/}
-          <Route path="/showtimes" element={<ShowtimePage />} />
+          <Route path="/showtimes" element={<ShowtimePage/>} />      
           <Route path="/select-seats" element={<SeatSelectionPage />} />
           <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
           <Route path="/select-seats" element={<SeatSelectionPage />} />
           <Route path="/combo" element={<ComboSelection />} />
           <Route path="/confirm-booking" element={<ConfirmBooking />} />
+          <Route path="/payment" element={<PaymentPage />} />
+          <Route path="/ticket-detail" element={<TicketDetail />} />
 
 
 
