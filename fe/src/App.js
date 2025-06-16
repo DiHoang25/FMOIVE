@@ -31,6 +31,12 @@ import ViewScoreHistory from './pages/Users/ScoreHistory';
 import Promotions from './pages/Admin/Promotions';
 import TicketDetail from './pages/Users/TicketDetail';
 import PaymentPage from './pages/Users/PaymentMethod';
+import CounterShowtimesPage from './pages/Employee/CounterShowtimePage';
+import CounterSeatSelectionPage from './pages/Employee/CounterSelectionSeat';
+import CounterComboPage from './pages/Employee/CounterCombo';
+import CounterConfirmBooking from './pages/Employee/CounterConfirm';
+import PaymentCounter from './pages/Employee/CounterPayment';
+import PaymentSuccess from './pages/Employee/PaymentSuccessfull';
 function AppContent() {
   const location = useLocation();
   const hideLayout = location.pathname.startsWith('/admin') || location.pathname.startsWith('/employee');
@@ -55,7 +61,7 @@ function AppContent() {
           <Route path="/employee/employee-profile" element={<EmployeeProfile />} />
           <Route path="/moviedetails" element={<MovieDetails />} />
           <Route path="/movienews" element={<MovieNews />} />
-<Route path="/admin/add-movie" element={<AddMovie />} />
+          <Route path="/admin/add-movie" element={<AddMovie />} />
           <Route path="/admin/movie-list" element={<MovieList />} />
           <Route path="/moviedetails" element={<MovieDetails />} />
           <Route path="/movienews" element={<MovieNews />} />
@@ -78,6 +84,16 @@ function AppContent() {
           <Route path="/confirm-booking" element={<ConfirmBooking />} />
           <Route path="/payment" element={<PaymentPage />} />
           <Route path="/ticket-detail" element={<TicketDetail />} />
+
+          { /* Counter(Employee) Routes */}
+          <Route path="/counter-showtimes" element={<CounterShowtimesPage />} />
+          <Route path="/counter-seat" element={<CounterSeatSelectionPage />} />
+          <Route path="/counter-combo"   element={<CounterComboPage />} />
+          <Route path="/counter-confirm" element={<CounterConfirmBooking />} />
+          <Route path="/counter-payment" element={<PaymentCounter />} />
+          <Route path="/counter-payment-success" element={<PaymentSuccess />} />
+          
+          {/* Catch-all route for 404 */}
 
 
 
