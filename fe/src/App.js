@@ -31,7 +31,10 @@ import ViewScoreHistory from './pages/Users/ScoreHistory';
 import Promotions from './pages/Admin/Promotions';
 import ViewAccount from './pages/Users/ViewAccount';
 import EditAccount from './pages/Users/EditAccount';
+import BookingList from './pages/Admin/BookingList';
 
+import TicketDetail from './pages/Users/TicketDetail';
+import PaymentPage from './pages/Users/PaymentMethod';
 function AppContent() {
   const location = useLocation();
   const hideLayout = location.pathname.startsWith('/admin') || location.pathname.startsWith('/employee');
@@ -56,14 +59,14 @@ function AppContent() {
           <Route path="/employee/employee-profile" element={<EmployeeProfile />} />
           <Route path="/moviedetails" element={<MovieDetails />} />
           <Route path="/movienews" element={<MovieNews />} />
-<Route path="/admin/add-movie" element={<AddMovie />} />
+          <Route path="/admin/add-movie" element={<AddMovie />} />
           <Route path="/admin/movie-list" element={<MovieList />} />
           <Route path="/moviedetails" element={<MovieDetails />} />
           <Route path="/movienews" element={<MovieNews />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/new-password" element={<NewPasswordPage />} />
-            <Route path="/movienews" element={<MovieNews />} />
+          <Route path="/movienews" element={<MovieNews />} />
           <Route path="/viewbookedticket" element={<ViewBookedTickets />} />
           <Route path="/viewscorehistory" element={<ViewScoreHistory />} />
           <Route path="/movienews" element={<MovieNews />} />
@@ -71,6 +74,7 @@ function AppContent() {
           <Route path="/viewaccount" element={<ViewAccount />} />
           <Route path="/editaccount" element={<EditAccount />} />
 
+          <Route path='/admin/booking-list' element={<BookingList />} />
 
 
           {/* Movie Showtime and Ticket Route*/}
@@ -80,6 +84,8 @@ function AppContent() {
           <Route path="/select-seats" element={<SeatSelectionPage />} />
           <Route path="/combo" element={<ComboSelection />} />
           <Route path="/confirm-booking" element={<ConfirmBooking />} />
+          <Route path="/payment" element={<PaymentPage />} />
+          <Route path="/ticket-detail" element={<TicketDetail />} />
 
 
 
