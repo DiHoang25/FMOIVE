@@ -37,7 +37,14 @@ import TicketDetail from './pages/Users/TicketDetail';
 import PaymentPage from './pages/Users/PaymentMethod';
 function AppContent() {
   const location = useLocation();
-  const hideLayout = location.pathname.startsWith('/admin') || location.pathname.startsWith('/employee');
+  const hideLayout = 
+  location.pathname.startsWith('/admin') 
+  || location.pathname.startsWith('/employee') 
+  || location.pathname.startsWith('/login') 
+  || location.pathname.startsWith('/register')  
+  || location.pathname.startsWith('/reset-password') 
+  || location.pathname.startsWith('/forgot-password')
+  || location.pathname.startsWith('/new-password'); 
 
 
   return (

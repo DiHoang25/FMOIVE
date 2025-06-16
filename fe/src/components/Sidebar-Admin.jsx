@@ -69,9 +69,9 @@ const SidebarLayout = ({ children }) => {
               label: 'Confirm Tickets',
             },
             {
-              key: '5',
+              key: '/admin/booking-list',
               icon: <AiOutlineBook />,
-              label: 'Booking List',
+              label: <Link to="/admin/booking-list">Booking List</Link>,
             },
             {
               key: '6',

@@ -251,11 +251,18 @@ const HomePage = () => {
                 <span className="flex items-center gap-1"> <span role="img" aria-label="admin">
                   👤</span>
                   admin </span>
-                <span className="flex items-center gap-1">
+                
+              </div>
+              <div>
+              <span className="text-xs flex items-center gap-1">
                   <span role="img" aria-label="calendar">📅
-                  </span> 13/05/2025 </span> </div>
+                  </span> 13/05/2025 </span>
+              </div>
               <p className="text-sm text-gray-700 line-clamp-3">
-                "Avengers End Game: is a last part of Avenger's univer which has 3 hours,... </p> </div> </Link>))} </div> </div>
+                "Avengers End Game: is a last part of Avenger's univer which has 3 hours,... </p> 
+                </div> </Link>))}
+        </div>
+      </div>
 
 
       <Modal

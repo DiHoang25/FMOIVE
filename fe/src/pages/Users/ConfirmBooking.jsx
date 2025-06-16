@@ -98,7 +98,7 @@ const ConfirmBooking = () => {
             BACK
           </button>
           <button
-            onClick={() => alert('Proceeding to payment...')}
+            onClick={() => navigate('/payment')}
             className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded font-semibold"
           >
             PROCEED TO PAYMENT
