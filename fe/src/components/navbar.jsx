@@ -1,86 +1,104 @@
-import React, { useState, useRef, useEffect } from 'react';
-import downArrow from '../assets/down-arrow.png';
+import { useState, useRef, useEffect } from "react"
+import { ChevronDown } from "lucide-react"
+import { Link } from "react-router-dom"
+import { FaHome } from 'react-icons/fa'
 
 const Navbar = () => {
   return (
     <div className="flex items-center justify-center bg-white shadow px-4 py-2">
-      
-      <div className="flex space-x-6">
-        <NavItem label="Home Page" showArrow={false} />
-        <NavItem label="Showtimes" />
-        <DropdownItem
-          label="Movies"
-          items={[
-            { label: 'Movie Search', href: '/movie-search' },
-            { label: 'Movie News', href: '/MovieNews' },
-          ]}
-        />
-        <NavItem label="Promotions" showArrow={false} />
-        <NavItem label="Contact" />
-        <DropdownItem
-          label="Member"
-          items={[
-            { label: 'Account', href: '/account' },
-            { label: 'Customer benefits', href: '/authority' },
-          ]}
-        />
-      </div>
-    </div>
-  );
-};
-
-const NavItem = ({ label, showArrow = true }) => (
-  <div className="flex items-center space-x-1 cursor-pointer hover:text-blue-500 select-none">
-    <span className="text-black font-medium">{label}</span>
-    {showArrow && <img src={downArrow} alt="down-arrow" className="w-3 h-3" />}
+  <div className="flex space-x-6">
+    <NavItem label="Home" icon={<FaHome className="w-4 h-4 text-black" />} showArrow={false} link="/" />
+    <NavItem label="Showtimes" showArrow={false} link="/showtimes" />
+    <DropdownItem
+      label="Movies"
+      items={[
+        { label: "Movie Search", href: "/moviesearch" },
+        { label: "Movie News", href: "/movienews" },
+      ]}
+    />
+    <NavItem label="Promotions" showArrow={false} link="/promotions" />
+    <NavItem label="Contact" showArrow={false} link="/contact" />
+    <DropdownItem
+      label="Member"
+      items={[
+        { label: "Account", href: "/viewaccount" },
+        { label: "Customer benefits", href: "/customer-benefits" },
+      ]}
+    />
   </div>
-);
+</div>
+
+  )
+}
+
+const NavItem = ({ label, showArrow = true, link = "#", icon = null }) => (
+  <Link
+    to={link}
+    className="flex items-center space-x-1 cursor-pointer hover:text-blue-500 select-none transition-colors duration-200"
+  >
+    {icon && icon}
+    <span className="text-black font-medium">{label}</span>
+    {showArrow && <ChevronDown className="w-3 h-3" />}
+  </Link>
+)
 
 const DropdownItem = ({ label, items }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef(null)
+  const timeoutRef = useRef(null)
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+    }
+    setIsOpen(true)
+  }
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setIsOpen(false)
+    }, 150)
+  }
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target)
-      ) {
-        setIsOpen(false);
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
       }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    }
+  }, [])
 
   return (
-    <div className="relative inline-block text-left" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center space-x-1 cursor-pointer hover:text-blue-500 select-none focus:outline-none"
-      >
+    <div
+      className="relative inline-block text-left"
+      ref={dropdownRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <div className="flex items-center space-x-1 cursor-pointer hover:text-blue-500 select-none transition-colors duration-200">
         <span className="text-black font-medium">{label}</span>
-        <img src={downArrow} alt="arrow" className="w-3 h-3" />
-      </button>
+        <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+      </div>
 
       {isOpen && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-44 bg-white text-black shadow-md rounded z-50">
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-44 bg-white text-black shadow-lg rounded-md border border-gray-200 z-50 animate-in fade-in-0 zoom-in-95 duration-200">
           <ul className="py-2">
             {items.map((item, index) => (
               <li key={index}>
-                <a
-                  href={item.href}
-                  className="block px-4 py-2 hover:bg-gray-100 text-sm"
+                <Link
+                  to={item.href}
+                  className="block px-4 py-2 hover:bg-blue-50 hover:text-blue-600 text-sm transition-colors duration-150"
+                  onClick={() => setIsOpen(false)}
                 >
                   {item.label}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar

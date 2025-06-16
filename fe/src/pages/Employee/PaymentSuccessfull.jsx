@@ -1,9 +1,9 @@
-import { useNavigate } from 'react-router-dom';
+
 import { CheckCircle } from 'lucide-react'; // ✅ Add this icon
 import batman from '../../assets/batman.png'; // Replace with actual poster
 
 const PaymentSuccess = () => {
-  const navigate = useNavigate();
+  
 
   const movie = {
     title: 'The Dark Knight',

@@ -58,20 +58,20 @@ const SidebarLayout = ({ children }) => {
               icon: <FaUserFriends />,
               label: <Link to="/admin/view-members">View Members</Link>,
             },
-            {
-              key: '3',
-              icon: <IoTicketOutline />,
-              label: 'Movie & Showtime',
-            },
+            // {
+            //   key: '3',
+            //   icon: <IoTicketOutline />,
+            //   label: 'Movie & Showtime',
+            // },
             {
               key: '4',
               icon: <GiConfirmed />,
               label: 'Confirm Tickets',
             },
             {
-              key: '5',
+              key: '/admin/booking-list',
               icon: <AiOutlineBook />,
-              label: 'Booking List',
+              label: <Link to="/admin/booking-list">Booking List</Link>,
             },
             {
               key: '6',

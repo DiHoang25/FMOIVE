@@ -34,7 +34,7 @@ const ticketData = [
     {
         id: 'BK012347',
         movie: 'Avengers: Endgame',
-        date: 'Dec 24, 2024',
+        date: 'Dec 24, 2027',
         time: '6:30 PM',
         status: 'CONFIRMED',
         seats: 'A16, A17',
@@ -45,7 +45,7 @@ const ticketData = [
         duration: '2h 50m'
     },
     {
-        id: 'BK012346',
+        id: 'BK012349',
         movie: 'Avengers: Endgame',
         date: 'Dec 25, 2024',
         time: '9:00 PM',
