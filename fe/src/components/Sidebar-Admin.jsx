@@ -58,11 +58,11 @@ const SidebarLayout = ({ children }) => {
               icon: <FaUserFriends />,
               label: <Link to="/admin/view-members">View Members</Link>,
             },
-            {
-              key: '3',
-              icon: <IoTicketOutline />,
-              label: 'Movie & Showtime',
-            },
+            // {
+            //   key: '3',
+            //   icon: <IoTicketOutline />,
+            //   label: 'Movie & Showtime',
+            // },
             {
               key: '4',
               icon: <GiConfirmed />,

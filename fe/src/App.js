@@ -55,12 +55,14 @@ function AppContent() {
 
 
   const showNavbarForMovieSearch = location.pathname === '/moviesearch';
+  const hideLayout = location.pathname.startsWith('/admin') || location.pathname.startsWith('/employee');
 
   return (
     <>
       
-      <NotificationBar />
-      <div className="pt-[0px]">
+      {!hideLayout && <NotificationBar />}
+      <div className={!hideLayout ? 'pt-[1px]' : ''}>
+        
         
         {!hideNavbarFooter && !showNavbarForMovieSearch && <Navbar />}
         <Routes>
