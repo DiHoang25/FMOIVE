@@ -11,16 +11,14 @@ function ForgotPasswordPage() {
 
   const handleChange = (e) => {
     setEmail(e.target.value);
-    // Clear any existing messages/errors when user types
+    
     setMessage('');
     setError('');
   };
 
-  // Hàm kiểm tra email có đúng định dạng của Gmail không
+  
   const isValidGmail = (email) => {
-    // Regex để kiểm tra định dạng Gmail
-    // - Bắt đầu bằng một chuỗi ký tự (chữ cái, số, dấu chấm, dấu gạch dưới)
-    // - Theo sau là @gmail.com
+    
     const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
     return gmailRegex.test(email);
   };
@@ -33,7 +31,7 @@ function ForgotPasswordPage() {
       return;
     }
 
-    // Kiểm tra xem có phải địa chỉ Gmail không
+    // Kiểm tra địa chỉ Gmail
     if (!isValidGmail(email)) {
       setError('Please enter a valid Gmail address (example@gmail.com)');
       return;
@@ -42,11 +40,10 @@ function ForgotPasswordPage() {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      // Replace with actual API call to send reset code
+     
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Instead of setting message, navigate to reset password page
+      
       navigate('/reset-password');
     } catch (err) {
       setError('An error occurred. Please try again later.');
@@ -57,7 +54,7 @@ function ForgotPasswordPage() {
   };
 
   const handleCancel = () => {
-    // Navigate back to login page
+    
     window.history.back();
   };
 
@@ -114,9 +111,7 @@ function ForgotPasswordPage() {
           </div>
           
           <div className="mt-6 text-center">
-            <Link to="/login" className="text-red-500 hover:text-red-400">
-              Back to Login
-            </Link>
+            
           </div>
         </div>
       </div>

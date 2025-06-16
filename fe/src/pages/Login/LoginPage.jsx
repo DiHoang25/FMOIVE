@@ -6,7 +6,11 @@ const LoginPage = () => {
     username: '',
     password: ''
   });
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState({
+    username: '',
+    password: '',
+    general: ''
+  });
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
@@ -15,19 +19,53 @@ const LoginPage = () => {
       ...prevState,
       [name]: value
     }));
+
+    
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {
+      username: '',
+      password: '',
+      general: ''
+    };
+    let isValid = true;
+
+    if (!formData.username.trim()) {
+      newErrors.username = 'Username is required';
+      isValid = false;
+    }
+
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.username || !formData.password) {
-      setError('User / password is invalid. Please try again!');
+
+    if (!validateForm()) {
       return;
     }
+
+    
     console.log('Login attempt:', formData);
+
+    
   };
 
   const handleGoogleLogin = () => {
-    // Implement Google login logic here
+    
     console.log('Google login clicked');
   };
 
@@ -43,8 +81,11 @@ const LoginPage = () => {
               value={formData.username}
               onChange={handleChange}
               placeholder="Username"
-              className="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-red-500"
+              className={`w-full px-4 py-2 rounded bg-gray-700 text-white border ${errors.username ? 'border-red-500' : 'border-gray-600'} focus:outline-none focus:border-red-500`}
             />
+            {errors.username && (
+              <div className="text-red-500 text-sm mt-1">{errors.username}</div>
+            )}
           </div>
           <div className="relative">
             <input
@@ -53,7 +94,7 @@ const LoginPage = () => {
               value={formData.password}
               onChange={handleChange}
               placeholder="Password"
-              className="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-red-500"
+              className={`w-full px-4 py-2 rounded bg-gray-700 text-white border ${errors.password ? 'border-red-500' : 'border-gray-600'} focus:outline-none focus:border-red-500`}
             />
             <button
               type="button"
@@ -62,9 +103,12 @@ const LoginPage = () => {
             >
               {showPassword ? 'Hide' : 'Show'}
             </button>
+            {errors.password && (
+              <div className="text-red-500 text-sm mt-1">{errors.password}</div>
+            )}
           </div>
-          {error && (
-            <div className="text-red-500 text-sm">{error}</div>
+          {errors.general && (
+            <div className="text-red-500 text-sm">{errors.general}</div>
           )}
           <div className="text-center">
             <Link to="/forgot-password" className="text-red-500 text-sm hover:text-red-400">Forgot Password?</Link>
@@ -77,7 +121,6 @@ const LoginPage = () => {
           </button>
           <div className="flex items-center my-4">
             <div className="flex-1 border-t border-gray-600"></div>
-            
             <div className="flex-1 border-t border-gray-600"></div>
           </div>
           <button
