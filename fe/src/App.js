@@ -14,6 +14,7 @@ import EmployeeList from './pages/Admin/EmployeeList';
 import AdminProfile from './pages/Admin/AdminProfile';
 import MovieDetails from './pages/Movie/MovieDetails';
 import MovieNews from './pages/Movie/MovieNews';
+import MovieSearch from './pages/Movie/MovieSearch'; 
 import EmployeeProfile from './pages/Employee/EmployeeProfile';
 import ViewMembersList from './pages/Employee/ViewMembersList';
 import AddMovie from './pages/Admin/AddMovie';
@@ -32,19 +33,36 @@ import Promotions from './pages/Admin/Promotions';
 import ViewAccount from './pages/Users/ViewAccount';
 import EditAccount from './pages/Users/EditAccount';
 import BookingList from './pages/Admin/BookingList';
-
+import MovieDetailsSearch from './pages/Movie/MovieDetailsSearch';
+import MovieNewsSearch from './pages/Movie/MovieNewsSearch';
 import TicketDetail from './pages/Users/TicketDetail';
 import PaymentPage from './pages/Users/PaymentMethod';
+import PromotionsPage from './pages/Promotions/PromotionsPage';
+import CustomerBenefits from './pages/Users/CustomerBenefits';
+
 function AppContent() {
   const location = useLocation();
-  const hideLayout = location.pathname.startsWith('/admin') || location.pathname.startsWith('/employee');
 
+  
+  const hideNavbarFooter =
+    location.pathname.startsWith('/admin')
+    || location.pathname.startsWith('/employee')
+    || location.pathname.startsWith('/login')
+    || location.pathname.startsWith('/register')
+    || location.pathname.startsWith('/reset-password')
+    || location.pathname.startsWith('/forgot-password')
+    || location.pathname.startsWith('/new-password');
+
+
+  const showNavbarForMovieSearch = location.pathname === '/moviesearch';
 
   return (
     <>
-      {!hideLayout && <NotificationBar />}
-      <div className={!hideLayout ? 'pt-[1px]' : ''}>
-        {!hideLayout && <Navbar />}
+      
+      <NotificationBar />
+      <div className="pt-[0px]">
+        
+        {!hideNavbarFooter && !showNavbarForMovieSearch && <Navbar />}
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/Users" element={<UsersDashboard />} />
@@ -59,38 +77,34 @@ function AppContent() {
           <Route path="/employee/employee-profile" element={<EmployeeProfile />} />
           <Route path="/moviedetails" element={<MovieDetails />} />
           <Route path="/movienews" element={<MovieNews />} />
+          <Route path="/moviesearch" element={<MovieSearch />} />
           <Route path="/admin/add-movie" element={<AddMovie />} />
           <Route path="/admin/movie-list" element={<MovieList />} />
-          <Route path="/moviedetails" element={<MovieDetails />} />
-          <Route path="/movienews" element={<MovieNews />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/new-password" element={<NewPasswordPage />} />
-          <Route path="/movienews" element={<MovieNews />} />
           <Route path="/viewbookedticket" element={<ViewBookedTickets />} />
           <Route path="/viewscorehistory" element={<ViewScoreHistory />} />
-          <Route path="/movienews" element={<MovieNews />} />
           <Route path='/admin/promotions' element={<Promotions />} />
           <Route path="/viewaccount" element={<ViewAccount />} />
           <Route path="/editaccount" element={<EditAccount />} />
-
+          <Route path="/moviedetailssearch" element={<MovieDetailsSearch />} />
+          <Route path="/movienewsssearch" element={<MovieNewsSearch />} />
           <Route path='/admin/booking-list' element={<BookingList />} />
+          <Route path="/customer-benefits" element={<CustomerBenefits />} />
 
-
-          {/* Movie Showtime and Ticket Route*/}
+        
           <Route path="/showtimes" element={<ShowtimePage />} />
           <Route path="/select-seats" element={<SeatSelectionPage />} />
           <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
-          <Route path="/select-seats" element={<SeatSelectionPage />} />
           <Route path="/combo" element={<ComboSelection />} />
           <Route path="/confirm-booking" element={<ConfirmBooking />} />
           <Route path="/payment" element={<PaymentPage />} />
           <Route path="/ticket-detail" element={<TicketDetail />} />
-
-
-
+          <Route path="/promotions" element={<PromotionsPage />} />
         </Routes>
-        {!hideLayout && <Footer />}
+       
+        {!hideNavbarFooter && <Footer />}
       </div>
     </>
   );

@@ -20,20 +20,20 @@ function RegisterPage() {
     }
   });
 
-  // Lấy giá trị password hiện tại để kiểm tra match
+ 
   const password = watch('password');
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     
-    // Thông thường bạn sẽ gửi data lên API
+    
     console.log('Form submitted:', data);
     
-    // Giả lập API call
+    
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     setIsSubmitting(false);
-    // Hiển thị modal thành công thay vì alert
+    
     setShowSuccessModal(true);
   };
 
@@ -42,48 +42,20 @@ function RegisterPage() {
     navigate('/login');
   };
 
-  const validateForm = (data) => {
-    const errors = {};
-
-    if (!data.account || data.account.length < 3) {
-      errors.account = 'Tài khoản phải có ít nhất 3 ký tự';
-    }
-
-    if (!data.password || data.password.length < 6) {
-      errors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
-    }
-
-    if (data.password !== data.confirmPassword) {
-      errors.confirmPassword = 'Mật khẩu xác nhận không khớp';
-    }
-
-    if (!data.fullName) {
-      errors.fullName = 'Họ tên là bắt buộc';
-    }
-
-    if (!data.dateOfBirth) {
-      errors.dateOfBirth = 'Ngày sinh là bắt buộc';
-    }
-
-    if (!data.agreeToTerms) {
-      errors.agreeToTerms = 'Bạn phải đồng ý với điều khoản và điều kiện';
-    }
-
-    return errors;
-  };
-
   return (
     <div className="flex min-h-screen">
+      
       <div className="w-1/2 flex flex-col justify-center px-12 py-8 bg-gray-900 text-white">
         <div className="max-w-md mx-auto w-full">
-          <h1 className="text-4xl font-bold mb-4">Register account</h1>
-          
-          <div className="mb-8">
-            Already a member? <Link to="/login" className="text-red-500 hover:underline">Login Now!</Link>
+          <div className="mb-6 text-center">
+            <h1 className="text-3xl font-bold mb-4">Register account</h1>
+            <div>
+              Already a member? <Link to="/login" className="text-red-500 hover:underline">Login Now!</Link>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2 p-4 bg-gray-700 rounded-lg overflow-y-auto max-h-[60vh]">
+            <div className="space-y-4">
               <div>
                 <label htmlFor="account" className="block text-sm font-medium mb-1">
                   Account
@@ -122,7 +94,7 @@ function RegisterPage() {
                   id="confirmPassword"
                   type="password"
                   className="w-full px-3 py-2 border rounded-md text-black"
-                  {...register('confirmPassword', { 
+                  {...register('confirmPassword', {
                     required: 'Please confirm your password',
                     validate: value => value === password || 'Passwords do not match'
                   })}
@@ -131,7 +103,6 @@ function RegisterPage() {
                   <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message}</p>
                 )}
               </div>
-
               <div>
                 <label htmlFor="fullName" className="block text-sm font-medium mb-1">
                   Full Name
@@ -162,7 +133,7 @@ function RegisterPage() {
                 )}
               </div>
 
-              <div className="flex space-x-6 mt-4">
+              <div className="flex space-x-6">
                 <label className="inline-flex items-center">
                   <input
                     type="radio"
@@ -181,28 +152,6 @@ function RegisterPage() {
                   />
                   <span className="ml-2">Female</span>
                 </label>
-              </div>
-
-              {/* Thêm các trường mới */}
-              <div>
-                <label htmlFor="identityCard" className="block text-sm font-medium mb-1">
-                  Identity Card
-                </label>
-                <input
-                  id="identityCard"
-                  type="text"
-                  className="w-full px-3 py-2 border rounded-md text-black"
-                  {...register('identityCard', {
-                    required: 'Identity card number is required',
-                    pattern: {
-                      value: /^[0-9]{9,12}$/,
-                      message: 'Please enter a valid identity card number (9-12 digits)'
-                    }
-                  })}
-                />
-                {errors.identityCard && (
-                  <p className="text-red-500 text-sm mt-1">{errors.identityCard.message}</p>
-                )}
               </div>
 
               <div>
@@ -246,24 +195,9 @@ function RegisterPage() {
                   <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
                 )}
               </div>
-
-              <div>
-                <label htmlFor="address" className="block text-sm font-medium mb-1">
-                  Address
-                </label>
-                <textarea
-                  id="address"
-                  className="w-full px-3 py-2 border rounded-md text-black resize-none"
-                  rows="3"
-                  {...register('address', { required: 'Address is required' })}
-                ></textarea>
-                {errors.address && (
-                  <p className="text-red-500 text-sm mt-1">{errors.address.message}</p>
-                )}
-              </div>
             </div>
 
-            <div className="flex items-start">
+            <div className="flex items-start mt-4">
               <div className="flex items-center h-5">
                 <input
                   id="agreeToTerms"
@@ -279,7 +213,7 @@ function RegisterPage() {
                 <Link to="/terms" className="text-red-500 hover:underline">
                   Terms & Conditions
                 </Link>
-                . I hereby confirm that the information provided is accurate, complete, and up-to-date.
+                . I confirm the information is accurate.
               </label>
             </div>
             {errors.agreeToTerms && (
@@ -289,14 +223,15 @@ function RegisterPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-2 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md disabled:opacity-50"
+              className="w-full py-2 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md disabled:opacity-50 mt-4"
             >
-              {isSubmitting ? 'Submitting...' : 'Submit'}
+              {isSubmitting ? 'Submitting...' : 'Register'}
             </button>
           </form>
         </div>
       </div>
 
+     
       <div className="w-1/2 bg-gray-900">
         <img
           src={anhnenloginImage}
@@ -305,7 +240,7 @@ function RegisterPage() {
         />
       </div>
 
-      {/* Success Modal */}
+      
       {showSuccessModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
