@@ -45,6 +45,7 @@ import PaymentCounter from './pages/Employee/CounterPayment';
 import PaymentSuccess from './pages/Employee/PaymentSuccessfull';
 import PromotionsPage from './pages/Promotions/PromotionsPage';
 import CustomerBenefits from './pages/Users/CustomerBenefits';
+import ScrollToTop from './components/ScrollToTop';
 
 function AppContent() {
   const location = useLocation();
@@ -71,6 +72,7 @@ function AppContent() {
         
         
         {!hideNavbarFooter && !showNavbarForMovieSearch && <Navbar />}
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/Users" element={<UsersDashboard />} />
