@@ -135,7 +135,7 @@ const CounterConfirmBooking = () => {
             ← Back
           </button>
           <button
-            onClick={() => navigate('/counter-payment')}
+            onClick={() => navigate('/employee/counter-payment')}
             className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded text-base font-semibold"
           >
             Proceed to Payment →

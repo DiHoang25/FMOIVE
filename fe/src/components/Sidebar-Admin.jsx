@@ -8,7 +8,6 @@ import {
   DashboardOutlined
 } from '@ant-design/icons';
 import { FaUserFriends, FaClipboardList, FaRegBuilding } from "react-icons/fa";
-import { IoTicketOutline } from "react-icons/io5";
 import { GiConfirmed } from "react-icons/gi";
 import { AiOutlineBook } from "react-icons/ai";
 import { RiInformation2Line } from "react-icons/ri";
@@ -16,6 +15,7 @@ import { FaUsers } from "react-icons/fa6";
 import { SlPresent } from "react-icons/sl";
 import { Button, Layout, Menu, theme } from 'antd';
 import { RxAvatar } from "react-icons/rx";
+import { LogoutOutlined } from '@ant-design/icons';
 
 const { Header, Sider, Content } = Layout;
 
@@ -23,15 +23,18 @@ const { Header, Sider, Content } = Layout;
 const SidebarLayout = ({ children }) => {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
+  const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken();
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+  };
 
   return (
     <Layout className="min-h-screen bg-[#0f172a]">
       <Sider
-        width={220}             // rộng hơn mặc định (200px)
-        collapsedWidth={80}     // giữ collapsed nhỏ gọn
+        width={220}
+        collapsedWidth={80}
         trigger={null}
         collapsible
         collapsed={collapsed}
@@ -39,7 +42,7 @@ const SidebarLayout = ({ children }) => {
         {/* Top Header */}
         <header className="px-8 py-2 flex justify-center items-center border-b border-gray-600">
           <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold">
-          <RxAvatar className="text-9xl" />
+            <RxAvatar className="text-9xl" />
           </div>
         </header>
 
@@ -58,11 +61,6 @@ const SidebarLayout = ({ children }) => {
               icon: <FaUserFriends />,
               label: <Link to="/admin/view-members">View Members</Link>,
             },
-            // {
-            //   key: '3',
-            //   icon: <IoTicketOutline />,
-            //   label: 'Movie & Showtime',
-            // },
             {
               key: '4',
               icon: <GiConfirmed />,
@@ -79,24 +77,25 @@ const SidebarLayout = ({ children }) => {
               label: 'Ticket Information',
             },
             {
-              key: '7',
-              icon: <FaUsers />,
-              label: 'View Employees',
-            },
-            {
               key: '/admin/movie-list',
               icon: <FaClipboardList />,
               label: <Link to="/admin/movie-list">Movie List</Link>,
             },
             {
-              key: '9',
+              key: '/admin/cinema-rooms',
               icon: <FaRegBuilding />,
-              label: 'Cinema Rooms',
+              label: <Link to="/admin/cinema-rooms">Cinema Rooms</Link>,
             },
             {
               key: '/admin/promotions',
               icon: <SlPresent />,
               label: <Link to="/admin/promotions">Promotions</Link>,
+            },
+            {
+              key: 'logout',
+              icon: <LogoutOutlined />,
+              label: 'Logout',
+              onClick: handleLogout,
             },
           ]}
         />
@@ -128,14 +127,13 @@ const SidebarLayout = ({ children }) => {
           style={{
             padding: 24,
             minHeight: 280,
-            background: '#0d1a2d', // màu nền dark hơn một chút
+            background: '#0d1a2d',
             overflowY: 'auto',
-            color: 'white', // văn bản màu trắng
+            color: 'white',
           }}
         >
           {children}
         </Content>
-
       </Layout>
     </Layout>
   );

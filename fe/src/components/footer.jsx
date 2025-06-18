@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import bgImage from '../assets/bg.jpg';
 import facebookIcon from '../assets/facebook.png';
@@ -11,7 +12,7 @@ const Footer = () => {
         <div
             className="text-white py-8 px-4"
             style={{
-                backgroundImage: `url(${bgImage})`,
+                backgroundImage: `url(${ bgImage })`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
             }}
@@ -21,11 +22,11 @@ const Footer = () => {
                 <div>
                     <h2 className="text-red-500 text-xl font-semibold mb-3">Policies</h2>
                     <ul className="text-base space-y-2">
-                        <li>&gt; <a href="/general-terms" className="hover:underline text-white">General Terms</a></li>
-                        <li>&gt; <a href="/payment-policy" className="hover:underline text-white">Payment Policy</a></li>
-                        <li>&gt; <a href="/delivery-policy" className="hover:underline text-white">Delivery Policy</a></li>
-                        <li>&gt; <a href="/information-security" className="hover:underline text-white">Information Security</a></li>
-                        <li>&gt; <a href="/inspection-returns" className="hover:underline text-white">Inspection, Returns/Refunds</a></li>
+                        <li> <Link to="/terms" className="hover:underline text-white">General Terms</Link></li>
+                        <li> <Link to="/payment-policy" className="hover:underline text-white">Payment Policy</Link></li>
+                        <li> <Link to="/delivery-policy" className="hover:underline text-white">Delivery Policy</Link></li>
+                        <li> <Link to="/information-security" className="hover:underline text-white">Information Security</Link></li>
+                        <li> <Link to="/returns-refunds" className="hover:underline text-white">Inspection, Returns/Refunds</Link></li>
                     </ul>
 
                 </div>

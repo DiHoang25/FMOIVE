@@ -10,7 +10,6 @@ import Footer from './components/footer';
 import HomePage from './pages/Homepage/HomePage';
 import RegisterPage from './pages/Login/RegisterPage';
 import ViewMembers from './pages/Admin/ViewMembers';
-import EmployeeList from './pages/Admin/EmployeeList';
 import AdminProfile from './pages/Admin/AdminProfile';
 import MovieDetails from './pages/Movie/MovieDetails';
 import MovieNews from './pages/Movie/MovieNews';
@@ -45,6 +44,14 @@ import PaymentCounter from './pages/Employee/CounterPayment';
 import PaymentSuccess from './pages/Employee/PaymentSuccessfull';
 import PromotionsPage from './pages/Promotions/PromotionsPage';
 import CustomerBenefits from './pages/Users/CustomerBenefits';
+import ScrollToTop from './components/ScrollToTop';
+import CinemaRooms from './pages/Admin/CinemaRooms';
+import CinemaRoomDetail from './pages/Admin/CinemaRoomDetail';
+import GeneralTerms from './pages/Policies/GeneralTerms';
+import PaymentPolicy from './pages/Policies/PaymentPolicy';
+import DeliveryPolicy from './pages/Policies/DeliveryPolicy';
+import InformationSecurity from './pages/Policies/InformationSecurity';
+import InspectionReturns from './pages/Policies/InspectionReturns';
 
 function AppContent() {
   const location = useLocation();
@@ -71,6 +78,7 @@ function AppContent() {
         
         
         {!hideNavbarFooter && !showNavbarForMovieSearch && <Navbar />}
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/Users" element={<UsersDashboard />} />
@@ -79,7 +87,6 @@ function AppContent() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/view-members" element={<ViewMembers />} />
-          <Route path="/admin/view-employees" element={<EmployeeList />} />
           <Route path="/admin/admin-profile" element={<AdminProfile />} />
           <Route path="/employee/members-list" element={<ViewMembersList />} />
           <Route path="/employee/employee-profile" element={<EmployeeProfile />} />
@@ -100,6 +107,9 @@ function AppContent() {
           <Route path="/movienewsssearch" element={<MovieNewsSearch />} />
           <Route path='/admin/booking-list' element={<BookingList />} />
           <Route path="/customer-benefits" element={<CustomerBenefits />} />
+          <Route path="/admin/cinema-rooms" element={<CinemaRooms />} />
+          <Route path="/admin/room-detail/:roomId" element={<CinemaRoomDetail />} />
+          
 
         
           <Route path="/showtimes" element={<ShowtimePage />} />
@@ -117,6 +127,13 @@ function AppContent() {
           <Route path="/employee/counter-confirm" element={<CounterConfirmBooking />} />
           <Route path="/employee/counter-payment" element={<PaymentCounter />} />
           <Route path="/employee/counter-payment-success" element={<PaymentSuccess />} />
+          
+          { /* Policies Routes */}
+          <Route path="/terms" element={<GeneralTerms />} />
+          <Route path="/payment-policy" element={<PaymentPolicy />} />
+          <Route path="/delivery-policy" element={<DeliveryPolicy />} />
+          <Route path="/information-security" element={<InformationSecurity />} />
+          <Route path="/returns-refunds" element={<InspectionReturns />} />
           
           {/* Catch-all route for 404 */}
 

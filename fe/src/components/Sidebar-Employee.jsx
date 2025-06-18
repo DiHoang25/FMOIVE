@@ -7,13 +7,9 @@ import {
   MenuUnfoldOutlined,
   DashboardOutlined,
 } from "@ant-design/icons";
-import { FaUserFriends, FaClipboardList, FaRegBuilding } from "react-icons/fa";
+
 import { IoTicketOutline } from "react-icons/io5";
-import { GiConfirmed } from "react-icons/gi";
 import { AiOutlineBook } from "react-icons/ai";
-import { RiInformation2Line } from "react-icons/ri";
-import { FaUsers } from "react-icons/fa6";
-import { SlPresent } from "react-icons/sl";
 import { Button, Layout, Menu, theme } from "antd";
 import { RxAvatar } from "react-icons/rx";
 
@@ -48,7 +44,7 @@ const SidebarLayout = ({ children }) => {
           selectedKeys={[location.pathname]}
           items={[
             {
-              key: "/admin",
+              key: "/employee",
               icon: <DashboardOutlined />,
               label: <Link to="/employee">Dashboard Overview</Link>,
             },
@@ -57,21 +53,15 @@ const SidebarLayout = ({ children }) => {
               icon: <IoTicketOutline />,
               label: <Link to="/employee/counter-showtimes">Movie & Showtime</Link>,
             },
-            {
-              key: "4",
-              icon: <GiConfirmed />,
-              label: "Confirm Tickets",
-            },
+           
+            
+            
             {
               key: "5",
               icon: <AiOutlineBook />,
               label: "Booking List",
             },
-            {
-              key: "6",
-              icon: <RiInformation2Line />,
-              label: "Ticket Information",
-            },
+            
           ]}
         />
       </Sider>

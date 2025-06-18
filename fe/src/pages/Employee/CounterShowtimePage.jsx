@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import darkknight from '../../assets/darkknight.jpg';
-
+import { useNavigate } from 'react-router-dom';
 const movies = [
   {
     id: 1,
@@ -42,11 +42,12 @@ const movies = [
 
 const CounterShowtimesPage = ({ onSelect }) => {
   const [selected, setSelected] = useState({ movieId: null, time: null });
+  const navigate = useNavigate();
 
   const handleSelect = (movieId, time) => {
-    setSelected({ movieId, time });
-    onSelect(movieId, time);
-  };
+  setSelected({ movieId, time });
+  navigate(`/employee/counter-seat`);
+};
 
   return (
     <div className="p-4 bg-black text-white min-h-screen">

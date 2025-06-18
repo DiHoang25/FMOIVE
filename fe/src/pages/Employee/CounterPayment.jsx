@@ -22,6 +22,11 @@ const PaymentPage = () => {
       label: 'VN Pay',
       desc: 'Scan to pay with VN Pay',
     },
+    {
+      id: 'cash',
+      label: 'Cash',
+      desc: 'Pay with cash at the counter',
+    },
   ];
 
   return (

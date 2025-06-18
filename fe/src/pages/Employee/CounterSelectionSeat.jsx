@@ -32,7 +32,7 @@ const SeatSelection = () => {
     }, 0);
 
   const handleContinue = () => {
-    navigate("/counter-combo");
+    navigate("/employee/counter-combo");
     console.log("Selected Seats:", selectedSeats);
   };
 
