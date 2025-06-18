@@ -34,11 +34,11 @@ const CinemaRooms = () => {
         </div>
 
         <div className="flex justify-between items-center mb-4">
-          <Link to="/admin/add-cinema-room" className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md shadow flex items-center">
+          <Link to="/admin/cinema-rooms/add-new-cinema-room" className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md shadow flex items-center">
             <span className="mr-2">+</span> Add new
           </Link>
           <div className="flex items-center">
-          <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex items-center justify-between">
               <input
                 type="text"
                 placeholder="Search..."
@@ -68,11 +68,15 @@ const CinemaRooms = () => {
                   <td className="px-4 py-2">{room.cinemaRoomId}</td>
                   <td className="px-4 py-2">{room.cinemaRoom}</td>
                   <td className="px-4 py-2">{room.seatQuantity}</td>
-                  <td className="px-4 py-2 text-blue-400 hover:text-blue-600">
-                    <Link to={`/admin/room-detail/${room.id}`} className="flex items-center">
-                      <span className="mr-1">ⓘ</span> Seat detail
+                  <td className="px-4 py-2">
+                    <Link
+                      to={`/admin/room-detail/${room.id}`}
+                      className="bg-blue-600 hover:bg-blue-700 text-white hover:text-white text-sm px-3 py-1 rounded shadow"
+                    >
+                      Seat Detail
                     </Link>
                   </td>
+
                 </tr>
               ))}
               {filteredRooms.length === 0 && (
