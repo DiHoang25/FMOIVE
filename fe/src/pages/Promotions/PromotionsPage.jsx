@@ -165,11 +165,11 @@ function PromotionsPage() {
             className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto transform transition-all duration-300 opacity-100 scale-100"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative">
+            <div className="flex justify-center items-center">
               <img 
                 src={selectedPromo.image} 
                 alt={selectedPromo.title} 
-                className="w-full h-64 object-cover"
+                className=" w-100 h-80 object-cover"
               />
               <button 
                 className="absolute top-4 right-4 bg-black bg-opacity-70 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-opacity-90 transition-colors"
@@ -191,7 +191,7 @@ function PromotionsPage() {
                   className="bg-red-600 text-white px-8 py-3 rounded-md hover:bg-red-700 transition duration-300 font-semibold"
                   onClick={closePromoDetails}
                 >
-                  X
+                  Close
                 </button>
               </div>
             </div>

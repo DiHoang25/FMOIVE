@@ -53,6 +53,7 @@ import DeliveryPolicy from './pages/Policies/DeliveryPolicy';
 import InformationSecurity from './pages/Policies/InformationSecurity';
 import InspectionReturns from './pages/Policies/InspectionReturns';
 import ContactPage from './pages/Contact/ContactPage';
+import ChangePassword from './pages/Users/ChangePassword';
 
 function AppContent() {
   const location = useLocation();
@@ -111,6 +112,7 @@ function AppContent() {
           <Route path="/admin/cinema-rooms" element={<CinemaRooms />} />
           <Route path="/admin/room-detail/:roomId" element={<CinemaRoomDetail />} />
           <Route path="/contact" element={<ContactPage/>} />
+          <Route path="/changepassword" element={<ChangePassword/>} />
 
           
 
