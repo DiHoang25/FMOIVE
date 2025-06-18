@@ -1,40 +1,20 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
-  const [formData, setFormData] = useState({
-    username: '',
-    password: ''
-  });
-  const [errors, setErrors] = useState({
-    username: '',
-    password: '',
-    general: ''
-  });
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [errors, setErrors] = useState({ username: '', password: '', general: '' });
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
-
-    
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const validateForm = () => {
-    const newErrors = {
-      username: '',
-      password: '',
-      general: ''
-    };
+    const newErrors = { username: '', password: '', general: '' };
     let isValid = true;
 
     if (!formData.username.trim()) {
@@ -51,22 +31,36 @@ const LoginPage = () => {
     return isValid;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
 
-    if (!validateForm()) {
-      return;
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+    
+      const data = await response.json();
+    
+      if (!response.ok) {
+        setErrors(prev => ({ ...prev, general: data.message || 'Login failed' }));
+        return;
+      }
+    
+      // Save token and username
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('username', formData.username); // dùng username đã nhập
+    
+      // Navigate to home and reload to update UI
+      navigate('/');
+      window.location.reload();
+    
+    } catch (error) {
+      console.error('Login error:', error);
+      setErrors(prev => ({ ...prev, general: 'Something went wrong. Please try again later.' }));
     }
-
-    
-    console.log('Login attempt:', formData);
-
-    
-  };
-
-  const handleGoogleLogin = () => {
-    
-    console.log('Google login clicked');
   };
 
   return (
@@ -83,9 +77,7 @@ const LoginPage = () => {
               placeholder="Username"
               className={`w-full px-4 py-2 rounded bg-gray-700 text-white border ${errors.username ? 'border-red-500' : 'border-gray-600'} focus:outline-none focus:border-red-500`}
             />
-            {errors.username && (
-              <div className="text-red-500 text-sm mt-1">{errors.username}</div>
-            )}
+            {errors.username && <div className="text-red-500 text-sm mt-1">{errors.username}</div>}
           </div>
           <div className="relative">
             <input
@@ -103,29 +95,29 @@ const LoginPage = () => {
             >
               {showPassword ? 'Hide' : 'Show'}
             </button>
-            {errors.password && (
-              <div className="text-red-500 text-sm mt-1">{errors.password}</div>
-            )}
+            {errors.password && <div className="text-red-500 text-sm mt-1">{errors.password}</div>}
           </div>
-          {errors.general && (
-            <div className="text-red-500 text-sm">{errors.general}</div>
-          )}
+          {errors.general && <div className="text-red-500 text-sm">{errors.general}</div>}
+
           <div className="text-center">
             <Link to="/forgot-password" className="text-red-500 text-sm hover:text-red-400">Forgot Password?</Link>
           </div>
+
           <button
             type="submit"
             className="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 transition duration-200"
           >
             Login
           </button>
+
           <div className="flex items-center my-4">
             <div className="flex-1 border-t border-gray-600"></div>
             <div className="flex-1 border-t border-gray-600"></div>
           </div>
+
           <button
             type="button"
-            onClick={handleGoogleLogin}
+            onClick={() => console.log('Google login clicked')}
             className="w-full bg-gray-700 text-white py-2 rounded hover:bg-gray-600 transition duration-200 flex items-center justify-center space-x-2"
           >
             <span>Continue with Google</span>
