@@ -9,7 +9,7 @@ const BookingList = () => {
 
   const bookings = [
     { id: 'SV7FuDAxwX', memberId: '4SqiOzc7Mm', fullName: 'Tran Van Tien', identityCard: '123456789', phoneNumber: '0775335515', movie: 'Doctor Strange: Phù Thủy Tối Thượng', time: '01/12/2018 - 21:00', seat: '2D 2E 2F', status: 'Successful booking' },
-    { id: 'GsAGM0bqG5', memberId: '4SqiOzc7Mm', fullName: 'Tran Van Tien', identityCard: '123456789', phoneNumber: '0775335515', movie: 'Doctor Strange: Phù Thủy Tối Thượng', time: '01/12/2018 - 21:00', seat: '1D 1E 1F', status: 'Get ticket' },
+    { id: 'GsAGM0bqG5', memberId: '4SqiOzc7Mm', fullName: 'Tran Van Tien', identityCard: '123456789', phoneNumber: '0775335515', movie: 'Doctor Strange: Phù Thủy Tối Thượng', time: '01/12/2018 - 21:00', seat: '1D 1E 1F', status: 'Successful booking' },
     { id: 'rv5v4Mkigb', memberId: '4SqiOzc7Mm', fullName: 'Tran Van Tien', identityCard: '123456789', phoneNumber: '0775335515', movie: 'Doctor Strange: Phù Thủy Tối Thượng', time: '01/12/2018 - 21:00', seat: '8B', status: 'Successful booking' },
     { id: 'IRWNA6P4Ct', memberId: '4SqiOzc7Mm', fullName: 'Tran Van Tien', identityCard: '123456789', phoneNumber: '0775335515', movie: 'Doctor Strange: Phù Thủy Tối Thượng', time: '01/12/2018 - 21:00', seat: '4A 4B 4C', status: 'Successful booking' },
     { id: 'QdUWWGQxJr', memberId: '4SqiOzc7Mm', fullName: 'Tran Van Tien', identityCard: '123456789', phoneNumber: '0775335515', movie: 'Doctor Strange: Phù Thủy Tối Thượng', time: '01/12/2018 - 21:00', seat: '1A 1C 1B', status: 'Successful booking' },
@@ -87,7 +87,7 @@ const BookingList = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{booking.time}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{booking.seat}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <button className={`px-3 py-1 rounded-md text-sm ${booking.status === 'Successful booking' ? 'bg-blue-500' : 'bg-green-500'}`}>
+                        <button className={`px-3 py-1 rounded-md text-sm text-white ${booking.status === 'Successful booking' ? 'bg-green-500' : 'bg-blue-500'}`}>
                           {booking.status}
                         </button>
                       </td>

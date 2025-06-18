@@ -52,6 +52,10 @@ import PaymentPolicy from './pages/Policies/PaymentPolicy';
 import DeliveryPolicy from './pages/Policies/DeliveryPolicy';
 import InformationSecurity from './pages/Policies/InformationSecurity';
 import InspectionReturns from './pages/Policies/InspectionReturns';
+import AddCinemaRoom from './pages/Admin/AddCinemaRoom';
+import EditMovie from './pages/Admin/EditMovie'
+import AddPromotion from './pages/Admin/AddPromotion';
+import EditPromotion from './pages/Admin/EditPromotion';
 
 function AppContent() {
   const location = useLocation();
@@ -74,7 +78,7 @@ function AppContent() {
     <>
       
       {!hideLayout && <NotificationBar />}
-      <div className={!hideLayout ? 'pt-[1px]' : ''}>
+      <div className={!hideLayout ? 'pt-[0px]' : ''}>
         
         
         {!hideNavbarFooter && !showNavbarForMovieSearch && <Navbar />}
@@ -109,6 +113,10 @@ function AppContent() {
           <Route path="/customer-benefits" element={<CustomerBenefits />} />
           <Route path="/admin/cinema-rooms" element={<CinemaRooms />} />
           <Route path="/admin/room-detail/:roomId" element={<CinemaRoomDetail />} />
+          <Route path="/admin/cinema-rooms/add-new-cinema-room" element={<AddCinemaRoom />} />
+          <Route path="/admin/movie-list/edit-movie/:movieId" element={<EditMovie />} />
+          <Route path='/admin/add-promotion' element={<AddPromotion />} />
+          <Route path='/admin/promotions/edit-promotion/:promotionId' element={<EditPromotion />} />
           
 
         

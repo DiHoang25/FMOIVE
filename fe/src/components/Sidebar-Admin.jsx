@@ -11,7 +11,6 @@ import { FaUserFriends, FaClipboardList, FaRegBuilding } from "react-icons/fa";
 import { GiConfirmed } from "react-icons/gi";
 import { AiOutlineBook } from "react-icons/ai";
 import { RiInformation2Line } from "react-icons/ri";
-import { FaUsers } from "react-icons/fa6";
 import { SlPresent } from "react-icons/sl";
 import { Button, Layout, Menu, theme } from 'antd';
 import { RxAvatar } from "react-icons/rx";
@@ -38,14 +37,16 @@ const SidebarLayout = ({ children }) => {
         trigger={null}
         collapsible
         collapsed={collapsed}
+        className="flex flex-col justify-between"
       >
         {/* Top Header */}
         <header className="px-8 py-2 flex justify-center items-center border-b border-gray-600">
-          <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold">
+          <Link to="/admin/admin-profile" className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold hover:scale-105 transition">
             <RxAvatar className="text-9xl" />
-          </div>
+          </Link>
         </header>
 
+        {/* Menu Items */}
         <Menu
           theme="dark"
           mode="inline"
@@ -59,22 +60,12 @@ const SidebarLayout = ({ children }) => {
             {
               key: '/admin/view-members',
               icon: <FaUserFriends />,
-              label: <Link to="/admin/view-members">View Members</Link>,
-            },
-            {
-              key: '4',
-              icon: <GiConfirmed />,
-              label: 'Confirm Tickets',
+              label: <Link to="/admin/view-members">View Account</Link>,
             },
             {
               key: '/admin/booking-list',
               icon: <AiOutlineBook />,
               label: <Link to="/admin/booking-list">Booking List</Link>,
-            },
-            {
-              key: '6',
-              icon: <RiInformation2Line />,
-              label: 'Ticket Information',
             },
             {
               key: '/admin/movie-list',
@@ -91,14 +82,18 @@ const SidebarLayout = ({ children }) => {
               icon: <SlPresent />,
               label: <Link to="/admin/promotions">Promotions</Link>,
             },
-            {
-              key: 'logout',
-              icon: <LogoutOutlined />,
-              label: 'Logout',
-              onClick: handleLogout,
-            },
           ]}
         />
+
+        {/* Logout Button */}
+        <div className="p-4">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded text-base"
+          >
+            <LogoutOutlined />
+          </button>
+        </div>
       </Sider>
       <Layout>
         <Header style={{ padding: 0, background: '#001529', position: 'relative' }}>
@@ -134,6 +129,7 @@ const SidebarLayout = ({ children }) => {
         >
           {children}
         </Content>
+
       </Layout>
     </Layout>
   );

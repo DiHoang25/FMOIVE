@@ -6,7 +6,7 @@ import TimePicker from '../../components/TimePicker'
 import GernesPicker from '../../components/GernesPicker'
 import { useNavigate } from 'react-router-dom';
 
-const AddMovie = () => {
+const EditMovie = () => {
     const [formData, setFormData] = useState({
         movieName: '',
         trailerLink: '',
@@ -35,8 +35,6 @@ const AddMovie = () => {
         }
     });
 
-    const navigate = useNavigate();
-
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({
@@ -44,7 +42,7 @@ const AddMovie = () => {
             [name]: value
         });
     };
-
+    const navigate = useNavigate();
     // const handleGenreChange = (e) => {
     //     const { name, checked } = e.target;
     //     setFormData({
@@ -73,35 +71,6 @@ const AddMovie = () => {
         // Add API call to submit movie data here
     };
 
-    const handleReset = () => {
-        setFormData({
-            movieName: '',
-            trailerLink: '',
-            fromDate: '',
-            toDate: '',
-            actors: '',
-            productionCompany: '',
-            director: '',
-            runningTime: '',
-            moviePoster: '',
-            movieDescription: '',
-            genres: {
-                action: false,
-                comedy: false,
-                drama: false,
-                horror: false,
-                romance: false,
-                sciFi: false,
-                thriller: false,
-                animation: false
-            },
-            version: {
-                '2D': false,
-                '3D': false,
-                'IMAX': false
-            }
-        });
-    };
 
     return (
         <SidebarLayout>
@@ -110,7 +79,7 @@ const AddMovie = () => {
                 {/* Main Form Container */}
                 <div className="bg-slate-800 rounded-lg p-6 mt-6 max-w-6xl mx-auto shadow-xl">
                     <h1 className="text-2xl text-white font-bold text-center mb-4 pb-2 border-b border-gray-700">
-                        Add new movie
+                        Edit Movie
                     </h1>
 
                     <form onSubmit={handleSubmit}>
@@ -318,9 +287,9 @@ const AddMovie = () => {
 
                         {/* Form Buttons */}
                         <div className="mt-6 flex justify-end space-x-4">
-                        <button
+                            <button
                                 type="button"
-                                onClick={() => navigate('/admin')}
+                                onClick={() => navigate('/admin/movie-list')}
                                 className="flex items-center px-4 py-2 bg-slate-700 text-white rounded hover:bg-slate-600 transition"
                             >
                                 Cancel
@@ -329,7 +298,7 @@ const AddMovie = () => {
                                 type="submit"
                                 className="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition duration-300 transform hover:-translate-y-1"
                             >
-                                Submit Movie
+                                Edit Movie
                             </button>
                         </div>
                     </form>
@@ -339,4 +308,4 @@ const AddMovie = () => {
     );
 };
 
-export default AddMovie;
+export default EditMovie;

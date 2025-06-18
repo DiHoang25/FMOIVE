@@ -1,22 +1,39 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import SidebarLayout from '../../components/Sidebar-Admin';
+import { getMoviesFromLocalStorage } from '../../data/movieData';
 
 function AdminDashboard() {
+  const [topFilms, setTopFilms] = useState([]);
+
+  const parseRevenue = (revenueStr) => {
+    if (!revenueStr) return 0;
+    if (revenueStr.includes('M')) {
+      return parseFloat(revenueStr.replace('M', '')) * 100; // 1M = 100 tỷ
+    }
+    return parseInt(revenueStr.replace(/\D/g, '')); // ví dụ '250 tỷ'
+  };
+
+  useEffect(() => {
+    const allMovies = getMoviesFromLocalStorage();
+
+    const filtered = allMovies
+      .filter(movie => movie.revenue && parseRevenue(movie.revenue) >= 100)
+      .map(movie => ({
+        name: movie.name,
+        revenue: parseRevenue(movie.revenue),
+      }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 6);
+
+    setTopFilms(filtered);
+  }, []);
+
   const stats = [
     { value: 24, label: 'Total Movies' },
     { value: 18, label: 'Now Showing' },
     { value: 6, label: 'Coming Soon' },
     { value: 156, label: "Today's Shows" }
-  ];
-
-  const topFilms = [
-    { name: 'Nhà Bà Nữ', revenue: 459.6 },
-    { name: 'Lật Mặt 6', revenue: 279.1 },
-    { name: 'Đất Rừng Phương Nam', revenue: 140.4 },
-    { name: 'Siêu Lừa Gặp Siêu Lầy', revenue: 121.6 },
-    { name: 'Chị Chị Em Em 2', revenue: 121.1 },
-    { name: 'Người Vợ Cuối Cùng', revenue: 100 }
   ];
 
   const calculateBarWidth = (revenue) => {
@@ -27,9 +44,6 @@ function AdminDashboard() {
   return (
     <SidebarLayout>
       <div className="p-1">
-        
-
-        {/* Dashboard Content */}
         <main className="mt-4">
           {/* Stats Cards */}
           <div className="grid grid-cols-4 gap-2 mb-2">
@@ -41,24 +55,24 @@ function AdminDashboard() {
             ))}
           </div>
 
-          {/* Quick Actions Section */}
+          {/* Quick Actions */}
           <div className="bg-slate-800 p-4 rounded-md mb-6">
             <h2 className="text-xl text-white mb-4">Quick Actions</h2>
             <div className="grid grid-cols-2 gap-4">
               <Link to="/admin/add-movie" className="bg-green-500 hover:bg-green-600 text-white p-3 rounded-md text-center">
                 Add Movie
               </Link>
-              <button className="bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-md">
-                View Members
-              </button>
+              <Link to="/admin/view-members" className="bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-md text-center">
+                View Accounts
+              </Link>            
             </div>
           </div>
 
           {/* Revenue Chart */}
           <div className="bg-slate-800 p-2 rounded-md mt-1">
-            <h2 className="text-base text-white mb-1 ">
-              Top 6 Domestic Films with Box Office Revenue Over 100 Billion VND
-            </h2>
+          <h2 className="text-base text-white mb-4 text-center font-semibold">
+            Top 6 Domestic Films with Box Office Revenue Over 100 Billion VND
+          </h2>
             <div className="space-y-4">
               {topFilms.map((film, index) => (
                 <div key={index} className="flex items-center">

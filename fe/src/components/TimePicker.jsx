@@ -7,7 +7,7 @@ const onChange = checkedValues => {
 
 const generateTimeOptions = () => {
   const startHour = 8;
-  const endHour = 21;
+  const endHour = 22;
   const options = [];
 
   for (let hour = startHour; hour <= endHour; hour++) {
