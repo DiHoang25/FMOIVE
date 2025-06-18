@@ -1,39 +1,9 @@
+import { useEffect, useState } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 import MovieCard from '../../components/MovieCard';
-import { useState } from 'react';
-import darkknight from '../../assets/darkknight.jpg';
-import finalDestinationBloodlines from '../../assets/finaldestination.jpg'; 
-import avengerEndgame from '../../assets/avengerEG.jpg'; // Example image import
-import inception from '../../assets/inception.jpg'; // Example image import
-const showtimes = ['08:00', '12:00', '14:30', '15:00', '17:00', '19:30', '20:00', '21:00']; // Example image import
+import axios from 'axios';
 
-const movies = [
-  {
-    title: 'The Dark Knight',
-    poster: darkknight ,
-    info: 'PG-13 • 152 min • Action, Crime, Drama',
-    showtimes,
-  },
-{
-    title: 'Final Destination Bloodlines',
-    poster: finalDestinationBloodlines, 
-    info: 'PG-18 • 252 min • Action, Horror, Drama',
-    showtimes,
-  },
-  {
-    title: 'Avengers: Endgame',
-    poster: avengerEndgame, // Example image import
-    info: 'PG-13 • 281 min • Action, Sci-Fi',
-    showtimes,
-  },
-  {
-    title: 'Inception',
-    poster: inception,
-    info: 'PG-13 • 148 min • Sci-Fi, Thriller',
-    showtimes,
-  },];
-
-  function getWeekDates(startDate) {
+function getWeekDates(startDate) {
   const dates = [];
   const start = new Date(startDate);
   for (let i = 0; i < 6; i++) {
@@ -46,17 +16,21 @@ const movies = [
 
 function formatDate(date) {
   const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
   const day = days[date.getDay()];
   const dateNum = date.getDate().toString().padStart(2, '0');
-  return `${dateNum} ${day}`;
+  const month = months[date.getMonth()];
+
+  return `${dateNum} ${month} (${day})`;  // e.g., "18 JUN (TUE)"
 }
-
-
-
 
 function ShowtimePage() {
   const [startDate, setStartDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(formatDate(new Date()));
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const weekDates = getWeekDates(startDate);
 
@@ -71,6 +45,23 @@ function ShowtimePage() {
     newStart.setDate(startDate.getDate() + 6);
     setStartDate(newStart);
   };
+
+  useEffect(() => {
+    const fetchMovies = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get('http://localhost:5000/api/movies');
+        setMovies(res.data);
+      } catch (err) {
+        setError('Failed to load movies');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMovies();
+  }, []);
 
   return (
     <div className="bg-black min-h-screen text-white px-6 py-10">
@@ -101,13 +92,25 @@ function ShowtimePage() {
       </div>
 
       {/* Movie Cards */}
-      <div className="grid grid-cols-1 gap-6">
-        {movies.map((movie, index) => (
-          <MovieCard key={index} {...movie} />
-        ))}
-      </div>
+      {loading ? (
+        <div className="text-center text-gray-400">Loading movies...</div>
+      ) : error ? (
+        <div className="text-center text-red-500">{error}</div>
+      ) : (
+        <div className="grid grid-cols-1 gap-6">
+          {movies.map((movie, index) => (
+            <MovieCard
+              key={index}
+              title={movie.name}
+              poster={movie.image_url}
+              info={`${movie.running_time} min • ${movie.type}`}
+              showtimes={movie.showtimes || []}
+            />
+          ))}
+        </div>
+      )}
 
-      {/* Pagination with Arrows */}
+      {/* Pagination Placeholder */}
       <div className="flex justify-center items-center gap-4 mt-10">
         <button className="p-2 rounded-full hover:bg-gray-700">
           <ChevronLeftIcon className="h-5 w-5" />

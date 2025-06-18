@@ -52,8 +52,17 @@ import PaymentPolicy from './pages/Policies/PaymentPolicy';
 import DeliveryPolicy from './pages/Policies/DeliveryPolicy';
 import InformationSecurity from './pages/Policies/InformationSecurity';
 import InspectionReturns from './pages/Policies/InspectionReturns';
+<<<<<<< HEAD
 import ContactPage from './pages/Contact/ContactPage';
+import CounterBookingList from './pages/Employee/CounterBookingList';
 import ChangePassword from './pages/Users/ChangePassword';
+import CounterGetTicket from './pages/Employee/CounterGetTicket';
+=======
+import EditMovie from './pages/Admin/EditMovie';
+import AddCinemaRoom from './pages/Admin/AddCinemaRoom';
+import AddPromotion from './pages/Admin/AddPromotion';
+import EditPromotion from './pages/Admin/EditPromotion';
+>>>>>>> cfdbb9eab46a79e50d6c19f1626fea39c4d1bc45
 
 function AppContent() {
   const location = useLocation();
@@ -111,10 +120,11 @@ function AppContent() {
           <Route path="/customer-benefits" element={<CustomerBenefits />} />
           <Route path="/admin/cinema-rooms" element={<CinemaRooms />} />
           <Route path="/admin/room-detail/:roomId" element={<CinemaRoomDetail />} />
-          <Route path="/contact" element={<ContactPage/>} />
-          <Route path="/changepassword" element={<ChangePassword/>} />
-
-          
+          <Route path="/admin/movie-list/edit-movie/:movieId" element={<EditMovie />} />
+          <Route path='/admin/cinema-rooms/add-new-cinema-room' element={<AddCinemaRoom />} />
+          <Route path='/admin/add-promotion' element={<AddPromotion />} />
+          <Route path='/admin/promotions/edit-promotion/:promotionId' element={<EditPromotion />} />
+         
 
         
           <Route path="/showtimes" element={<ShowtimePage />} />
@@ -132,6 +142,8 @@ function AppContent() {
           <Route path="/employee/counter-confirm" element={<CounterConfirmBooking />} />
           <Route path="/employee/counter-payment" element={<PaymentCounter />} />
           <Route path="/employee/counter-payment-success" element={<PaymentSuccess />} />
+          <Route path="/employee/counter-booking-list" element={<CounterBookingList />} />
+          <Route path="/employee/counter-get-ticket" element={<CounterGetTicket />} />
           
           { /* Policies Routes */}
           <Route path="/terms" element={<GeneralTerms />} />

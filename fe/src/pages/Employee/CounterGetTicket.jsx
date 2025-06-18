@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import batman from '../../assets/batman.png'; 
 import { useState } from 'react';
 
-const CounterConfirmBooking = () => {
+const CounterGetTicket = () => {
   const navigate = useNavigate();
   const [voucherCode, setVoucherCode] = useState('');
   const movie = {
@@ -84,22 +84,7 @@ const CounterConfirmBooking = () => {
 
           {/* Right Column */}
           <div className="space-y-8">
-            {/* Voucher Input */}
-            <h3 className="text-red-700 font-semibold ">Voucher Code</h3>
-            <div className="flex mt-1 gap-2">
-              <input
-                type="text"
-                placeholder="Enter voucher code"
-                value={voucherCode}
-                onChange={(e) => setVoucherCode(e.target.value)}
-                className="bg-zinc-800 text-white px-4 py-2 rounded w-full text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
-              />
-              <button
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium"
-              >
-                Apply
-              </button>
-            </div>
+            
             {/* Payment Summary */}
             <div>
               <h3 className="text-lg font-semibold text-red-500 mb-2">💳 Payment Summary</h3>
@@ -132,24 +117,10 @@ const CounterConfirmBooking = () => {
           </div>
         </div>
 
-        {/* Buttons */}
-        <div className="flex justify-center gap-6 mt-10">
-          <button
-            onClick={() => navigate(-1)}
-            className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded text-base font-medium"
-          >
-            ← Back
-          </button>
-          <button
-            onClick={() => navigate('/employee/counter-payment')}
-            className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded text-base font-semibold"
-          >
-            Proceed to Payment →
-          </button>
-        </div>
+        
       </div>
     </div>
   );
 };
 
-export default CounterConfirmBooking;
+export default CounterGetTicket;

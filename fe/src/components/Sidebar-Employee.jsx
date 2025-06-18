@@ -57,9 +57,9 @@ const SidebarLayout = ({ children }) => {
             
             
             {
-              key: "5",
+              key: "/employee/booking-list",
               icon: <AiOutlineBook />,
-              label: "Booking List",
+              label: <Link to="/employee/counter-booking-list">Booking List</Link>,
             },
             
           ]}

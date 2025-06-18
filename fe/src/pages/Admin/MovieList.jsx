@@ -23,6 +23,9 @@ const MovieList = () => {
     return saved ? JSON.parse(saved) : initialMovies;
   });
 
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState(null);
+
   const totalMovies = movies.length;
   const nowShowing = movies.filter(movie => movie.status === 'Now showing').length;
   const upcomingMovies = movies.filter(movie => movie.status === 'Stop showing').length;
@@ -52,6 +55,27 @@ const MovieList = () => {
         message.success(`Status of "${movie.name}" changed to "${newStatus}"`);
       },
     });
+  };
+
+  const confirmDelete = (movie) => {
+    Modal.confirm({
+      title: 'Confirm Delete',
+      content: `Are you sure you want to delete "${movie.name}"?`,
+      okText: 'Delete',
+      cancelText: 'Cancel',
+      okType: 'danger',
+      onOk: () => {
+        const updated = movies.filter(m => m.id !== movie.id);
+        setMovies(updated);
+        localStorage.setItem('movie-list', JSON.stringify(updated));
+        message.success(`"${movie.name}" has been deleted.`);
+      },
+    });
+  };
+
+  const showMovieDetails = (movie) => {
+    setSelectedMovie(movie);
+    setModalVisible(true);
   };
 
   const handleSearch = (e) => setSearchTerm(e.target.value);
@@ -153,9 +177,18 @@ const MovieList = () => {
                   </td>
                   <td className="px-4 py-2 text-center">
                     <div className="flex justify-center gap-4">
-                      <button className="text-blue-400 hover:text-blue-600 text-xl"><FaEye /></button>
-                      <button className="text-yellow-400 hover:text-yellow-600 text-xl"><FaEdit /></button>
-                      <button className="text-red-400 hover:text-red-600 text-xl"><FaTrash /></button>
+                      <button
+                        className="text-blue-400 hover:text-blue-600 text-xl"
+                        onClick={() => showMovieDetails(movie)}
+                      ><FaEye /></button>
+                      <button
+                        className="text-yellow-400 hover:text-yellow-600 text-xl"
+                        onClick={() => window.location.href = '/admin/movie-list/edit-movie/' + movie.id}
+                      ><FaEdit /></button>
+                      <button
+                        className="text-red-400 hover:text-red-600 text-xl"
+                        onClick={() => confirmDelete(movie)}
+                      ><FaTrash /></button>
                     </div>
                   </td>
                 </tr>
@@ -170,6 +203,58 @@ const MovieList = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Modal hiển thị chi tiết */}
+        <Modal
+          title="Movie Details"
+          open={modalVisible}
+          onOk={() => setModalVisible(false)}
+          onCancel={() => setModalVisible(false)}
+          footer={[
+            <button
+              key="close"
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md"
+              onClick={() => setModalVisible(false)}
+            >
+              Close
+            </button>,
+          ]}
+        >
+          {selectedMovie && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-gray-400">ID:</p>
+                  <p className="text-black">{selectedMovie.id}</p>
+                </div>
+                <div>
+                  <p className="text-gray-400">Name:</p>
+                  <p className="text-black">{selectedMovie.name}</p>
+                </div>
+                <div>
+                  <p className="text-gray-400">Genre:</p>
+                  <p className="text-black">{selectedMovie.genres}</p>
+                </div>
+                <div>
+                  <p className="text-gray-400">Duration:</p>
+                  <p className="text-black">{selectedMovie.duration} minutes</p>
+                </div>
+                <div>
+                  <p className="text-gray-400">Showtimes:</p>
+                  <p className="text-black">{selectedMovie.showtime}</p>
+                </div>
+                <div>
+                  <p className="text-gray-400">Revenue:</p>
+                  <p className="text-black">${selectedMovie.revenue}</p>
+                </div>
+                <div>
+                  <p className="text-gray-400">Status:</p>
+                  <p className="text-black">{selectedMovie.status}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </Modal>
       </div>
     </SidebarLayout>
   );

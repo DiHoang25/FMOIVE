@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import darkknight from '../../assets/darkknight.jpg';
 import { useNavigate } from 'react-router-dom';
+import EmployeeSidebarLayout from '../../components/Sidebar-Employee';
+
 const movies = [
   {
     id: 1,
@@ -50,7 +52,8 @@ const CounterShowtimesPage = ({ onSelect }) => {
 };
 
   return (
-    <div className="p-4 bg-black text-white min-h-screen">
+    <EmployeeSidebarLayout>
+    <div className="p-4 text-white min-h-screen">
       <h2 className="text-xl font-bold mb-4">Select Movie & Showtime</h2>
 
       <div className="grid grid-cols-1 gap-3">
@@ -99,6 +102,7 @@ const CounterShowtimesPage = ({ onSelect }) => {
         ))}
       </div>
     </div>
+    </EmployeeSidebarLayout>
   );
 };
 
