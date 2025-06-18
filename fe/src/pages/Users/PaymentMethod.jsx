@@ -1,30 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const PaymentPage = () => {
   const [selectedMethod, setSelectedMethod] = useState('vnpay');
+  const [popcornCount, setPopcornCount] = useState(1); // Make stateful if needed
   const navigate = useNavigate();
 
   const ticketCount = 3;
   const ticketPrice = 15;
   const serviceFee = 2.5;
-  const total = ticketPrice * ticketCount + serviceFee;
+  const popcornPrice = 10;
+  
+  // This will now recompute when dependencies change
+  const total = useMemo(() => {
+    return ticketPrice * ticketCount + serviceFee + popcornPrice * popcornCount;
+  }, [ticketCount, popcornCount]);
 
   const paymentMethods = [
     {
       id: 'vnpay',
       label: 'VN Pay',
-      desc: 'Scan with your online payment system',
-    },
-    {
-      id: 'card',
-      label: 'Credit/Debit Card',
-      desc: 'Visa, Mastercard, or other cards',
-    },
-    {
-      id: 'bank',
-      label: 'Internet Banking',
-      desc: 'Connect directly to your bank',
+      desc: 'Scan to pay with VN Pay',
     },
   ];
 
@@ -42,9 +38,6 @@ const PaymentPage = () => {
 
         <div>
           <h1 className="text-xl font-bold text-center">Complete Your Payment</h1>
-          <p className="text-sm text-gray-400 text-center mt-1">
-            Scan the QR code or select another payment method
-          </p>
         </div>
 
         {/* Payment Methods */}
@@ -72,9 +65,14 @@ const PaymentPage = () => {
             <span>${(ticketPrice * ticketCount).toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
+            <span>Popcorns & Drink ({popcornCount})</span>
+            <span>${(popcornPrice * popcornCount).toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between">
             <span>Service Fee</span>
             <span>${serviceFee.toFixed(2)}</span>
           </div>
+          
           <hr className="border-gray-700" />
           <div className="flex justify-between font-bold text-base">
             <span>Total Amount</span>
@@ -84,7 +82,7 @@ const PaymentPage = () => {
 
         {/* Confirm Notice */}
         <p className="text-xs text-center text-white bg-red-600 rounded py-2 font-semibold">
-          You’ll be directed to the third-party payment gateway to complete your transaction.
+          You'll be directed to the third-party payment gateway to complete your transaction.
         </p>
       </div>
     </div>

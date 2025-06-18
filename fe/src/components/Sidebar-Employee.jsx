@@ -1,12 +1,12 @@
 // Sidebar-Admin.jsx
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useLocation } from 'react-router-dom';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  DashboardOutlined
-} from '@ant-design/icons';
+  DashboardOutlined,
+} from "@ant-design/icons";
 import { FaUserFriends, FaClipboardList, FaRegBuilding } from "react-icons/fa";
 import { IoTicketOutline } from "react-icons/io5";
 import { GiConfirmed } from "react-icons/gi";
@@ -14,11 +14,10 @@ import { AiOutlineBook } from "react-icons/ai";
 import { RiInformation2Line } from "react-icons/ri";
 import { FaUsers } from "react-icons/fa6";
 import { SlPresent } from "react-icons/sl";
-import { Button, Layout, Menu, theme } from 'antd';
+import { Button, Layout, Menu, theme } from "antd";
 import { RxAvatar } from "react-icons/rx";
 
 const { Header, Sider, Content } = Layout;
-
 
 const SidebarLayout = ({ children }) => {
   const location = useLocation();
@@ -30,8 +29,8 @@ const SidebarLayout = ({ children }) => {
   return (
     <Layout className="min-h-screen bg-[#0f172a]">
       <Sider
-        width={220}             // rộng hơn mặc định (200px)
-        collapsedWidth={80}     // giữ collapsed nhỏ gọn
+        width={220} // rộng hơn mặc định (200px)
+        collapsedWidth={80} // giữ collapsed nhỏ gọn
         trigger={null}
         collapsible
         collapsed={collapsed}
@@ -39,7 +38,7 @@ const SidebarLayout = ({ children }) => {
         {/* Top Header */}
         <header className="px-8 py-2 flex justify-center items-center border-b border-gray-600">
           <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold">
-          <RxAvatar className="text-9xl" />
+            <RxAvatar className="text-9xl" />
           </div>
         </header>
 
@@ -49,35 +48,37 @@ const SidebarLayout = ({ children }) => {
           selectedKeys={[location.pathname]}
           items={[
             {
-              key: '/admin',
+              key: "/admin",
               icon: <DashboardOutlined />,
               label: <Link to="/employee">Dashboard Overview</Link>,
             },
             {
-              key: '3',
+              key: "/employee/counter-showtimes",
               icon: <IoTicketOutline />,
-              label: 'Movie & Showtime',
+              label: <Link to="/employee/counter-showtimes">Movie & Showtime</Link>,
             },
             {
-              key: '4',
+              key: "4",
               icon: <GiConfirmed />,
-              label: 'Confirm Tickets',
+              label: "Confirm Tickets",
             },
             {
-              key: '5',
+              key: "5",
               icon: <AiOutlineBook />,
-              label: 'Booking List',
+              label: "Booking List",
             },
             {
-              key: '6',
+              key: "6",
               icon: <RiInformation2Line />,
-              label: 'Ticket Information',
-            },       
+              label: "Ticket Information",
+            },
           ]}
         />
       </Sider>
       <Layout>
-        <Header style={{ padding: 0, background: '#001529', position: 'relative' }}>
+        <Header
+          style={{ padding: 0, background: "#001529", position: "relative" }}
+        >
           <div className="flex items-center px-5 py-3 border-b border-gray-600 relative">
             {/* Nút collapse bên trái */}
             <Button
@@ -85,10 +86,10 @@ const SidebarLayout = ({ children }) => {
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               onClick={() => setCollapsed(!collapsed)}
               style={{
-                fontSize: '20px',
+                fontSize: "20px",
                 width: 40,
                 height: 40,
-                color: 'white',
+                color: "white",
               }}
             />
 
@@ -103,14 +104,13 @@ const SidebarLayout = ({ children }) => {
           style={{
             padding: 24,
             minHeight: 280,
-            background: '#0d1a2d', // màu nền dark hơn một chút
-            overflowY: 'auto',
-            color: 'white', // văn bản màu trắng
+            background: "#0d1a2d", // màu nền dark hơn một chút
+            overflowY: "auto",
+            color: "white", // văn bản màu trắng
           }}
         >
           {children}
         </Content>
-
       </Layout>
     </Layout>
   );

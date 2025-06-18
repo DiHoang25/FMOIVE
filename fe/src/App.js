@@ -111,12 +111,12 @@ function AppContent() {
           <Route path="/ticket-detail" element={<TicketDetail />} />
 
           { /* Counter(Employee) Routes */}
-          <Route path="/counter-showtimes" element={<CounterShowtimesPage />} />
-          <Route path="/counter-seat" element={<CounterSeatSelectionPage />} />
-          <Route path="/counter-combo"   element={<CounterComboPage />} />
-          <Route path="/counter-confirm" element={<CounterConfirmBooking />} />
-          <Route path="/counter-payment" element={<PaymentCounter />} />
-          <Route path="/counter-payment-success" element={<PaymentSuccess />} />
+          <Route path="/employee/counter-showtimes" element={<CounterShowtimesPage />} />
+          <Route path="/employee/counter-seat" element={<CounterSeatSelectionPage />} />
+          <Route path="/employee/counter-combo"   element={<CounterComboPage />} />
+          <Route path="/employee/counter-confirm" element={<CounterConfirmBooking />} />
+          <Route path="/employee/counter-payment" element={<PaymentCounter />} />
+          <Route path="/employee/counter-payment-success" element={<PaymentSuccess />} />
           
           {/* Catch-all route for 404 */}
 
