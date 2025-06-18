@@ -87,170 +87,178 @@ const ticketData = [
 
 const ITEMS_PER_PAGE = 4;
 
-const ViewsBookedTicket = () => {
+const generateCaptcha = (length = 6) => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return result;
+  };
+  
+  const ViewsBookedTicket = () => {
     const [pageIndex, setPageIndex] = useState(0);
     const [viewModal, setViewModal] = useState(null);
     const [cancelModal, setCancelModal] = useState(null);
-    const [otp, setOtp] = useState('');
-    const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
-    const [agreed, setAgreed] = useState(false);
-    const [checkboxError, setCheckboxError] = useState('');
-
-
+    const [captcha, setCaptcha] = useState(generateCaptcha());
+    const [inputCaptcha, setInputCaptcha] = useState('');
+    const [captchaError, setCaptchaError] = useState('');
+  
     const maxPage = Math.ceil(ticketData.length / ITEMS_PER_PAGE) - 1;
-    const currentTickets = ticketData.slice(pageIndex * ITEMS_PER_PAGE, (pageIndex + 1) * ITEMS_PER_PAGE);
-
-    return (
-        <UserDashboardLayout>
-            <div className="bg-black text-white p-6 rounded-md">
-                <h2 className="text-2xl font-bold text-center mb-6">Yours Booked Ticket</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {ticketData.length === 0 ? (
-                        <p className="text-center col-span-full">You haven't booked any ticket yet</p>
-                    ) : (
-                        currentTickets.map((ticket, idx) => (
-                            <div key={idx} className="bg-white text-black rounded shadow-md overflow-hidden">
-                                <div className="bg-red-600 text-white px-4 py-2 font-bold">
-                                    {ticket.movie}<br /><span className="text-sm font-normal">Booking ID: {ticket.id}</span>
-                                </div>
-                                <div className="p-4 space-y-2">
-                                    <p><strong>SHOW DATE:</strong> {ticket.date}</p>
-                                    <p><strong>SHOW TIME:</strong> {ticket.time}</p>
-                                    <p><strong>SEATS:</strong> {ticket.seats}</p>
-                                    <p><strong>THEATER:</strong> {ticket.screen}</p>
-                                    <p><strong>STATUS:</strong> <span className={`px-2 py-1 rounded text-xs ${ticket.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{ticket.status}</span></p>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => setViewModal(ticket)} className="bg-black text-white text-sm px-3 py-1 rounded">View Details</button>
-                                        <button onClick={() => setCancelModal(ticket)} className="bg-red-600 text-white text-sm px-3 py-1 rounded disabled:opacity-40" disabled={new Date(ticket.date) < new Date()}>Cancel Ticket</button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-
-                {/* Pagination */}
-                {ticketData.length > ITEMS_PER_PAGE && (
-                    <PaginationControls
-                        currentPage={pageIndex}
-                        totalPages={Math.ceil(ticketData.length / ITEMS_PER_PAGE)}
-                        onPageChange={setPageIndex}
-                    />
-                )}
-            </div>
-
-            {/* View Modal */}
-            <Modal
-                open={!!viewModal}
-                onCancel={() => setViewModal(null)}
-                footer={null}
-                centered
-                width={700}
-            >
-                {viewModal && (
-                    <div className="p-6">
-                        <div className="flex flex-col md:flex-row gap-4">
-                            <img src={avengers} alt="Poster" className="w-48 h-auto rounded" />
-                            <div className="flex-1 space-y-1">
-                                <h2 className="text-lg font-bold">Details</h2>
-                                <p><strong>SHOW DATE:</strong> {viewModal.date}</p>
-                                <p><strong>SHEAT:</strong> {viewModal.seats}</p>
-                                <p><strong>THEATER:</strong> {viewModal.screen}</p>
-                                <p><strong>BOOKING DATE:</strong> {viewModal.bookingDate}</p>
-                                <p><strong>SHOW TIME:</strong> {viewModal.time}</p>
-                                <p><strong>PURCHASED TICKET:</strong> {viewModal.ticketPrice}</p>
-                                <p><strong>IMDB:</strong> {viewModal.imdb}</p>
-                                <p><strong>DURATION OF THE MOVIE:</strong> {viewModal.duration}</p>
-                            </div>
-                        </div>
-                        <button onClick={() => setViewModal(null)} className="mt-4 bg-red-600 text-white px-5 py-2 rounded text-base w-full">Close</button>
-                    </div>
-                )}
-            </Modal>
-
-            {/* Cancel OTP Modal */}
-            <Modal
-                open={!!cancelModal && !success}
-                onCancel={() => setCancelModal(null)}
-                footer={null}
-                centered
-                width={400}
-            >
-                <div className="text-center space-y-4 p-6">
-                    <h3 className="text-red-600 font-bold text-md">ARE YOU REALLY WANT TO CANCEL TICKET?</h3>
-                    <div>
-                        <label className="block mb-1 text-sm font-medium">Please check your mail and enter OTP:</label>
-                        <input
-                            type="text"
-                            value={otp}
-                            onChange={(e) => setOtp(e.target.value)}
-                            placeholder="xxx-xxx"
-                            className="w-full border px-3 py-2 rounded border-gray-300 text-black"
-                        />
-                        {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
-                    </div>
-                    <div className="flex items-start space-x-2 mt-2">
-                        <input
-                            type="checkbox"
-                            id="agree"
-                            checked={agreed}
-                            onChange={(e) => {
-                                setAgreed(e.target.checked);
-                                if (e.target.checked) setCheckboxError('');
-                            }}
-                            className="mt-1"
-                        />
-                        <label htmlFor="agree" className="text-3m text-gray-700">
-                            I have fully read and access the <span className="font-bold">Privacy Policy</span> and <span className="font-bold">Terms of use</span>
-                        </label>
-                    </div>
-                    {checkboxError && (
-                        <p className="text-red-600 text-sm mt-1">{checkboxError}</p>
-                    )}
-                    <button
-                        onClick={() => {
-                            if (!agreed) {
-                                setCheckboxError('You must agree to continue.');
-                                return;
-                            }
-                            if (otp === '123456') {
-                                setSuccess(true);
-                            } else {
-                                setError('Invalid otp');
-                            }
-                        }}
-                        className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded"
-                    >
-                        Submit
-                    </button>
-
-                </div>
-            </Modal>
-
-            {/* Success Modal */}
-            <Modal
-                open={success}
-                onCancel={() => {
-                    setSuccess(false);
-                    setCancelModal(null);
-                }}
-                footer={null}
-                centered
-                width={350}
-            >
-                <div className="text-center p-6">
-                    <div className="text-green-500 text-5xl mb-4">✔️</div>
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">Success</h3>
-                    <p className="text-sm text-gray-600">80% of the ticket price will be refunded to your bank card</p>
-                    <button onClick={() => {
-                        setSuccess(false);
-                        setCancelModal(null);
-                    }} className="mt-4 bg-red-600 text-white px-4 py-2 rounded w-full">Close</button>
-                </div>
-            </Modal>
-        </UserDashboardLayout>
+    const currentTickets = ticketData.slice(
+      pageIndex * ITEMS_PER_PAGE,
+      (pageIndex + 1) * ITEMS_PER_PAGE
     );
-};
-
-export default ViewsBookedTicket;
+  
+    return (
+      <UserDashboardLayout>
+        <div className="bg-black text-white p-6 rounded-md">
+          <h2 className="text-2xl font-bold text-center mb-6">Yours Booked Ticket</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {ticketData.length === 0 ? (
+              <p className="text-center col-span-full">You haven't booked any ticket yet</p>
+            ) : (
+              currentTickets.map((ticket, idx) => (
+                <div key={idx} className="bg-white text-black rounded shadow-md overflow-hidden">
+                  <div className="bg-red-600 text-white px-4 py-2 font-bold">
+                    {ticket.movie}<br /><span className="text-sm font-normal">Booking ID: {ticket.id}</span>
+                  </div>
+                  <div className="p-4 space-y-2">
+                    <p><strong>SHOW DATE:</strong> {ticket.date}</p>
+                    <p><strong>SHOW TIME:</strong> {ticket.time}</p>
+                    <p><strong>SEATS:</strong> {ticket.seats}</p>
+                    <p><strong>THEATER:</strong> {ticket.screen}</p>
+                    <p><strong>STATUS:</strong> <span className={`px-2 py-1 rounded text-xs ${ticket.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{ticket.status}</span></p>
+                    <div className="flex gap-2">
+                      <button onClick={() => setViewModal(ticket)} className="bg-black text-white text-sm px-3 py-1 rounded">View Details</button>
+                      <button onClick={() => {
+                        setCancelModal(ticket);
+                        setCaptcha(generateCaptcha());
+                        setInputCaptcha('');
+                        setCaptchaError('');
+                      }} className="bg-red-600 text-white text-sm px-3 py-1 rounded disabled:opacity-40" disabled={new Date(ticket.date) < new Date()}>Cancel Ticket</button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+  
+          {ticketData.length > ITEMS_PER_PAGE && (
+            <PaginationControls
+              currentPage={pageIndex}
+              totalPages={Math.ceil(ticketData.length / ITEMS_PER_PAGE)}
+              onPageChange={setPageIndex}
+            />
+          )}
+        </div>
+  
+        <Modal
+          open={!!viewModal}
+          onCancel={() => setViewModal(null)}
+          footer={null}
+          centered
+          width={700}
+        >
+          {viewModal && (
+            <div className="p-6">
+              <div className="flex flex-col md:flex-row gap-4">
+                <img src={avengers} alt="Poster" className="w-48 h-auto rounded" />
+                <div className="flex-1 space-y-1">
+                  <h2 className="text-lg font-bold">Details</h2>
+                  <p><strong>SHOW DATE:</strong> {viewModal.date}</p>
+                  <p><strong>SEATS:</strong> {viewModal.seats}</p>
+                  <p><strong>THEATER:</strong> {viewModal.screen}</p>
+                  <p><strong>BOOKING DATE:</strong> {viewModal.bookingDate}</p>
+                  <p><strong>SHOW TIME:</strong> {viewModal.time}</p>
+                  <p><strong>PURCHASED TICKET:</strong> {viewModal.ticketPrice}</p>
+                  <p><strong>IMDB:</strong> {viewModal.imdb}</p>
+                  <p><strong>DURATION:</strong> {viewModal.duration}</p>
+                </div>
+              </div>
+              <button onClick={() => setViewModal(null)} className="mt-4 bg-red-600 text-white px-5 py-2 rounded w-full">Close</button>
+            </div>
+          )}
+        </Modal>
+  
+        <Modal
+          open={!!cancelModal && !success}
+          onCancel={() => setCancelModal(null)}
+          footer={null}
+          centered
+          width={400}
+        >
+          <div className="text-center space-y-4 p-6">
+            <h3 className="text-red-600 font-bold text-md">ARE YOU REALLY WANT TO CANCEL TICKET?</h3>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-left">Verification Code:</p>
+              <div className="flex items-center justify-between">
+                <div className="bg-gray-100 px-4 py-2 font-mono rounded text-black tracking-widest select-none">{captcha}</div>
+                <button
+                  onClick={() => {
+                    setCaptcha(generateCaptcha());
+                    setInputCaptcha('');
+                    setCaptchaError('');
+                  }}
+                  className="text-red-500 hover:underline text-sm"
+                >
+                  Reload
+                </button>
+              </div>
+              <input
+                type="text"
+                value={inputCaptcha}
+                onChange={(e) => setInputCaptcha(e.target.value)}
+                className="w-full border border-gray-300 px-3 py-2 rounded text-black"
+                placeholder="Enter the code above"
+              />
+              {captchaError && <p className="text-red-500 text-sm">{captchaError}</p>}
+            </div>
+  
+            <button
+              onClick={() => {
+                if (inputCaptcha !== captcha) {
+                  setCaptchaError('Incorrect verification code.');
+                  return;
+                }
+                setSuccess(true);
+              }}
+              className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded"
+            >
+              Submit
+            </button>
+          </div>
+        </Modal>
+  
+        <Modal
+          open={success}
+          onCancel={() => {
+            setSuccess(false);
+            setCancelModal(null);
+          }}
+          footer={null}
+          centered
+          width={350}
+        >
+          <div className="text-center p-6">
+            <div className="text-green-500 text-5xl mb-4">✔️</div>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">Success</h3>
+            <p className="text-sm text-gray-600">80% of the ticket price will be refunded to your bank card</p>
+            <button
+              onClick={() => {
+                setSuccess(false);
+                setCancelModal(null);
+              }}
+              className="mt-4 bg-red-600 text-white px-4 py-2 rounded w-full"
+            >
+              Close
+            </button>
+          </div>
+        </Modal>
+      </UserDashboardLayout>
+    );
+  };
+  
+  export default ViewsBookedTicket;
+  
