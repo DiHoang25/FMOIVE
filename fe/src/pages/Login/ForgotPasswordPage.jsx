@@ -11,14 +11,11 @@ function ForgotPasswordPage() {
 
   const handleChange = (e) => {
     setEmail(e.target.value);
-    
     setMessage('');
     setError('');
   };
 
-  
   const isValidGmail = (email) => {
-    
     const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
     return gmailRegex.test(email);
   };
@@ -31,22 +28,36 @@ function ForgotPasswordPage() {
       return;
     }
 
-    // Kiểm tra địa chỉ Gmail
     if (!isValidGmail(email)) {
       setError('Please enter a valid Gmail address (example@gmail.com)');
       return;
     }
 
     setIsSubmitting(true);
+    setError('');
+    setMessage('');
 
     try {
-     
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch('http://localhost:5000/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
 
-      
-      navigate('/reset-password');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to send reset code');
+      }
+
+      setMessage('Verification code sent! Please check your email.');
+      setTimeout(() => {
+        navigate('/reset-password', { state: { email } });
+      }, 1500);
     } catch (err) {
-      setError('An error occurred. Please try again later.');
+      setError(err.message || 'An error occurred. Please try again later.');
       console.error('Error sending reset code:', err);
     } finally {
       setIsSubmitting(false);
@@ -54,7 +65,6 @@ function ForgotPasswordPage() {
   };
 
   const handleCancel = () => {
-    
     window.history.back();
   };
 
@@ -109,9 +119,9 @@ function ForgotPasswordPage() {
               </div>
             </form>
           </div>
-          
+
           <div className="mt-6 text-center">
-            
+            <Link to="/login" className="text-red-400 hover:text-white text-sm">Back to Login</Link>
           </div>
         </div>
       </div>
@@ -128,4 +138,3 @@ function ForgotPasswordPage() {
 }
 
 export default ForgotPasswordPage;
-
