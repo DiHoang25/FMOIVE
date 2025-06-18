@@ -6,54 +6,63 @@ import { Modal } from 'antd';
 const ChangePassword = () => {
   const navigate = useNavigate();
   const [success, setSuccess] = useState(false);
+  const [serverError, setServerError] = useState('');
 
   const [formData, setFormData] = useState({
-    oldPassword: '',
+    currentPassword: '',
     newPassword: '',
-    confirmPassword: '',
+    confirmNewPassword: '',
   });
 
   const [errors, setErrors] = useState({});
-
-  const actualOldPassword = 'password123'; // Demo password cũ
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: '' }));
+    setServerError('');
   };
 
   const validate = () => {
     const newErrors = {};
-
-    if (!formData.oldPassword) {
-      newErrors.oldPassword = 'Please enter your current password.';
-    } else if (formData.oldPassword !== actualOldPassword) {
-      newErrors.oldPassword = 'Current password is incorrect.';
-    }
-
-    if (!formData.newPassword) {
-      newErrors.newPassword = 'New password is required.';
-    } else if (formData.newPassword.length < 6) {
-      newErrors.newPassword = 'Password must be at least 6 characters.';
-    }
-
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your new password.';
-    } else if (formData.newPassword !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match.';
-    }
-
+    if (!formData.currentPassword) newErrors.currentPassword = 'Please enter your current password.';
+    if (!formData.newPassword) newErrors.newPassword = 'Please enter your new password.';
+    else if (formData.newPassword.length < 6) newErrors.newPassword = 'Password must be at least 6 characters.';
+    if (!formData.confirmNewPassword) newErrors.confirmNewPassword = 'Please confirm your new password.';
+    else if (formData.newPassword !== formData.confirmNewPassword)
+      newErrors.confirmNewPassword = 'Passwords do not match.';
     return newErrors;
   };
 
-  const handlePasswordChangeSubmit = () => {
+  const handlePasswordChangeSubmit = async () => {
     const foundErrors = validate();
     if (Object.keys(foundErrors).length > 0) {
       setErrors(foundErrors);
-    } else {
-      console.log('Password changed successfully.');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:5000/api/auth/change-password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setServerError(data.message || 'Failed to change password.');
+        return;
+      }
+
       setSuccess(true);
+      setFormData({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
+    } catch (error) {
+      console.error('Error changing password:', error);
+      setServerError('Something went wrong. Please try again.');
     }
   };
 
@@ -67,14 +76,14 @@ const ChangePassword = () => {
             <div>
               <input
                 type="password"
-                name="oldPassword"
+                name="currentPassword"
                 placeholder="Current Password"
-                value={formData.oldPassword}
+                value={formData.currentPassword}
                 onChange={handleChange}
                 className="bg-white text-black px-4 py-2 rounded w-full border border-gray-300"
               />
-              {errors.oldPassword && (
-                <p className="text-red-500 text-sm mt-1">{errors.oldPassword}</p>
+              {errors.currentPassword && (
+                <p className="text-red-500 text-sm mt-1">{errors.currentPassword}</p>
               )}
             </div>
             <div>
@@ -93,16 +102,17 @@ const ChangePassword = () => {
             <div>
               <input
                 type="password"
-                name="confirmPassword"
-                placeholder="Re-enter Password"
-                value={formData.confirmPassword}
+                name="confirmNewPassword"
+                placeholder="Re-enter New Password"
+                value={formData.confirmNewPassword}
                 onChange={handleChange}
                 className="bg-white text-black px-4 py-2 rounded w-full border border-gray-300"
               />
-              {errors.confirmPassword && (
-                <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+              {errors.confirmNewPassword && (
+                <p className="text-red-500 text-sm mt-1">{errors.confirmNewPassword}</p>
               )}
             </div>
+            {serverError && <p className="text-red-400 text-sm text-center">{serverError}</p>}
           </div>
           <div className="flex justify-center items-center gap-4 mt-6">
             <button
@@ -133,7 +143,10 @@ const ChangePassword = () => {
           <h3 className="text-xl font-bold text-gray-800 mb-2">Success</h3>
           <p className="text-sm text-gray-600">Your password has been updated successfully.</p>
           <button
-            onClick={() => setSuccess(false)}
+            onClick={() => {
+              setSuccess(false);
+              navigate('/viewaccount');
+            }}
             className="mt-4 bg-red-600 text-white px-4 py-2 rounded w-full"
           >
             Close
