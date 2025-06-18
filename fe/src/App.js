@@ -52,17 +52,14 @@ import PaymentPolicy from './pages/Policies/PaymentPolicy';
 import DeliveryPolicy from './pages/Policies/DeliveryPolicy';
 import InformationSecurity from './pages/Policies/InformationSecurity';
 import InspectionReturns from './pages/Policies/InspectionReturns';
-<<<<<<< HEAD
 import ContactPage from './pages/Contact/ContactPage';
 import CounterBookingList from './pages/Employee/CounterBookingList';
 import ChangePassword from './pages/Users/ChangePassword';
 import CounterGetTicket from './pages/Employee/CounterGetTicket';
-=======
 import EditMovie from './pages/Admin/EditMovie';
 import AddCinemaRoom from './pages/Admin/AddCinemaRoom';
 import AddPromotion from './pages/Admin/AddPromotion';
 import EditPromotion from './pages/Admin/EditPromotion';
->>>>>>> cfdbb9eab46a79e50d6c19f1626fea39c4d1bc45
 
 function AppContent() {
   const location = useLocation();
@@ -124,6 +121,9 @@ function AppContent() {
           <Route path='/admin/cinema-rooms/add-new-cinema-room' element={<AddCinemaRoom />} />
           <Route path='/admin/add-promotion' element={<AddPromotion />} />
           <Route path='/admin/promotions/edit-promotion/:promotionId' element={<EditPromotion />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/changepassword" element={<ChangePassword />} />
+          
          
 
         
