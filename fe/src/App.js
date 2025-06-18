@@ -52,6 +52,7 @@ import PaymentPolicy from './pages/Policies/PaymentPolicy';
 import DeliveryPolicy from './pages/Policies/DeliveryPolicy';
 import InformationSecurity from './pages/Policies/InformationSecurity';
 import InspectionReturns from './pages/Policies/InspectionReturns';
+import ContactPage from './pages/Contact/ContactPage';
 
 function AppContent() {
   const location = useLocation();
@@ -77,7 +78,7 @@ function AppContent() {
       <div className={!hideLayout ? 'pt-[1px]' : ''}>
         
         
-        {!hideNavbarFooter && !showNavbarForMovieSearch && <Navbar />}
+      {!hideNavbarFooter && <Navbar />}
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -109,6 +110,8 @@ function AppContent() {
           <Route path="/customer-benefits" element={<CustomerBenefits />} />
           <Route path="/admin/cinema-rooms" element={<CinemaRooms />} />
           <Route path="/admin/room-detail/:roomId" element={<CinemaRoomDetail />} />
+          <Route path="/contact" element={<ContactPage/>} />
+
           
 
         
