@@ -19,7 +19,7 @@ const options = {
       { name: 'User', description: 'Tính năng người dùng' },
     ]
   },
-  apis: ['./routes/**/*.js'], // ✅ sửa ở đây
+  apis: ['./src/routes/**/*.js'], // ✅ sửa ở đây
 };
 
 const swaggerSpec = swaggerJSDoc(options);
