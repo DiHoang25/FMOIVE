@@ -87,6 +87,8 @@ Track your reward points for movie purchases and redemptions
           dateFormat="dd/MM/yyyy"
           placeholderText="DD/MM/YYYY"
           className="w-full px-3 py-2 rounded bg-[#1c1f26] text-white border border-gray-600"
+          inputReadOnly
+          onKeyDown={(e) => e.preventDefault()}
         />
       </div>
       <div className="flex-1">
@@ -97,6 +99,8 @@ Track your reward points for movie purchases and redemptions
           dateFormat="dd/MM/yyyy"
           placeholderText="DD/MM/YYYY"
           className="w-full px-3 py-2 rounded bg-[#1c1f26] text-white border border-gray-600"
+          inputReadOnly
+          onKeyDown={(e) => e.preventDefault()}
         />
       </div>
       <div className="flex items-end">

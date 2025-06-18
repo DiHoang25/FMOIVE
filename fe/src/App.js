@@ -76,7 +76,7 @@ function AppContent() {
     <>
       
       {!hideLayout && <NotificationBar />}
-      <div className={!hideLayout ? 'pt-[1px]' : ''}>
+      <div className={!hideLayout ? 'pt-[0px]' : ''}>
         
         
       {!hideNavbarFooter && <Navbar />}
