@@ -41,8 +41,8 @@ function RegisterPage() {
           email: data.email,
           phone: data.phone,
           gender: data.gender,
-          address: '',
-          id_card: '',
+          // address: '',
+          // id_card: '',
           role: 'customer',
           is_deleted: false,
           is_actived: true
