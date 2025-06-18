@@ -1,67 +1,97 @@
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import QR from '../../assets/qrcode.png'; // Replace with real QR image
 
-const PaymentCounter = () => {
+const PaymentPage = () => {
+  const [selectedMethod, setSelectedMethod] = useState('vnpay');
+  const [popcornCount, setPopcornCount] = useState(1); // Make stateful if needed
   const navigate = useNavigate();
 
-  // Normally you'd pass this via props, state, or context
-  const totalAmount = 61.5; // Example: from ConfirmBooking
-  const bank = {
-    accountName: 'Cinema Manager',
-    bankName: 'Bank of Vietnam',
-    accountNumber: '1234567890',
-  };
+  const ticketCount = 3;
+  const ticketPrice = 15;
+  const serviceFee = 2.5;
+  const popcornPrice = 10;
+  
+  // This will now recompute when dependencies change
+  const total = useMemo(() => {
+    return ticketPrice * ticketCount + serviceFee + popcornPrice * popcornCount;
+  }, [ticketCount, popcornCount]);
+
+  const paymentMethods = [
+    {
+      id: 'vnpay',
+      label: 'VN Pay',
+      desc: 'Scan to pay with VN Pay',
+    },
+    {
+      id: 'cash',
+      label: 'Cash',
+      desc: 'Pay with cash at the counter',
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-black text-white py-10 px-4">
-      <div className="max-w-2xl mx-auto bg-neutral-900 rounded-2xl p-8 shadow-lg text-center">
-
-        <h1 className="text-3xl font-bold mb-8 text-red-500">💳 Make Your Payment</h1>
-
-        <p className="text-lg text-gray-300 mb-6">
-          Scan the QR code below to complete your payment.
-        </p>
-
-        {/* QR Code */}
-        <div className="flex justify-center mb-6">
-          <img src={QR} alt="QR Code" className="w-60 h-60 border-4 border-white rounded-lg" />
-        </div>
-
-        {/* Amount & Bank Info */}
-        <div className="bg-zinc-800 rounded-xl p-6 space-y-4 text-left text-base">
-          <div className="flex justify-between">
-            <span className="text-gray-400">Total Amount:</span>
-            <span className="font-bold text-white text-lg">${totalAmount.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-400">Account Name:</span>
-            <span>{bank.accountName}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-400">Bank Name:</span>
-            <span>{bank.bankName}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-400">Account Number:</span>
-            <span>{bank.accountNumber}</span>
-          </div>
-        </div>
-
+    <div className="min-h-screen bg-black text-white flex items-center justify-center py-10 px-4">
+      <div className="max-w-md w-full bg-neutral-900 rounded-xl p-6 space-y-6 shadow-lg relative">
         
+        {/* Back Button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="absolute top-4 left-4 text-white bg-gray-700 hover:bg-gray-600 px-4 py-1 rounded"
+        >
+          ← Back
+        </button>
 
-        {/* Buttons */}
-        <div className="flex justify-center gap-4 mt-10">
-          <button
-            onClick={() => navigate(-1)}
-            className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded"
-          >
-            ← Back
-          </button>
-          
+        <div>
+          <h1 className="text-xl font-bold text-center">Complete Your Payment</h1>
         </div>
+
+        {/* Payment Methods */}
+        <div className="space-y-3">
+          {paymentMethods.map((method) => (
+            <button
+              key={method.id}
+              onClick={() => setSelectedMethod(method.id)}
+              className={`w-full text-left px-4 py-3 rounded border ${
+                selectedMethod === method.id
+                  ? 'border-red-600 bg-zinc-900'
+                  : 'border-zinc-800 bg-zinc-800'
+              }`}
+            >
+              <p className="font-semibold">{method.label}</p>
+              <p className="text-sm text-gray-400">{method.desc}</p>
+            </button>
+          ))}
+        </div>
+
+        {/* Price Summary */}
+        <div className="bg-zinc-800 rounded p-4 text-sm space-y-2">
+          <div className="flex justify-between">
+            <span>Movie Tickets ({ticketCount})</span>
+            <span>${(ticketPrice * ticketCount).toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Popcorns & Drink ({popcornCount})</span>
+            <span>${(popcornPrice * popcornCount).toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Service Fee</span>
+            <span>${serviceFee.toFixed(2)}</span>
+          </div>
+          
+          <hr className="border-gray-700" />
+          <div className="flex justify-between font-bold text-base">
+            <span>Total Amount</span>
+            <span>${total.toFixed(2)}</span>
+          </div>
+        </div>
+
+        {/* Confirm Notice */}
+        <p className="text-xs text-center text-white bg-red-600 rounded py-2 font-semibold">
+          You'll be directed to the third-party payment gateway to complete your transaction.
+        </p>
       </div>
     </div>
   );
 };
 
-export default PaymentCounter;
+export default PaymentPage;

@@ -52,8 +52,8 @@ import PaymentPolicy from './pages/Policies/PaymentPolicy';
 import DeliveryPolicy from './pages/Policies/DeliveryPolicy';
 import InformationSecurity from './pages/Policies/InformationSecurity';
 import InspectionReturns from './pages/Policies/InspectionReturns';
+import EditMovie from './pages/Admin/EditMovie';
 import AddCinemaRoom from './pages/Admin/AddCinemaRoom';
-import EditMovie from './pages/Admin/EditMovie'
 import AddPromotion from './pages/Admin/AddPromotion';
 import EditPromotion from './pages/Admin/EditPromotion';
 
@@ -81,7 +81,7 @@ function AppContent() {
       <div className={!hideLayout ? 'pt-[0px]' : ''}>
         
         
-        {!hideNavbarFooter && !showNavbarForMovieSearch && <Navbar />}
+      {!hideNavbarFooter && <Navbar />}
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -113,11 +113,11 @@ function AppContent() {
           <Route path="/customer-benefits" element={<CustomerBenefits />} />
           <Route path="/admin/cinema-rooms" element={<CinemaRooms />} />
           <Route path="/admin/room-detail/:roomId" element={<CinemaRoomDetail />} />
-          <Route path="/admin/cinema-rooms/add-new-cinema-room" element={<AddCinemaRoom />} />
           <Route path="/admin/movie-list/edit-movie/:movieId" element={<EditMovie />} />
+          <Route path='/admin/cinema-rooms/add-new-cinema-room' element={<AddCinemaRoom />} />
           <Route path='/admin/add-promotion' element={<AddPromotion />} />
           <Route path='/admin/promotions/edit-promotion/:promotionId' element={<EditPromotion />} />
-          
+         
 
         
           <Route path="/showtimes" element={<ShowtimePage />} />
@@ -129,13 +129,13 @@ function AppContent() {
           <Route path="/ticket-detail" element={<TicketDetail />} />
 
           { /* Counter(Employee) Routes */}
-          <Route path="/counter-showtimes" element={<CounterShowtimesPage />} />
-          <Route path="/counter-seat" element={<CounterSeatSelectionPage />} />
-          <Route path="/counter-combo"   element={<CounterComboPage />} />
-          <Route path="/counter-confirm" element={<CounterConfirmBooking />} />
-          <Route path="/counter-payment" element={<PaymentCounter />} />
-          <Route path="/counter-payment-success" element={<PaymentSuccess />} />
-
+          <Route path="/employee/counter-showtimes" element={<CounterShowtimesPage />} />
+          <Route path="/employee/counter-seat" element={<CounterSeatSelectionPage />} />
+          <Route path="/employee/counter-combo"   element={<CounterComboPage />} />
+          <Route path="/employee/counter-confirm" element={<CounterConfirmBooking />} />
+          <Route path="/employee/counter-payment" element={<PaymentCounter />} />
+          <Route path="/employee/counter-payment-success" element={<PaymentSuccess />} />
+          
           { /* Policies Routes */}
           <Route path="/terms" element={<GeneralTerms />} />
           <Route path="/payment-policy" element={<PaymentPolicy />} />

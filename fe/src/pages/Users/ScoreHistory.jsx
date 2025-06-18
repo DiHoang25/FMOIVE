@@ -8,10 +8,10 @@ import { ArrowDown, ArrowUp } from 'lucide-react';
 const fakeData = {
 add: [
 { movie: 'Avenger: The Infinity war', date: '26/06/2025', point: 20 },
+{ movie: 'Avenger: The Infinity war', date: '26/06/2025', point: 20 },
+{ movie: 'Avenger: The Infinity war', date: '26/06/2025', point: 20 },
 { movie: 'The Dark Knight', date: '25/06/2025', point: 20 },
 { movie: 'Avenger: The End Game', date: '24/06/2025', point: 20 },
-{ movie: 'Avenger: The Infinity war', date: '26/06/2025', point: 20 },
-{ movie: 'Avenger: The Infinity war', date: '26/06/2025', point: 20 },
 ],
 use: [
 { movie: 'Spider-Man: No Way Home', date: '26/06/2025', point: -20 },
@@ -66,9 +66,7 @@ return (
 Track your reward points for movie purchases and redemptions
 </p>
 
-javascript
-Sao chép
-Chỉnh sửa
+
   {/* Filter */}
   <div className="bg-[#0d1117] border border-gray-700 rounded-md mb-8">
     <div className="border-b border-gray-700 p-4 font-semibold text-white flex items-center justify-between">
@@ -89,6 +87,8 @@ Chỉnh sửa
           dateFormat="dd/MM/yyyy"
           placeholderText="DD/MM/YYYY"
           className="w-full px-3 py-2 rounded bg-[#1c1f26] text-white border border-gray-600"
+          inputReadOnly
+          onKeyDown={(e) => e.preventDefault()}
         />
       </div>
       <div className="flex-1">
@@ -99,6 +99,8 @@ Chỉnh sửa
           dateFormat="dd/MM/yyyy"
           placeholderText="DD/MM/YYYY"
           className="w-full px-3 py-2 rounded bg-[#1c1f26] text-white border border-gray-600"
+          inputReadOnly
+          onKeyDown={(e) => e.preventDefault()}
         />
       </div>
       <div className="flex items-end">

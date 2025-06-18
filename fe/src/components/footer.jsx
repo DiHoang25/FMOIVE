@@ -22,11 +22,11 @@ const Footer = () => {
                 <div>
                     <h2 className="text-red-500 text-xl font-semibold mb-3">Policies</h2>
                     <ul className="text-base space-y-2">
-                        <li> <Link to="/terms" className="hover:underline text-white">General Terms</Link></li>
-                        <li> <Link to="/payment-policy" className="hover:underline text-white">Payment Policy</Link></li>
-                        <li> <Link to="/delivery-policy" className="hover:underline text-white">Delivery Policy</Link></li>
-                        <li> <Link to="/information-security" className="hover:underline text-white">Information Security</Link></li>
-                        <li> <Link to="/returns-refunds" className="hover:underline text-white">Inspection, Returns/Refunds</Link></li>
+                        <li>&gt; <Link to="/terms" className="hover:underline text-white">General Terms</Link></li>
+                        <li>&gt; <Link to="/payment-policy" className="hover:underline text-white">Payment Policy</Link></li>
+                        <li>&gt; <Link to="/delivery-policy" className="hover:underline text-white">Delivery Policy</Link></li>
+                        <li>&gt; <Link to="/information-security" className="hover:underline text-white">Information Security</Link></li>
+                        <li>&gt; <Link to="/returns-refunds" className="hover:underline text-white">Inspection, Returns/Refunds</Link></li>
                     </ul>
 
                 </div>

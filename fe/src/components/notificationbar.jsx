@@ -30,9 +30,7 @@ const NotificationBar = () => {
         </Link>
 
         <div className="flex items-center space-x-4">
-          <Link to="/faq" className="text-xl font-semibold text-white hover:underline">
-            FAQ's
-          </Link>
+         
 
           <img src={user} alt="User Icon" className="h-10 w-10 object-contain" />
 
