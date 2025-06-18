@@ -119,7 +119,7 @@ const ViewMembers = () => {
       <div className="flex h-screen">
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="p-4 flex items-center justify-between">
-            <h2 className="text-2xl text-white font-bold text-center w-full">Member Management</h2>
+            <h2 className="text-2xl text-white font-bold text-center w-full">Member Management </h2>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4">

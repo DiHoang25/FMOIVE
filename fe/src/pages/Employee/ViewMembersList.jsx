@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Switch } from 'antd';
+import { message, Modal, Switch } from 'antd';
 import SidebarLayout from '../../components/Sidebar-Employee';
+import { ExclamationCircleFilled } from '@ant-design/icons';
 
 const ViewMembers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const membersPerPage = 5;
+   const { confirm } = Modal;
 
   // Dữ liệu thành viên gốc
   const initialMembers = [
@@ -34,12 +36,32 @@ const ViewMembers = () => {
 
   // Cập nhật trạng thái member khi bật/tắt switch
   const handleStatusChange = (memberId, checked) => {
-    const updatedStatus = {
-      ...memberStatusMap,
-      [memberId]: checked,
-    };
-    setMemberStatusMap(updatedStatus);
-    localStorage.setItem('memberStatus', JSON.stringify(updatedStatus));
+    const member = initialMembers.find(m => m.id === memberId);
+
+    confirm({
+      title: 'Confirm Status Change',
+      icon: <ExclamationCircleFilled />,
+      content: `Do you want to ${checked ? 'activate' : 'deactivate'} member "${member.fullName}"?`,
+      okText: 'Yes',
+      cancelText: 'No',
+      okType: 'primary',
+      okButtonProps: {
+        style: {
+          backgroundColor: '#1677ff',
+          color: 'white',
+          borderColor: '#1677ff',
+        },
+      },
+      onOk() {
+        const updatedStatus = {
+          ...memberStatusMap,
+          [memberId]: checked,
+        };
+        setMemberStatusMap(updatedStatus);
+        localStorage.setItem('memberStatus', JSON.stringify(updatedStatus));
+        message.success(`Member "${member.fullName}" is now ${checked ? 'active' : 'inactive'}.`);
+      },
+    });
   };
 
   // Tạo mảng thành viên hiển thị với trạng thái cập nhật từ localStorage

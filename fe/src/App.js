@@ -53,6 +53,7 @@ import DeliveryPolicy from './pages/Policies/DeliveryPolicy';
 import InformationSecurity from './pages/Policies/InformationSecurity';
 import InspectionReturns from './pages/Policies/InspectionReturns';
 import ContactPage from './pages/Contact/ContactPage';
+import CounterBookingList from './pages/Employee/CounterBookingList';
 
 function AppContent() {
   const location = useLocation();
@@ -130,6 +131,7 @@ function AppContent() {
           <Route path="/employee/counter-confirm" element={<CounterConfirmBooking />} />
           <Route path="/employee/counter-payment" element={<PaymentCounter />} />
           <Route path="/employee/counter-payment-success" element={<PaymentSuccess />} />
+          <Route path="/employee/counter-booking-list" element={<CounterBookingList />} />
           
           { /* Policies Routes */}
           <Route path="/terms" element={<GeneralTerms />} />

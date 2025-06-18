@@ -1,9 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import batman from '../../assets/batman.png'; 
+import { useState } from 'react';
 
 const CounterConfirmBooking = () => {
   const navigate = useNavigate();
-
+  const [voucherCode, setVoucherCode] = useState('');
   const movie = {
     title: 'The Dark Knight',
     poster: batman,
@@ -83,17 +84,22 @@ const CounterConfirmBooking = () => {
 
           {/* Right Column */}
           <div className="space-y-8">
-            {/* User Info */}
-            <div>
-              <h3 className="text-lg font-semibold text-red-500 mb-2">🧍 Your Information</h3>
-              <div className="space-y-1 text-base">
-                <p><span className="text-gray-400">Full Name:</span> {user.name}</p>
-                <p><span className="text-gray-400">Email:</span> {user.email}</p>
-                <p><span className="text-gray-400">ID Number:</span> {user.id}</p>
-                <p><span className="text-gray-400">Phone:</span> {user.phone}</p>
-              </div>
+            {/* Voucher Input */}
+            <h3 className="text-red-700 font-semibold ">Voucher Code</h3>
+            <div className="flex mt-1 gap-2">
+              <input
+                type="text"
+                placeholder="Enter voucher code"
+                value={voucherCode}
+                onChange={(e) => setVoucherCode(e.target.value)}
+                className="bg-zinc-800 text-white px-4 py-2 rounded w-full text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
+              />
+              <button
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium"
+              >
+                Apply
+              </button>
             </div>
-
             {/* Payment Summary */}
             <div>
               <h3 className="text-lg font-semibold text-red-500 mb-2">💳 Payment Summary</h3>
