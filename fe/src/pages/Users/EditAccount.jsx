@@ -24,7 +24,7 @@ const EditAccount = () => {
 
     const [errors, setErrors] = useState({});
 
-    const actualOldPassword = 'password123'; // demo: password cũ 
+   
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -32,34 +32,7 @@ const EditAccount = () => {
         setErrors((prev) => ({ ...prev, [name]: '' }));
     };
 
-    const handlePasswordChangeSubmit = () => {
-        // Nếu không có gì được nhập thì không xử lý
-        if (
-            !formData.oldPassword &&
-            !formData.newPassword &&
-            !formData.confirmPassword
-        ) {
-            setErrors((prev) => ({
-                ...prev,
-                oldPassword: 'Please enter your current password to change it.',
-            }));
-            return;
-        }
-
-        // Chạy validation
-        const foundErrors = validate();
-
-        if (
-            foundErrors.oldPassword ||
-            foundErrors.newPassword ||
-            foundErrors.confirmPassword
-        ) {
-            setErrors(foundErrors);
-        } else {
-            console.log('Password changed successfully.');
-            setSuccess(true);
-        }
-    };
+    
     const validate = () => {
         const newErrors = {};
 
@@ -71,17 +44,7 @@ const EditAccount = () => {
         if (!formData.idNumber) newErrors.idNumber = 'ID Number is required.';
         if (!formData.phoneNumber) newErrors.phoneNumber = 'Phone Number is required.';
 
-        if (formData.oldPassword || formData.newPassword || formData.confirmPassword) {
-            if (!formData.oldPassword) newErrors.oldPassword = 'Please enter your current password.';
-            else if (formData.oldPassword !== actualOldPassword) newErrors.oldPassword = 'Current password is incorrect.';
-            if (!formData.newPassword) {
-                newErrors.newPassword = 'New password is required.';
-            } else if (formData.newPassword.length < 6) {
-                newErrors.newPassword = 'Password must be at least 6 characters.';
-            }
-            if (formData.newPassword !== formData.confirmPassword)
-                newErrors.confirmPassword = 'Passwords do not match.';
-        }
+        
 
         return newErrors;
     };
@@ -98,7 +61,7 @@ const EditAccount = () => {
 
     return (
         <UserDashboardLayout>
-            <div className="bg-[#0a0f1c] min-h-[100vh] text-white p-8 rounded-md">
+            <div className="bg-[#0a0f1c]  text-white p-8 rounded-md">
                 <h1 className="text-3xl font-bold mb-8 text-center text-red-600">Edit Account Information</h1>
 
 
@@ -165,31 +128,8 @@ const EditAccount = () => {
                         </div>
                     </div>
                 </div>
-
-                {/* Password Section */}
-                <div className="mt-10 bg-[#121826] p-6 rounded-lg shadow-md max-w-lg mx-auto">
-                    <h2 className="font-bold text-xl mb-4 text-red-500 text-center">Change Password</h2>
-                    <div className="flex flex-col gap-4">
-                        <div>
-                            <input type="password" name="oldPassword" placeholder="Current Password" value={formData.oldPassword} onChange={handleChange} className="bg-white text-black px-4 py-2 rounded w-full border border-gray-300" />
-                            {errors.oldPassword && (<p className="text-red-500 text-sm mt-1">{errors.oldPassword}</p>)}
-                        </div>
-                        <div>
-                            <input type="password" name="newPassword" placeholder="New Password" value={formData.newPassword} onChange={handleChange} className="bg-white text-black px-4 py-2 rounded w-full border border-gray-300" />
-                            {errors.newPassword && (<p className="text-red-500 text-sm mt-1">{errors.newPassword}</p>)}
-                        </div>
-                        <div>
-                            <input type="password" name="confirmPassword" placeholder="Re-enter Password" value={formData.confirmPassword} onChange={handleChange} className="bg-white text-black px-4 py-2 rounded w-full border border-gray-300" />
-                            {errors.confirmPassword && (<p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>)}
-                        </div>
-                    </div>
-                    <div className="flex justify-center items-center gap-4 mt-6">
-                        <button onClick={() => navigate('/viewaccount')} className="px-5 py-2 border border-red-500 text-red-500 rounded hover:bg-red-100" > Cancel </button>
-                        <button onClick={handlePasswordChangeSubmit} className="px-5 py-2 bg-red-500 text-white rounded hover:bg-red-600" > Save </button>
-                    </div>
-                </div>
             </div>
-            {/* ✅ Modal Success nằm ở đây (phần JSX) */}
+
             <Modal
                 open={success}
                 onCancel={() => setSuccess(false)}

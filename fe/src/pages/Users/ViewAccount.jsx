@@ -20,6 +20,12 @@ const ViewAccount = () => {
                         >
                             Edit Profile
                         </button>
+                        <button
+                            onClick={() => navigate('/changepassword')}
+                            className="bg-red-600 mt-4 px-4 py-2 rounded hover:bg-red-700 transition font-semibold"
+                        >
+                           Change Password
+                        </button>
                     </div>
 
                     {/* Thông tin người dùng */}
@@ -33,7 +39,7 @@ const ViewAccount = () => {
                         <p><span className="font-semibold text-white">ID number:</span> 0123456789</p>
                         <p><span className="font-semibold text-white">Phone number:</span> 0123456789</p>
                         <p><span className="font-semibold text-white">Point:</span> 1000</p>
-                        <p><span className="font-semibold text-white">Membership:</span> Gold</p>
+                        
                     </div>
                 </div>
             </div>

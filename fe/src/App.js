@@ -54,6 +54,8 @@ import InformationSecurity from './pages/Policies/InformationSecurity';
 import InspectionReturns from './pages/Policies/InspectionReturns';
 import ContactPage from './pages/Contact/ContactPage';
 import CounterBookingList from './pages/Employee/CounterBookingList';
+import ChangePassword from './pages/Users/ChangePassword';
+import CounterGetTicket from './pages/Employee/CounterGetTicket';
 
 function AppContent() {
   const location = useLocation();
@@ -76,7 +78,7 @@ function AppContent() {
     <>
       
       {!hideLayout && <NotificationBar />}
-      <div className={!hideLayout ? 'pt-[1px]' : ''}>
+      <div className={!hideLayout ? 'pt-[0px]' : ''}>
         
         
       {!hideNavbarFooter && <Navbar />}
@@ -112,6 +114,7 @@ function AppContent() {
           <Route path="/admin/cinema-rooms" element={<CinemaRooms />} />
           <Route path="/admin/room-detail/:roomId" element={<CinemaRoomDetail />} />
           <Route path="/contact" element={<ContactPage/>} />
+          <Route path="/changepassword" element={<ChangePassword/>} />
 
           
 
@@ -132,6 +135,7 @@ function AppContent() {
           <Route path="/employee/counter-payment" element={<PaymentCounter />} />
           <Route path="/employee/counter-payment-success" element={<PaymentSuccess />} />
           <Route path="/employee/counter-booking-list" element={<CounterBookingList />} />
+          <Route path="/employee/counter-get-ticket" element={<CounterGetTicket />} />
           
           { /* Policies Routes */}
           <Route path="/terms" element={<GeneralTerms />} />
