@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
-import { Switch } from 'antd';
+import { Switch, Modal, message } from 'antd';
 import SidebarLayout from '../../components/Sidebar-Admin';
 
 const initialMovies = [
@@ -28,17 +28,30 @@ const MovieList = () => {
   const upcomingMovies = movies.filter(movie => movie.status === 'Stop showing').length;
   const todaysShowtimes = movies.reduce((total, movie) => total + movie.showtime, 0);
 
-  const toggleStatus = (id) => {
-    const updated = movies.map(movie =>
-      movie.id === id
-        ? {
-            ...movie,
-            status: movie.status === 'Now showing' ? 'Stop showing' : 'Now showing',
-          }
-        : movie
-    );
-    setMovies(updated);
-    localStorage.setItem('movie-list', JSON.stringify(updated));
+  const toggleStatus = (movie) => {
+    const newStatus = movie.status === 'Now showing' ? 'Stop showing' : 'Now showing';
+    Modal.confirm({
+      title: 'Confirm Status Change',
+      content: `Are you sure you want to change status of "${movie.name}" to "${newStatus}"?`,
+      okText: 'Confirm',
+      cancelText: 'Cancel',
+      okType: 'primary',
+      okButtonProps: {
+        style: {
+          backgroundColor: '#1677ff',
+          color: 'white',
+          borderColor: '#1677ff',
+        },
+      },
+      onOk: () => {
+        const updated = movies.map(m =>
+          m.id === movie.id ? { ...m, status: newStatus } : m
+        );
+        setMovies(updated);
+        localStorage.setItem('movie-list', JSON.stringify(updated));
+        message.success(`Status of "${movie.name}" changed to "${newStatus}"`);
+      },
+    });
   };
 
   const handleSearch = (e) => setSearchTerm(e.target.value);
@@ -130,9 +143,9 @@ const MovieList = () => {
                   <td className="px-4 py-2">
                     <Switch
                       checked={movie.status === 'Now showing'}
-                      onChange={() => toggleStatus(movie.id)}
-                      checkedChildren="Now Showing"
-                      unCheckedChildren="Stop Showing"
+                      onChange={() => toggleStatus(movie)}
+                      checkedChildren="Now"
+                      unCheckedChildren="Stop"
                       style={{
                         backgroundColor: movie.status === 'Now showing' ? '#22c55e' : '#ef4444',
                       }}
