@@ -46,6 +46,11 @@ import PaymentSuccess from './pages/Employee/PaymentSuccessfull';
 import PromotionsPage from './pages/Promotions/PromotionsPage';
 import CustomerBenefits from './pages/Users/CustomerBenefits';
 import ScrollToTop from './components/ScrollToTop';
+import GeneralTerms from './pages/Policies/GeneralTerms';
+import PaymentPolicy from './pages/Policies/PaymentPolicy';
+import DeliveryPolicy from './pages/Policies/DeliveryPolicy';
+import InformationSecurity from './pages/Policies/InformationSecurity';
+import InspectionReturns from './pages/Policies/InspectionReturns';
 
 function AppContent() {
   const location = useLocation();
@@ -119,6 +124,13 @@ function AppContent() {
           <Route path="/counter-confirm" element={<CounterConfirmBooking />} />
           <Route path="/counter-payment" element={<PaymentCounter />} />
           <Route path="/counter-payment-success" element={<PaymentSuccess />} />
+
+          { /* Policies Routes */}
+          <Route path="/terms" element={<GeneralTerms />} />
+          <Route path="/payment-policy" element={<PaymentPolicy />} />
+          <Route path="/delivery-policy" element={<DeliveryPolicy />} />
+          <Route path="/information-security" element={<InformationSecurity />} />
+          <Route path="/returns-refunds" element={<InspectionReturns />} />
           
           {/* Catch-all route for 404 */}
 
