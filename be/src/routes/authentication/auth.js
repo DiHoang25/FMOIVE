@@ -27,7 +27,7 @@ const transporter = nodemailer.createTransport({
 // @access  Public
 router.post('/register', async (req, res) => {
     // Lấy username, fullname, password, role, email, gender, id_card, phone, address, is_actived, is_deleted từ req.body
-    const { username, fullname, password, role, email, gender,  phone,  is_actived, is_deleted } = req.body;
+    const { username, fullname, password, role, email, gender,  phone,  is_actived, is_deleted, date_of_birth } = req.body;
 
     try {
         // Kiểm tra xem người dùng đã tồn tại chưa bằng username
@@ -38,7 +38,7 @@ router.post('/register', async (req, res) => {
 
         // Tạo người dùng mới với các trường được truyền vào
         // Mật khẩu sẽ được mã hóa tự động thông qua middleware 'pre-save' trong User model
-        const newUser = new User({ username, fullname, password, role, email, gender,  phone,  is_deleted, is_actived });
+        const newUser = new User({ username, fullname, password, role, email, gender,  phone,  is_deleted, is_actived, date_of_birth});
 
         await newUser.save(); // Lưu người dùng mới vào database
 
@@ -205,6 +205,7 @@ router.post('/forgot-password', async (req, res) => {
         // 4. Lưu mã và thời gian hết hạn vào người dùng
         user.resetPasswordCode = resetCode;
         user.resetPasswordExpires = resetExpires;
+        
         await user.save();
 
         let emailContent = form;
@@ -303,6 +304,8 @@ router.post('/reset-password', async (req, res) => {
             return res.status(404).json({ message: 'Người dùng không tìm thấy.' });
         }
         user.password = newPassword;
+        user.markModified('password');
+        
         // không xài nữa thì vứt
         user.resetPasswordCode = undefined;
         user.resetPasswordExpires = undefined;

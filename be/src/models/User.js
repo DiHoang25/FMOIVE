@@ -44,6 +44,11 @@ const userSchema = new mongoose.Schema({
             message: props => `${props.value} không phải là một địa chỉ email hợp lệ!`
         }
     },
+    date_of_birth: {
+    type: Date,
+    required: false // Đặt true nếu bạn muốn bắt buộc nhập ngày sinh
+    },
+
     // datetime: {
     //     type: Date,
     //     default: Date.now // Tự động lưu thời gian tạo document
