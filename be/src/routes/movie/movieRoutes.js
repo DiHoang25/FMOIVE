@@ -40,7 +40,7 @@ const upload = multer({ dest: './src/uploads/' });
  *                 type: string
  *               trailer_link:
  *                 type: string
- *               type:
+ *               genres:
  *                 type: string
  *               description:
  *                 type: string
@@ -60,6 +60,17 @@ const upload = multer({ dest: './src/uploads/' });
  *                 type: string
  *                 format: uri
  *                 description: Đường dẫn ảnh đã upload lên Cloudinary
+ *               age_limit:
+ *                 type: string
+ *               status:
+ *                 type: string
+ *                 enum: [now_showing, coming_soon]
+ *               is_hot:
+ *                 type: boolean
+ *               image:
+ *                 type: string
+ *                 format: binary
+ * 
  *     responses:
  *       201:
  *         description: Phim được thêm thành công

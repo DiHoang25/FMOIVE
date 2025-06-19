@@ -34,15 +34,12 @@ const movieSchema = new mongoose.Schema({
     trim: true,
     maxlength: [20, 'Phiên bản phim quá dài']
   },
-
   cinema_room: {
     type: String,
     trim: true,
     maxlength: [50, 'Tên phòng chiếu quá dài'],
     match: [/^[A-Za-z0-9\s\-]+$/, 'Tên phòng chiếu chứa ký tự không hợp lệ']
   },
-  
-
   showtimes: {
     type: [String],
     validate: {
@@ -51,23 +48,37 @@ const movieSchema = new mongoose.Schema({
       },
       message: 'Mỗi suất chiếu phải theo định dạng HH:mm (VD: 13:00)'
     }
-  } ,
-  
-  
+  },
   trailer_link: {
     type: String,
     trim: true,
     validate: {
       validator: function (v) {
-        return !v || /^https?:\/\/.+/.test(v); // URL hợp lệ hoặc không có
+        return !v || /^https?:\/\/.+/.test(v);
       },
       message: props => `${props.value} không phải là liên kết hợp lệ`
     }
   },
-  type: {
-    type: String,
+  genres: {
+    type: [String],
+    default: [],
+    maxlength: [5, 'Tối đa 5 thể loại']
+  },
+  format: {
+    type: String, // ví dụ: 2D, 3D, IMAX
     trim: true,
-    maxlength: [100, 'Thể loại quá dài']
+    maxlength: [20, 'Định dạng phim quá dài']
+  },
+  age_limit: {
+    type: String, // ví dụ: "13+", "16+", "18+"
+    trim: true,
+    maxlength: [5, 'Giới hạn độ tuổi quá dài']
+  },
+  rating: {
+    type: Number,
+    min: 0,
+    max: 10,
+    default: 0
   },
   description: {
     type: String,
@@ -96,9 +107,20 @@ const movieSchema = new mongoose.Schema({
       },
       message: props => `${props.value} không phải là URL hình ảnh hợp lệ`
     }
-  } ,
-  is_deleted: { type: Boolean, default: false }
-  
+  },
+  status: {
+    type: String,
+    enum: ['now_showing', 'coming_soon'],
+    required: true
+  },
+  is_hot: {
+    type: Boolean,
+    default: false
+  },
+  is_deleted: {
+    type: Boolean,
+    default: false
+  }
 }, {
   timestamps: true,
   collection: 'movies'
