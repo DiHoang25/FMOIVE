@@ -10,14 +10,16 @@ const AddMovie = () => {
     const [formData, setFormData] = useState({
         movieName: '',
         trailerLink: '',
-        fromDate: '',
-        toDate: '',
+        fromDate: new Date().toISOString(),
+        toDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         actors: '',
         productionCompany: '',
         director: '',
         runningTime: '',
         moviePoster: '',
+        movieBanner: '',
         movieDescription: '',
+        status: 'coming_soon',
         genres: {
             action: false,
             comedy: false,
@@ -67,11 +69,49 @@ const AddMovie = () => {
     //     });
     // };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Submitted movie data:', formData);
-        // Add API call to submit movie data here
+
+        const formDataToSend = new FormData();
+        formDataToSend.append('name', formData.movieName);
+        formDataToSend.append('trailer_link', formData.trailerLink);
+        formDataToSend.append('start_date', formData.fromDate);
+        formDataToSend.append('end_date', formData.toDate);
+        formDataToSend.append('actors', formData.actors);
+        formDataToSend.append('production_company', formData.productionCompany);
+        formDataToSend.append('director', formData.director);
+        formDataToSend.append('running_time', formData.runningTime);
+        formDataToSend.append('description', formData.movieDescription);
+        formDataToSend.append('status', formData.status);
+
+
+        // Handle file uploads
+        if (formData.moviePoster) {
+            formDataToSend.append('image', formData.moviePoster);
+        }
+        if (formData.movieBanner) {
+            formDataToSend.append('banner', formData.movieBanner);
+        }
+
+        try {
+            const response = await fetch('http://localhost:5000/api/movies', {
+                method: 'POST',
+                body: formDataToSend
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('Success:', result);
+            navigate('/admin');
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error adding movie');
+        }
     };
+
 
     const handleReset = () => {
         setFormData({
@@ -287,8 +327,12 @@ const AddMovie = () => {
                                         className="hidden"
                                         id="poster-upload"
                                         onChange={(e) => {
-                                            // Handle file upload
-                                            console.log(e.target.files[0]);
+                                            if (e.target.files && e.target.files[0]) {
+                                                setFormData({
+                                                    ...formData,
+                                                    moviePoster: e.target.files[0]
+                                                });
+                                            }
                                         }}
                                         required
                                     />
@@ -298,6 +342,34 @@ const AddMovie = () => {
                                     >
                                         <div className="text-center text-gray-400">
                                             <p>Click to upload poster</p>
+                                        </div>
+                                    </label>
+                                </div>
+
+<div>
+                                    <label className="block text-gray-300 mb-1">Banner Image *</label>
+                                    <input
+                                        type="file"
+                                        name="movieBanner"
+                                        accept="image/*"
+                                        className="hidden"
+                                        id="banner-upload"
+                                        onChange={(e) => {
+                                            if (e.target.files && e.target.files[0]) {
+                                                setFormData({
+                                                    ...formData,
+                                                    movieBanner: e.target.files[0]
+                                                });
+                                            }
+                                        }}
+                                        required
+                                    />
+                                    <label
+                                        htmlFor="banner-upload"
+                                        className="w-full h-32 border-2 border-dashed border-gray-600 flex items-center justify-center cursor-pointer rounded"
+                                    >
+                                        <div className="text-center text-gray-400">
+                                            <p>Click to upload banner</p>
                                         </div>
                                     </label>
                                 </div>
@@ -318,7 +390,7 @@ const AddMovie = () => {
 
                         {/* Form Buttons */}
                         <div className="mt-6 flex justify-end space-x-4">
-                        <button
+                            <button
                                 type="button"
                                 onClick={() => navigate('/admin')}
                                 className="flex items-center px-4 py-2 bg-slate-700 text-white rounded hover:bg-slate-600 transition"
