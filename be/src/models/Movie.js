@@ -108,6 +108,16 @@ const movieSchema = new mongoose.Schema({
       message: props => `${props.value} không phải là URL hình ảnh hợp lệ`
     }
   },
+  banner_url: {
+    type: String,
+    required: [true, 'Phim phải có ảnh banner'],
+    validate: {
+      validator: function (v) {
+        return /^https?:\/\/.+/.test(v);
+      },
+      message: props => `${props.value} không phải là URL hình ảnh hợp lệ`
+    }
+  },
   status: {
     type: String,
     enum: ['now_showing', 'coming_soon'],
