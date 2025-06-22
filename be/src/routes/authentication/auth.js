@@ -133,6 +133,38 @@ router.get('/profile', authMiddleware, async (req, res) => {
     }
 });
 
+// @route   PUT /api/auth/update-profile
+// @desc    Cập nhật thông tin profile của người dùng đã đăng nhập
+// @access  Private
+router.put('/update-profile', authMiddleware, async (req, res) => {
+    const { fullname, email, gender, phone, date_of_birth } = req.body;
+  
+    try {
+      const user = await User.findById(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: 'Người dùng không tìm thấy.' });
+      }
+  
+      if (fullname !== undefined) user.fullname = fullname;
+      if (email !== undefined) user.email = email;
+      if (gender !== undefined) user.gender = gender;
+      if (phone !== undefined) user.phone = phone;
+      if (date_of_birth !== undefined) user.date_of_birth = date_of_birth;
+  
+      await user.save();
+  
+      const updatedUser = await User.findById(req.user.id).select('-password');
+      res.status(200).json({
+        message: 'Thông tin tài khoản đã được cập nhật thành công!',
+        user: updatedUser
+      });
+  
+    } catch (error) {
+      console.error('Lỗi khi cập nhật thông tin người dùng:', error.message);
+      res.status(500).send('Lỗi máy chủ khi cập nhật thông tin.');
+    }
+  });
+  
 
 // @route   PUT /api/auth/change-password
 // @desc    Đổi mật khẩu cho người dùng đã đăng nhập
