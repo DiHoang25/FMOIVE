@@ -84,10 +84,10 @@ const ViewAccount = () => {
                         <p><span className="font-semibold text-white">Account:</span> {user.username}</p>
                         <p><span className="font-semibold text-white">Email:</span> {user.email}</p>
                         <p><span className="font-semibold text-white">DOB:</span> {user.dob || 'Not provided'}</p>
-                        <p><span className="font-semibold text-white">Address:</span> {user.address || 'Not provided'}</p>
-                        <p><span className="font-semibold text-white">ID number:</span> {user.id_card || 'Not provided'}</p>
+                        {/* <p><span className="font-semibold text-white">Address:</span> {user.address || 'Not provided'}</p>
+                        <p><span className="font-semibold text-white">ID number:</span> {user.id_card || 'Not provided'}</p> */}
                         <p><span className="font-semibold text-white">Phone number:</span> {user.phone || 'Not provided'}</p>
-                        <p><span className="font-semibold text-white">Point:</span> {user.point || 0}</p>
+                        {/* <p><span className="font-semibold text-white">Point:</span> {user.point || 0}</p> */}
                     </div>
                 </div>
             </div>
