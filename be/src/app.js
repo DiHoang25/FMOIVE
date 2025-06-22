@@ -9,6 +9,8 @@ const authRoutes = require('./routes/authentication/auth');
 const userFeatureRoutes = require('./routes/userFeature/userFeatureRoute'); // Import các tuyến người dùng
 const uploadRoutes = require('./routes/movie/uploadRoute');
 const movieRoutes = require('./routes/movie/movieRoutes');
+const homepageRoutes = require('./routes/movie/homepageRoutes');
+const promotionRoutes = require('./routes/promotions/promotionsRoutes');
 // Khởi tạo ứng dụng Express
 
 const app = express();
@@ -31,6 +33,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userFeatureRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/movies', movieRoutes);
+app.use('/api/home', homepageRoutes);
+app.use('/api/promotions', promotionRoutes)
 
 // // Tuyến mặc định cho kiểm tra server
 // app.get('/', (req, res) => {
