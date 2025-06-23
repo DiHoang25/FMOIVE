@@ -190,7 +190,7 @@ const HomePage = () => {
                   Watch trailer
                 </button>
               </div>
-              <Link to={`/moviedetails/${movie._id}`}>
+              <Link to={`/moviedetails`}>
                 <button className="bg-red-600 text-white px-3 py-1 rounded text-xl">View Details</button>
               </Link>
             </div>

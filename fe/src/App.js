@@ -130,7 +130,7 @@ function AppContent() {
           <Route path="/showtimes" element={<ShowtimePage />} />
           <Route path="/select-seats" element={<SeatSelectionPage />} />
           <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
-          <Route path="/combo" element={<ComboSelection />} />
+          <Route path="/combo-selection" element={<ComboSelection />} />
           <Route path="/confirm-booking" element={<ConfirmBooking />} />
           <Route path="/payment" element={<PaymentPage />} />
           <Route path="/ticket-detail" element={<TicketDetail />} />
