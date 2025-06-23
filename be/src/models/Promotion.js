@@ -1,0 +1,56 @@
+const mongoose = require('mongoose');
+
+const promotionSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: [true, 'Tiêu đề khuyến mãi là bắt buộc'],
+    trim: true,
+    maxlength: [255, 'Tiêu đề không được vượt quá 255 ký tự']
+  },
+  short_description: {
+    type: String,
+    required: [true, 'Mô tả ngắn là bắt buộc'],
+    trim: true,
+    maxlength: [1000, 'Mô tả ngắn không được vượt quá 1000 ký tự']
+  },
+  full_details: {
+    type: new mongoose.Schema({
+      rules: { type: String, required: [true, 'Thể lệ là bắt buộc'] },
+      notes: { type: String, default: '' },
+      combos: {
+        type: [
+          {
+            title: { type: String, required: true },
+            items: { type: [String], default: [] },
+            price: { type: Number, required: true }
+          }
+        ],
+        default: []
+      },
+      conditions: { type: [String], default: [] }
+    }, { _id: false }),
+    required: true
+  },
+  start_date: {
+    type: Date,
+    required: [true, 'Ngày bắt đầu là bắt buộc']
+  },
+  end_date: {
+    type: Date,
+    required: [true, 'Ngày kết thúc là bắt buộc']
+  },
+  image_url: {
+    type: String,
+    required: [true, 'Ảnh là bắt buộc'],
+    trim: true
+  },
+  is_deleted: {
+    type: Boolean,
+    default: false
+  }
+}, {
+  timestamps: true,
+  collection: 'promotion'
+});
+
+module.exports = mongoose.model('Promotion', promotionSchema);

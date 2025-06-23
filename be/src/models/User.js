@@ -39,7 +39,7 @@ const userSchema = new mongoose.Schema({
     },
     email: { // Thêm trường email
         type: String,
-        // required: true,
+        required: true,
         unique: [true, 'email đã tồn tại'], // Đảm bảo email là duy nhất
         trim: true,
         // lowercase: true, // Chuyển đổi email thành chữ thường
@@ -50,6 +50,11 @@ const userSchema = new mongoose.Schema({
             message: props => `${props.value} không phải là một địa chỉ email hợp lệ!`
         }
     },
+    date_of_birth: {
+    type: Date,
+    required: false // Đặt true nếu bạn muốn bắt buộc nhập ngày sinh
+    },
+
     // datetime: {
     //     type: Date,
     //     default: Date.now // Tự động lưu thời gian tạo document
@@ -61,8 +66,8 @@ const userSchema = new mongoose.Schema({
     },
     id_card: { // Thêm trường id_card
         type: String,
-        // required: true,
-        unique: true, // Đảm bảo id_card là duy nhất
+        
+        
         trim: true
     },
     phone: { // Thêm trường phone

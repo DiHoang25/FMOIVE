@@ -32,8 +32,8 @@ import Promotions from './pages/Admin/Promotions';
 import ViewAccount from './pages/Users/ViewAccount';
 import EditAccount from './pages/Users/EditAccount';
 import BookingList from './pages/Admin/BookingList';
-import MovieDetailsSearch from './pages/Movie/MovieDetailsSearch';
-import MovieNewsSearch from './pages/Movie/MovieNewsSearch';
+// import MovieDetailsSearch from './pages/Movie/MovieDetailsSearch';
+// import MovieNewsSearch from './pages/Movie/MovieNewsSearch';
 import TicketDetail from './pages/Users/TicketDetail';
 import PaymentPage from './pages/Users/PaymentMethod';
 import CounterShowtimesPage from './pages/Employee/CounterShowtimePage';
@@ -111,8 +111,8 @@ function AppContent() {
           <Route path='/admin/promotions' element={<Promotions />} />
           <Route path="/viewaccount" element={<ViewAccount />} />
           <Route path="/editaccount" element={<EditAccount />} />
-          <Route path="/moviedetailssearch" element={<MovieDetailsSearch />} />
-          <Route path="/movienewsssearch" element={<MovieNewsSearch />} />
+          {/* <Route path="/moviedetailssearch" element={<MovieDetailsSearch />} />
+          <Route path="/movienewsssearch" element={<MovieNewsSearch />} /> */}
           <Route path='/admin/booking-list' element={<BookingList />} />
           <Route path="/customer-benefits" element={<CustomerBenefits />} />
           <Route path="/admin/cinema-rooms" element={<CinemaRooms />} />
