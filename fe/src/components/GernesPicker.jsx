@@ -1,23 +1,33 @@
 import React from 'react';
 import { Checkbox, Col, Row } from 'antd';
 
-const onChange = checkedValues => {
-  console.log('checked = ', checkedValues);
-};
-
 const genres = [
-  'Action', 'Drama', 'Romance', 'Thriller',
-  'Comedy', 'Horror', 'Sci-Fi', 'Animation'
+  'action', 'drama', 'romance', 'thriller',
+  'comedy', 'horror', 'sciFi', 'animation'
 ];
 
-const App = () => {
+const GernesPicker = ({ genres: selectedGenres = {}, onChange }) => {
+  const handleCheckboxChange = (checkedValues) => {
+    // Convert array ['action', 'drama'] to object { action: true, drama: true, ... }
+    const updated = {};
+    genres.forEach((g) => {
+      updated[g] = checkedValues.includes(g);
+    });
+
+    onChange(updated);
+  };
+
   return (
-    <Checkbox.Group style={{ width: '100%' }} onChange={onChange}>
+    <Checkbox.Group
+      style={{ width: '100%' }}
+      value={Object.keys(selectedGenres).filter((g) => selectedGenres[g])}
+      onChange={handleCheckboxChange}
+    >
       <Row>
-        {genres.map((genre, index) => (
+        {genres.map((genre) => (
           <Col span={12} key={genre}>
             <Checkbox value={genre} style={{ color: 'white' }}>
-              {genre}
+              {genre.charAt(0).toUpperCase() + genre.slice(1)}
             </Checkbox>
           </Col>
         ))}
@@ -26,4 +36,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default GernesPicker;
