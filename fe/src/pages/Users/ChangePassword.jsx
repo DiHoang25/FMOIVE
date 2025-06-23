@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UserDashboardLayout from '../../components/UserDashboardlayout';
-import { Modal } from 'antd';
 
 const ChangePassword = () => {
   const navigate = useNavigate();
@@ -64,6 +63,11 @@ const ChangePassword = () => {
       console.error('Error changing password:', error);
       setServerError('Something went wrong. Please try again.');
     }
+  };
+
+  const handleSuccessConfirm = () => {
+    setSuccess(false);
+    navigate('/viewaccount');
   };
 
   return (
@@ -131,28 +135,27 @@ const ChangePassword = () => {
         </div>
       </div>
 
-      <Modal
-        open={success}
-        onCancel={() => setSuccess(false)}
-        footer={null}
-        centered
-        width={350}
-      >
-        <div className="text-center p-6">
-          <div className="text-green-500 text-5xl mb-4">✔️</div>
-          <h3 className="text-xl font-bold text-gray-800 mb-2">Success</h3>
-          <p className="text-sm text-gray-600">Your password has been updated successfully.</p>
-          <button
-            onClick={() => {
-              setSuccess(false);
-              navigate('/viewaccount');
-            }}
-            className="mt-4 bg-red-600 text-white px-4 py-2 rounded w-full"
-          >
-            Close
-          </button>
+      {success && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <div className="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+            <div className="text-center">
+              <div className="mb-4 flex justify-center">
+                <svg className="w-16 h-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-4">Password Changed!</h3>
+              <p className="text-gray-300 mb-6">Your password has been updated successfully.</p>
+              <button
+                onClick={handleSuccessConfirm}
+                className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-200"
+              >
+                OK
+              </button>
+            </div>
+          </div>
         </div>
-      </Modal>
+      )}
     </UserDashboardLayout>
   );
 };
