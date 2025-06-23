@@ -1,27 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
+import { FaEye, FaEdit, FaTrash, FaSpinner } from 'react-icons/fa';
 import { Switch, Modal, message } from 'antd';
 import SidebarLayout from '../../components/Sidebar-Admin';
 
-const initialMovies = [
-  { id: 'MV001', name: 'Avatar: The Way of Water', genres: 'Sci-Fi', duration: 192, showtime: 15, revenue: '2.5M', status: 'Now showing' },
-  { id: 'MV002', name: 'Top Gun: Maverick', genres: 'Action', duration: 131, showtime: 12, revenue: '1.8M', status: 'Now showing' },
-  { id: 'MV003', name: 'Black Panther: Wakanda Forever', genres: 'Action', duration: 161, showtime: 18, revenue: '3.2M', status: 'Now showing' },
-  { id: 'MV004', name: 'The Batman', genres: 'Action', duration: 176, showtime: 8, revenue: '1.1M', status: 'Stop showing' },
-  { id: 'MV005', name: 'Doctor Strange 2', genres: 'Fantasy', duration: 126, showtime: 14, revenue: '2.1M', status: 'Now showing' },
-  { id: 'MV006', name: 'Minions: The Rise of Gru', genres: 'Animation', duration: 87, showtime: 10, revenue: '1.6M', status: 'Now showing' },
-  { id: 'MV007', name: 'Jurassic World Dominion', genres: 'Adventure', duration: 147, showtime: 6, revenue: '0.9M', status: 'Stop showing' },
-  { id: 'MV008', name: 'Thor: Love and Thunder', genres: 'Action', duration: 119, showtime: 16, revenue: '2.8M', status: 'Now showing' },
-];
+
 
 const MovieList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('All genres');
-  const [movies, setMovies] = useState(() => {
-    const saved = localStorage.getItem('movie-list');
-    return saved ? JSON.parse(saved) : initialMovies;
-  });
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMovies = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/movies');
+        if (!response.ok) {
+          throw new Error('Failed to fetch movies');
+        }
+        const data = await response.json();
+        setMovies(data);
+      } catch (error) {
+        console.error('Error fetching movies:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMovies();
+  }, []);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState(null);
@@ -149,50 +157,72 @@ const MovieList = () => {
                 <th className="px-4 py-3 text-left">Name</th>
                 <th className="px-4 py-3 text-left">Genres</th>
                 <th className="px-4 py-3 text-left">Duration</th>
-                <th className="px-4 py-3 text-left">Showtimes</th>
+                {/* <th className="px-4 py-3 text-left">Showtimes</th> */}
                 <th className="px-4 py-3 text-left">Revenue</th>
                 <th className="px-4 py-3 text-left">Status</th>
                 <th className="px-4 py-3 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700 text-gray-300 text-sm">
-              {filteredMovies.map(movie => (
-                <tr key={movie.id} className="hover:bg-gray-700 transition">
-                  <td className="px-4 py-2">{movie.id}</td>
-                  <td className="px-4 py-2">{movie.name}</td>
-                  <td className="px-4 py-2">{movie.genres}</td>
-                  <td className="px-4 py-2">{movie.duration} min</td>
-                  <td className="px-4 py-2">{movie.showtime}</td>
-                  <td className="px-4 py-2">${movie.revenue}</td>
-                  <td className="px-4 py-2">
-                    <Switch
-                      checked={movie.status === 'Now showing'}
-                      onChange={() => toggleStatus(movie)}
-                      checkedChildren="Now"
-                      unCheckedChildren="Stop"
-                      style={{
-                        backgroundColor: movie.status === 'Now showing' ? '#22c55e' : '#ef4444',
-                      }}
-                    />
-                  </td>
-                  <td className="px-4 py-2 text-center">
-                    <div className="flex justify-center gap-4">
-                      <button
-                        className="text-blue-400 hover:text-blue-600 text-xl"
-                        onClick={() => showMovieDetails(movie)}
-                      ><FaEye /></button>
-                      <button
-                        className="text-yellow-400 hover:text-yellow-600 text-xl"
-                        onClick={() => window.location.href = '/admin/movie-list/edit-movie/' + movie.id}
-                      ><FaEdit /></button>
-                      <button
-                        className="text-red-400 hover:text-red-600 text-xl"
-                        onClick={() => confirmDelete(movie)}
-                      ><FaTrash /></button>
+              {loading ? (
+                <tr>
+                  <td colSpan="8" className="text-center py-4">
+                    <div className="flex justify-center items-center">
+                      <FaSpinner className="animate-spin mr-2" /> Loading movies...
                     </div>
                   </td>
                 </tr>
-              ))}
+              ) : filteredMovies.length === 0 ? (
+                <tr>
+                  <td colSpan="8" className="text-center py-4 text-gray-400">
+                    No movies found.
+                  </td>
+                </tr>
+              ) : (
+                filteredMovies.map(movie => (
+                  <tr key={movie.id} className="hover:bg-gray-700 transition">
+                    <td className="px-4 py-2">{movie.id}</td>
+                    <td className="px-4 py-2">{movie.name}</td>
+                    <td className="px-4 py-2">{movie.genres}</td>
+                    <td className="px-4 py-2">{movie.running_time} min</td>
+                    {/* <td className="px-4 py-2">
+                      {Array.isArray(movie.showtimes)
+                        ? movie.showtimes.map((time, index) => (
+                          <div key={index}>{time}</div>
+                        ))
+                        : movie.showtimes}
+                    </td> */}
+
+                    <td className="px-4 py-2">${movie.revenue}</td>
+                    <td className="px-4 py-2">
+                      <Switch
+                        checked={movie.status === 'Now showing'}
+                        onChange={() => toggleStatus(movie)}
+                        checkedChildren="Now"
+                        unCheckedChildren="Stop"
+                        style={{
+                          backgroundColor: movie.status === 'Now showing' ? '#22c55e' : '#ef4444',
+                        }}
+                      />
+                    </td>
+                    <td className="px-4 py-2 text-center">
+                      <div className="flex justify-center gap-4">
+                        <button
+                          className="text-blue-400 hover:text-blue-600 text-xl"
+                          onClick={() => showMovieDetails(movie)}
+                        ><FaEye /></button>
+                        <button
+                          className="text-yellow-400 hover:text-yellow-600 text-xl"
+                          onClick={() => window.location.href = '/admin/movie-list/edit-movie/' + movie.id}
+                        ><FaEdit /></button>
+                        <button
+                          className="text-red-400 hover:text-red-600 text-xl"
+                          onClick={() => confirmDelete(movie)}
+                        ><FaTrash /></button>
+                      </div>
+                    </td>
+                  </tr>
+                )))}
               {filteredMovies.length === 0 && (
                 <tr>
                   <td colSpan="8" className="text-center py-4 text-gray-400">
@@ -237,12 +267,19 @@ const MovieList = () => {
                 </div>
                 <div>
                   <p className="text-gray-400">Duration:</p>
-                  <p className="text-black">{selectedMovie.duration} minutes</p>
+                  <p className="text-black">{selectedMovie.running_time} minutes</p>
                 </div>
-                <div>
+                {/* <div>
                   <p className="text-gray-400">Showtimes:</p>
-                  <p className="text-black">{selectedMovie.showtime}</p>
-                </div>
+                  <p className="text-black">
+                    {Array.isArray(selectedMovie.showtimes)
+                      ? selectedMovie.showtimes.map((time, i) => (
+                        <div key={i}>{time}</div>
+                      ))
+                      : selectedMovie.showtimes}
+                  </p>
+
+                </div> */}
                 <div>
                   <p className="text-gray-400">Revenue:</p>
                   <p className="text-black">${selectedMovie.revenue}</p>

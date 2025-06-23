@@ -1,23 +1,29 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // If using React Router
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Minus, Plus } from 'lucide-react';
-import darkknight from '../../assets/darkknight.jpg'; // Replace with actual image path
-import big1e from '../../assets/1bigextra.jpg'; // Replace with actual image path
-import big2e from '../../assets/2bigextra.webp'; // Replace with actual image path
-import big1 from '../../assets/Combo1big.jpg'; // Replace with actual image path
-import big2 from '../../assets/Combo2big.png'; 
+
+// Make sure these paths are correct relative to where ComboSelection.jsx is located
+import darkknight from '../../assets/darkknight.jpg';
+import big1e from '../../assets/1bigextra.jpg';
+import big2e from '../../assets/2bigextra.webp';
+import big1 from '../../assets/Combo1big.jpg';
+import big2 from '../../assets/Combo2big.png';
+
 const ComboSelection = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Mock movie data (replace with actual props/context)
-  const movie = {
-    title: 'The Dark Knight',
-    poster: darkknight, // Replace with actual image path
-    rating: 'PG-13',
-    duration: '2h 32m',
-    genres: 'Action, Crime, Drama',
-    time: 'Today, 7:30 PM',
-    screen: 'Screen 5',
+  // Destructure movie details, selectedSeats, and totalSeatPrice from location.state
+  const { movie: movieDetails, selectedSeats, totalSeatPrice } = location.state || {};
+
+  // Fallback for movie details if page is accessed directly (for development/testing)
+  const movie = movieDetails || {
+    name: 'Movie Title N/A',
+    image_url: darkknight,
+    version: 'N/A',
+    running_time: 'N/A',
+    time: 'N/A',
+    cinema_room: 'N/A',
   };
 
   const combos = [
@@ -41,12 +47,21 @@ const ComboSelection = () => {
     }));
   };
 
-  const totalPrice = combos.reduce((sum, combo) => sum + combo.price * quantities[combo.id], 0);
+  const totalComboPrice = combos.reduce((sum, combo) => sum + combo.price * quantities[combo.id], 0);
+
+  // Optional: Redirect if essential data is missing
+  useEffect(() => {
+    if (!movieDetails || !selectedSeats || totalSeatPrice === undefined) {
+      console.warn("Missing essential booking details. Redirecting or using default.");
+      // navigate('/'); // Uncomment to redirect to home or an error page
+    }
+  }, [movieDetails, selectedSeats, totalSeatPrice, navigate]);
+
 
   return (
     <div className="min-h-screen bg-black text-white py-10 px-4">
       <div className="max-w-4xl mx-auto bg-neutral-900 rounded-xl p-6 shadow-lg relative">
-        
+
         {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
@@ -59,19 +74,20 @@ const ComboSelection = () => {
         <h1 className="text-2xl font-bold text-center mb-6">COMBO POPCORN & DRINKS</h1>
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <img
-            src={movie.poster}
-            alt="Movie Poster"
+            src={movie.image_url}
+            alt={movie.name}
             className="w-32 h-48 object-cover rounded-md"
           />
           <div className="text-sm flex flex-col justify-between">
             <div>
-              <h2 className="text-3xl font-semibold">{movie.title}</h2>
-              <p className="text-gray-400 text-xl">{movie.rating} • {movie.duration}</p>
-              <p className="text-gray-400">{movie.genres}</p>
+              <h2 className="text-3xl font-semibold">{movie.name}</h2>
+              <p className="text-gray-400 text-xl">{movie.version} • {movie.running_time} min</p>
             </div>
             <div className="mt-2">
-              <p className="text-gray-200 text-2xl">{movie.time}</p>
-              <p className="text-gray-200 text-2xl">{movie.screen}</p>
+              <p className="text-gray-200 text-2xl">Today, {movie.time}</p>
+              <p className="text-gray-200 text-2xl">{movie.cinema_room}</p>
+              <p className="text-gray-200 text-2xl">Seats: {selectedSeats ? selectedSeats.join(', ') : 'N/A'}</p> {/* Display selected seats */}
+              <p className="text-gray-200 text-2xl">Seat Price: {totalSeatPrice !== undefined ? totalSeatPrice : 'N/A'}$</p> {/* Display seat price */}
             </div>
           </div>
         </div>
@@ -113,12 +129,23 @@ const ComboSelection = () => {
         {/* Total and Continue */}
         <div className="flex justify-between items-center mt-6">
           <div className="bg-gray-700 text-white px-6 py-2 rounded text-sm">
-            PRICE: {totalPrice} $
+            COMBO PRICE: {totalComboPrice} $
           </div>
-          <button
+            <button
             className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded font-semibold"
-            
-            onClick={() => navigate('/confirm-booking')}
+            onClick={() => navigate('/confirm-booking', {
+                state: {
+                    movie: movieDetails,        // The movie details object
+                    selectedSeats: selectedSeats, // The array of selected seat IDs (e.g., ['A1', 'B2'])
+                    totalSeatPrice: totalSeatPrice, // The calculated total price for seats
+                    selectedCombos: combos.filter(combo => quantities[combo.id] > 0).map(combo => ({
+                        ...combo,
+                        quantity: quantities[combo.id]
+                    })),
+                    totalComboPrice: totalComboPrice, // The calculated total price for combos
+                    // You might also pass the user info from a context or a login flow later
+                }
+            })}
           >
             CONTINUE
           </button>
