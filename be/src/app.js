@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors'); // Import cors để xử lý Cross-Origin Resource Sharing
-const connectDB = require('./config/dbconfig'); // Import hàm kết nối DB từ thư mục config
 require('dotenv').config();
 
 
@@ -12,7 +11,6 @@ const movieRoutes = require('./routes/movie/movieRoutes');
 // Khởi tạo ứng dụng Express
 
 const app = express();
-const PORT = process.env.PORT;
 
 // Swagger setup
 const swaggerUi = require('swagger-ui-express');
@@ -31,6 +29,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userFeatureRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/movies', movieRoutes);
+
 
 // // Tuyến mặc định cho kiểm tra server
 // app.get('/', (req, res) => {
