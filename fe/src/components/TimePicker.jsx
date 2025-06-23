@@ -1,35 +1,58 @@
 import React from 'react';
-import { Checkbox, Col, Row } from 'antd';
+import { TimePicker, Space, Button } from 'antd';
+import dayjs from 'dayjs';
 
-const generateTimeOptions = () => {
-  const startHour = 8;
-  const endHour = 22;
-  const options = [];
+const format = 'HH:mm';
 
-  for (let hour = startHour; hour <= endHour; hour++) {
-    const label = `${hour.toString().padStart(2, '0')}:00`;
-    options.push(label);
-  }
+const MultiTimePicker = ({ value = [], onChange }) => {
+  const [selectedTime, setSelectedTime] = React.useState(null);
 
-  return options;
-};
+  const handleAddTime = () => {
+    if (!selectedTime) return;
+    const formatted = selectedTime.format(format);
+    if (!value.includes(formatted)) {
+      onChange([...value, formatted]);
+    }
+    setSelectedTime(null);
+  };
 
-const TimePicker = ({ value = [], onChange }) => {
-  const timeOptions = generateTimeOptions();
+  const handleRemoveTime = (timeToRemove) => {
+    onChange(value.filter((time) => time !== timeToRemove));
+  };
 
   return (
-    <Checkbox.Group style={{ width: '100%' }} value={value} onChange={onChange}>
-      <Row>
-        {timeOptions.map((time) => (
-          <Col span={8} key={time}>
-            <Checkbox value={time} style={{ color: 'white' }}>
-              {time}
-            </Checkbox>
-          </Col>
+    <div>
+      <Space>
+        <TimePicker
+          format={format}
+          value={selectedTime}
+          onChange={(val) => setSelectedTime(val)}
+        />
+        <Button
+          onClick={handleAddTime}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          Add Time
+        </Button>
+      </Space>
+      <div className="flex flex-wrap gap-2 mt-3">
+        {value.map((time) => (
+          <div
+            key={time}
+            className="bg-red-600 text-white px-3 py-1 rounded-full text-sm flex items-center"
+          >
+            {time}
+            <button
+              className="ml-2 text-white hover:text-gray-300"
+              onClick={() => handleRemoveTime(time)}
+            >
+              ✕
+            </button>
+          </div>
         ))}
-      </Row>
-    </Checkbox.Group>
+      </div>
+    </div>
   );
 };
 
-export default TimePicker;
+export default MultiTimePicker;
