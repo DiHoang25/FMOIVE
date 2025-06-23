@@ -5,7 +5,8 @@ require('dotenv').config();
 
 // Import các tuyến (routes) từ thư mục routes
 const authRoutes = require('./routes/authentication/auth'); 
-const userFeatureRoutes = require('./routes/userFeature/userFeatureRoute'); // Import các tuyến người dùng
+const profileRoutes = require('./routes/userFeature/profileRoutes');
+const featureRoutes = require('./routes/userFeature/profileRoutes'); // Import các tuyến người dùng
 const uploadRoutes = require('./routes/movie/uploadRoute');
 const movieRoutes = require('./routes/movie/movieRoutes');
 const homepageRoutes = require('./routes/movie/homepageRoutes');
@@ -28,7 +29,8 @@ app.use(express.json());
 
 // Định nghĩa các tuyến (routes) API
 app.use('/api/auth', authRoutes);
-app.use('/api/user', userFeatureRoutes);
+app.use('/api/user', profileRoutes);
+app.use('/api/feature', featureRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/home', homepageRoutes);

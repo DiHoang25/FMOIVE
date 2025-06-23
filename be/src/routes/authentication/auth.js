@@ -27,11 +27,7 @@ const transporter = nodemailer.createTransport({
 // @access  Public
 router.post('/register', async (req, res) => {
     // Lấy username, fullname, password, role, email, gender, id_card, phone, address, is_actived, is_deleted từ req.body
-<<<<<<< HEAD
     const { userId, username, fullname, password, role, email, gender, id_card, phone, address, is_actived, is_deleted } = req.body;
-=======
-    const { username, fullname, password, role, email, gender,  phone,  is_actived, is_deleted, date_of_birth } = req.body;
->>>>>>> 1ee3cea84872b66c4d27bc3800d539450c9d5ab3
 
     try {
         // Kiểm tra xem người dùng đã tồn tại chưa bằng username
@@ -42,11 +38,7 @@ router.post('/register', async (req, res) => {
 
         // Tạo người dùng mới với các trường được truyền vào
         // Mật khẩu sẽ được mã hóa tự động thông qua middleware 'pre-save' trong User model
-<<<<<<< HEAD
         const newUser = new User({ userId, username, fullname, password, role, email, gender, id_card, phone, address, is_deleted, is_actived });
-=======
-        const newUser = new User({ username, fullname, password, role, email, gender,  phone,  is_deleted, is_actived, date_of_birth});
->>>>>>> 1ee3cea84872b66c4d27bc3800d539450c9d5ab3
 
         await newUser.save(); // Lưu người dùng mới vào database
 
