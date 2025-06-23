@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 const ViewAccount = () => {
     const navigate = useNavigate();
-    const [user, setUser] = useState(null); // null khi chưa load
+    const [user, setUser] = useState(null);
     const [error, setError] = useState('');
 
     useEffect(() => {
@@ -15,6 +15,7 @@ const ViewAccount = () => {
                 setError('Not authenticated.');
                 return;
             }
+
 
             try {
                 const response = await fetch('http://localhost:5000/api/auth/profile', {
@@ -54,6 +55,19 @@ const ViewAccount = () => {
         );
     }
 
+    // Format date_of_birth (dd/mm/yyyy)
+    const formatDate = (isoString) => {
+        const date = new Date(isoString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+        };
+        
+        const formattedDOB = user.date_of_birth
+        ? formatDate(user.date_of_birth)
+        : 'Not provided';
+
     return (
         <UserDashboardLayout>
             <div className="bg-[#0a0f1c] text-white py-10 px-6 rounded-md min-h-[80vh] flex items-center justify-center">
@@ -83,11 +97,8 @@ const ViewAccount = () => {
                         <p><span className="font-semibold text-white">Name:</span> {user.fullname}</p>
                         <p><span className="font-semibold text-white">Account:</span> {user.username}</p>
                         <p><span className="font-semibold text-white">Email:</span> {user.email}</p>
-                        <p><span className="font-semibold text-white">DOB:</span> {user.dob || 'Not provided'}</p>
-                        {/* <p><span className="font-semibold text-white">Address:</span> {user.address || 'Not provided'}</p>
-                        <p><span className="font-semibold text-white">ID number:</span> {user.id_card || 'Not provided'}</p> */}
+                        <p><span className="font-semibold text-white">DOB:</span> {formattedDOB}</p>
                         <p><span className="font-semibold text-white">Phone number:</span> {user.phone || 'Not provided'}</p>
-                        {/* <p><span className="font-semibold text-white">Point:</span> {user.point || 0}</p> */}
                     </div>
                 </div>
             </div>
