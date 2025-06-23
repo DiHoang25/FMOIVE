@@ -9,7 +9,7 @@ const DropDown = ({ value = [], onChange }) => {
         allowClear
         placeholder="Select Cinema Rooms"
         value={value}
-        style={{ width: 300 }}
+        style={{ width: 200 }}
         onChange={onChange}
         options={[
           { value: 'Room 1', label: 'Room 1' },
