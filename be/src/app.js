@@ -1,18 +1,19 @@
 const express = require('express');
 const cors = require('cors'); // Import cors để xử lý Cross-Origin Resource Sharing
-const connectDB = require('./config/dbconfig'); // Import hàm kết nối DB từ thư mục config
 require('dotenv').config();
 
 
 // Import các tuyến (routes) từ thư mục routes
 const authRoutes = require('./routes/authentication/auth'); 
-const userFeatureRoutes = require('./routes/userFeature/userFeatureRoute'); // Import các tuyến người dùng
+const profileRoutes = require('./routes/userFeature/profileRoutes');
+const featureRoutes = require('./routes/userFeature/profileRoutes'); // Import các tuyến người dùng
 const uploadRoutes = require('./routes/movie/uploadRoute');
 const movieRoutes = require('./routes/movie/movieRoutes');
+const homepageRoutes = require('./routes/movie/homepageRoutes');
+const promotionRoutes = require('./routes/promotions/promotionsRoutes');
 // Khởi tạo ứng dụng Express
 
 const app = express();
-const PORT = process.env.PORT;
 
 // Swagger setup
 const swaggerUi = require('swagger-ui-express');
@@ -28,9 +29,13 @@ app.use(express.json());
 
 // Định nghĩa các tuyến (routes) API
 app.use('/api/auth', authRoutes);
-app.use('/api/user', userFeatureRoutes);
+app.use('/api/user', profileRoutes);
+app.use('/api/feature', featureRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/movies', movieRoutes);
+app.use('/api/home', homepageRoutes);
+app.use('/api/promotions', promotionRoutes)
+
 
 // // Tuyến mặc định cho kiểm tra server
 // app.get('/', (req, res) => {

@@ -27,7 +27,7 @@ const transporter = nodemailer.createTransport({
 // @access  Public
 router.post('/register', async (req, res) => {
     // Lấy username, fullname, password, role, email, gender, id_card, phone, address, is_actived, is_deleted từ req.body
-    const { username, fullname, password, role, email, gender,  phone,  is_actived, is_deleted, date_of_birth } = req.body;
+    const { userId, username, fullname, password, role, email, gender, id_card, phone, address, is_actived, is_deleted } = req.body;
 
     try {
         // Kiểm tra xem người dùng đã tồn tại chưa bằng username
@@ -38,7 +38,7 @@ router.post('/register', async (req, res) => {
 
         // Tạo người dùng mới với các trường được truyền vào
         // Mật khẩu sẽ được mã hóa tự động thông qua middleware 'pre-save' trong User model
-        const newUser = new User({ username, fullname, password, role, email, gender,  phone,  is_deleted, is_actived, date_of_birth});
+        const newUser = new User({ userId, username, fullname, password, role, email, gender, id_card, phone, address, is_deleted, is_actived });
 
         await newUser.save(); // Lưu người dùng mới vào database
 
@@ -133,6 +133,38 @@ router.get('/profile', authMiddleware, async (req, res) => {
     }
 });
 
+// @route   PUT /api/auth/update-profile
+// @desc    Cập nhật thông tin profile của người dùng đã đăng nhập
+// @access  Private
+router.put('/update-profile', authMiddleware, async (req, res) => {
+    const { fullname, email, gender, phone, date_of_birth } = req.body;
+  
+    try {
+      const user = await User.findById(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: 'Người dùng không tìm thấy.' });
+      }
+  
+      if (fullname !== undefined) user.fullname = fullname;
+      if (email !== undefined) user.email = email;
+      if (gender !== undefined) user.gender = gender;
+      if (phone !== undefined) user.phone = phone;
+      if (date_of_birth !== undefined) user.date_of_birth = date_of_birth;
+  
+      await user.save();
+  
+      const updatedUser = await User.findById(req.user.id).select('-password');
+      res.status(200).json({
+        message: 'Thông tin tài khoản đã được cập nhật thành công!',
+        user: updatedUser
+      });
+  
+    } catch (error) {
+      console.error('Lỗi khi cập nhật thông tin người dùng:', error.message);
+      res.status(500).send('Lỗi máy chủ khi cập nhật thông tin.');
+    }
+  });
+  
 
 // @route   PUT /api/auth/change-password
 // @desc    Đổi mật khẩu cho người dùng đã đăng nhập
