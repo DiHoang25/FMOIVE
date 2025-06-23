@@ -2,6 +2,12 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
+    userId: {
+        type: String,
+        default: uuidv4, 
+        unique: true,    
+        required: true   
+    },
     username: {
         type: String,
         required: [true, 'Username là bắt buộc.'],

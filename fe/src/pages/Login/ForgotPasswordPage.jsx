@@ -15,9 +15,9 @@ function ForgotPasswordPage() {
     setError('');
   };
 
-  const isValidGmail = (email) => {
-    const gmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return gmailRegex.test(email);
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   };
 
   const handleSubmit = async (e) => {
@@ -28,8 +28,8 @@ function ForgotPasswordPage() {
       return;
     }
 
-    if (!isValidGmail(email)) {
-      setError('Please enter a valid Gmail address (example@gmail.com)');
+    if (!isValidEmail(email)) {
+      setError('Please enter a valid email address');
       return;
     }
 
@@ -86,10 +86,10 @@ function ForgotPasswordPage() {
                   value={email}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border rounded-md text-black"
-                  placeholder="example@gmail.com"
+                  placeholder="your@email.com"
                 />
                 <div className="text-xs text-gray-400 mt-1">
-                  Please enter a valid Gmail address
+                  Please enter your registered email address
                 </div>
               </div>
               
@@ -102,13 +102,7 @@ function ForgotPasswordPage() {
               )}
 
               <div className="flex justify-between space-x-4 mt-6">
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition duration-200 flex-1"
-                >
-                  Cancel
-                </button>
+                
                 <button
                   type="submit"
                   disabled={isSubmitting || !email}
@@ -138,3 +132,4 @@ function ForgotPasswordPage() {
 }
 
 export default ForgotPasswordPage;
+
