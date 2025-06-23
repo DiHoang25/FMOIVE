@@ -126,7 +126,7 @@ function AppContent() {
           
          
 
-        
+        { /* Booking Routes */}
           <Route path="/showtimes" element={<ShowtimePage />} />
           <Route path="/select-seats" element={<SeatSelectionPage />} />
           <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
