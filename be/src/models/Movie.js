@@ -6,7 +6,8 @@ const movieSchema = new mongoose.Schema({
     required: [true, 'Tên phim là bắt buộc'],
     trim: true,
     minlength: [1, 'Tên phim quá ngắn'],
-    maxlength: [255, 'Tên phim không được vượt quá 255 ký tự']
+    maxlength: [255, 'Tên phim không được vượt quá 255 ký tự'],
+    unique: true
   },
   production_company: {
     type: String,
