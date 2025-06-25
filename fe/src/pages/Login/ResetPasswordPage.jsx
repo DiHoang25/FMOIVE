@@ -226,7 +226,6 @@ function ResetPasswordPage() {
                 >
                 
                 </button>
-
         </div>
             </form>
       </div>

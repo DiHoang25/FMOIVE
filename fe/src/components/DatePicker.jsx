@@ -1,11 +1,16 @@
 import React from 'react';
-import { DatePicker, Space } from 'antd';
-const onChange = (date, dateString) => {
-  console.log(date, dateString);
+import { DatePicker as AntdDatePicker } from 'antd';
+
+const DatePicker = ({ value, onChange, ...rest }) => {
+  return (
+    <AntdDatePicker
+      value={value} // phải là dayjs hoặc null
+      onChange={onChange}
+      format="YYYY-MM-DD"
+      className="w-full"
+      {...rest}
+    />
+  );
 };
-const App = () => (
-  <Space direction="vertical">
-    <DatePicker onChange={onChange} />
-  </Space>
-);
-export default App;
+
+export default DatePicker;

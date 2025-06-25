@@ -1,11 +1,10 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const { v4: uuidv4 } = require('uuid');
+const Counter = require('./Counter'); // Import mô hình Counter để sử dụng bộ đếm số tuần tự
 
 const userSchema = new mongoose.Schema({
     userId: {
         type: String,
-        default: uuidv4, 
         unique: true,    
         required: true   
     },
@@ -98,6 +97,21 @@ const userSchema = new mongoose.Schema({
 });
 
     userSchema.pre('save', async function(next) {
+        if (this.isNew) {
+        try {
+            
+            const counter = await Counter.findOneAndUpdate(
+                { _id: 'userId' }, 
+                { $inc: { seq: 1 } }, // Tăng giá trị seq lên 1
+                { new: true, upsert: true } // Trả về document sau khi cập nhật, tạo mới nếu không tồn tại
+            );
+
+            // Định dạng userId: "USER" + số tuần tự (đảm bảo có 9 chữ số, thêm số 0 vào đầu nếu cần)
+            this.userId = 'USER' + String(counter.seq).padStart(9, '0');
+        } catch (error) {
+            return next(error); // Chuyển lỗi nếu không thể tạo userId
+        }
+    }
     // Chỉ mã hóa mật khẩu nếu nó đã được sửa đổi (hoặc là mật khẩu mới)
     if (!this.isModified('password')) {
         return next();
