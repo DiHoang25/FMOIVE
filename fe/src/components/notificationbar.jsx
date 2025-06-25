@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import bgImage from '../assets/bg.jpg';
 import logo from '../assets/logo.png';
-import userIcon from '../assets/user.png';
+import avatar from '../assets/avatar.png';
 
 const NotificationBar = () => {
   const [username, setUsername] = useState('');
@@ -41,7 +41,6 @@ const NotificationBar = () => {
 
 
         {/* User section */}
-        {/* User section */}
         <div className="flex items-center space-x-4">
           {username ? (
             <>
@@ -50,7 +49,7 @@ const NotificationBar = () => {
                 className="cursor-pointer hover:scale-105 transition-transform duration-200"
                 title="View Account"
               >
-                <img src={userIcon} alt="User Icon" className="h-10 w-10 object-contain" />
+                <img src={avatar} alt="User Icon" className="h-10 w-10 object-contain" />
               </div>
               <span className="text-white font-semibold">Hello {username}</span>
               <button

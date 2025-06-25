@@ -3,17 +3,18 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaEye, FaEdit, FaTrash, FaSpinner } from 'react-icons/fa';
 import { Switch, Modal, message } from 'antd';
+import Pagination from '../../components/PaginationHomepage';
 import SidebarLayout from '../../components/Sidebar-Admin';
 import dayjs from 'dayjs';
 
-
 const MovieList = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  // const [selectedGenre, setSelectedGenre] = useState('All genres');
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const itemsPerPage = 8;
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -31,13 +32,17 @@ const MovieList = () => {
     fetchMovies();
   }, []);
 
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [searchTerm, movies]);
+
   const totalMovies = movies.length;
   const nowShowing = movies.filter(movie => movie.status === 'Now showing').length;
-  const upcomingMovies = movies.filter(movie => movie.status === 'Stop showing').length;
+  const upcomingMovies = movies.filter(movie => movie.status === 'Comming Soon').length;
   const todaysShowtimes = movies.reduce((total, movie) => total + (movie.showtime || 0), 0);
 
   const toggleStatus = (movie) => {
-    const newStatus = movie.status === 'Now showing' ? 'Stop showing' : 'Now showing';
+    const newStatus = movie.status === 'Now showing' ? 'Comming Soon' : 'Now showing';
     Modal.confirm({
       title: 'Confirm Status Change',
       content: `Are you sure you want to change status of "${movie.name}" to "${newStatus}"?`,
@@ -73,9 +78,7 @@ const MovieList = () => {
           const response = await fetch(`http://localhost:5000/api/movies/${movie._id}`, {
             method: 'DELETE'
           });
-          
           if (!response.ok) throw new Error('Failed to delete movie');
-          
           const updated = movies.filter(m => m._id !== movie._id);
           setMovies(updated);
           message.success(`"${movie.name}" has been deleted.`);
@@ -93,24 +96,34 @@ const MovieList = () => {
   };
 
   const handleSearch = (e) => setSearchTerm(e.target.value);
-  // const handleGenreChange = (e) => setSelectedGenre(e.target.value);
 
   const filteredMovies = movies.filter(movie => {
-    const nameMatch = movie.name.trim().toLowerCase().includes(searchTerm.toLowerCase().trim());
-    // const genreMatch =
-    //   selectedGenre === 'All genres' ||
-    //   (typeof movie.genres === 'string'
-    //     ? movie.genres.toLowerCase().split(',').map(g => g.trim()).includes(selectedGenre.toLowerCase())
-    //     : Array.isArray(movie.genres)
-    //       ? movie.genres.map(g => g.toLowerCase()).includes(selectedGenre.toLowerCase())
-    //       : false);
+    const nameMatch = movie.name?.trim().toLowerCase().includes(searchTerm.toLowerCase().trim());
     return nameMatch;
   });
+
+  const totalPages = Math.ceil(filteredMovies.length / itemsPerPage);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
+
+  const paginatedMovies = filteredMovies.slice(
+    currentPage * itemsPerPage,
+    (currentPage + 1) * itemsPerPage
+  );
+  
+
+  const handlePageChange = page => {
+    if (page < 0 || page >= Math.ceil(filteredMovies.length / itemsPerPage)) return;
+    setCurrentPage(page);
+  };
 
   return (
     <SidebarLayout>
       <div className="p-6 text-white">
-        {/* Header + stats */}
         <div className="p-4 flex items-center justify-between">
           <div className="flex-1 text-center">
             <h2 className="text-2xl font-bold">Movie Management</h2>
@@ -127,7 +140,7 @@ const MovieList = () => {
             <h2 className="text-xl font-bold">{nowShowing}</h2>
           </div>
           <div className="bg-yellow-600 rounded-lg p-4 text-center shadow">
-            <p className="text-sm text-gray-100">Upcoming Movies</p>
+            <p className="text-sm text-gray-100">Comming Soon</p>
             <h2 className="text-xl font-bold">{upcomingMovies}</h2>
           </div>
           <div className="bg-blue-600 rounded-lg p-4 text-center shadow">
@@ -136,7 +149,6 @@ const MovieList = () => {
           </div>
         </div>
 
-        {/* Search & filter */}
         <div className="flex flex-wrap gap-4 mb-4">
           <input
             type="text"
@@ -145,25 +157,11 @@ const MovieList = () => {
             onChange={handleSearch}
             className="bg-gray-700 text-white px-3 py-2 rounded-md w-64"
           />
-          {/* <select
-            value={selectedGenre}
-            onChange={handleGenreChange}
-            className="bg-gray-700 text-white px-3 py-2 rounded-md"
-          >
-            <option value="All genres">All genres</option>
-            <option value="Sci-Fi">Sci-Fi</option>
-            <option value="Action">Action</option>
-            <option value="Fantasy">Fantasy</option>
-            <option value="Animation">Animation</option>
-            <option value="Adventure">Adventure</option>
-          </select> */}
-
           <Link to="/admin/add-movie" className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md">
             + Add New Movie
           </Link>
         </div>
 
-        {/* Movie table */}
         <div className="overflow-x-auto bg-gray-800 rounded-lg shadow">
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-gray-900 text-gray-300 text-sm uppercase">
@@ -172,7 +170,6 @@ const MovieList = () => {
                 <th className="px-4 py-3 text-left">Name</th>
                 <th className="px-4 py-3 text-left">Genres</th>
                 <th className="px-4 py-3 text-left">Duration</th>
-                <th className="px-4 py-3 text-left">Revenue</th>
                 <th className="px-4 py-3 text-left">Status</th>
                 <th className="px-4 py-3 text-center">Actions</th>
               </tr>
@@ -180,28 +177,27 @@ const MovieList = () => {
             <tbody className="divide-y divide-gray-700 text-gray-300 text-sm">
               {loading ? (
                 <tr>
-                  <td colSpan="8" className="text-center py-4">
+                  <td colSpan="6" className="text-center py-4">
                     <FaSpinner className="animate-spin mr-2" /> Loading movies...
                   </td>
                 </tr>
-              ) : filteredMovies.length === 0 ? (
+              ) : paginatedMovies.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="text-center py-4 text-gray-400">No movies found.</td>
+                  <td colSpan="6" className="text-center py-4 text-gray-400">No movies found.</td>
                 </tr>
               ) : (
-                filteredMovies.map(movie => (
+                paginatedMovies.map((movie, index) => (
                   <tr key={movie._id} className="hover:bg-gray-700 transition">
-                    <td className="px-4 py-2">{movie._id}</td>
+                    <td className="px-4 py-2">{(currentPage  * itemsPerPage + index + 1)}</td>
                     <td className="px-4 py-2">{movie.name}</td>
                     <td className="px-4 py-2">{movie.genres}</td>
                     <td className="px-4 py-2">{movie.running_time} min</td>
-                    <td className="px-4 py-2">${movie.revenue}</td>
                     <td className="px-4 py-2">
                       <Switch
                         checked={movie.status === 'Now showing'}
                         onChange={() => toggleStatus(movie)}
-                        checkedChildren="Now"
-                        unCheckedChildren="Stop"
+                        checkedChildren="Now Showing"
+                        unCheckedChildren="Comming Soon"
                         style={{
                           backgroundColor: movie.status === 'Now showing' ? '#22c55e' : '#ef4444',
                         }}
@@ -219,9 +215,17 @@ const MovieList = () => {
               )}
             </tbody>
           </table>
+          {totalPages > 0 && (
+            <div className="py-4">
+              <Pagination
+                currentPage={currentPage }
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          )}
         </div>
 
-        {/* Movie Details Modal */}
         <Modal
           title="Movie Details"
           open={modalVisible}
@@ -246,7 +250,6 @@ const MovieList = () => {
                 <div><p className="text-gray-400">Version:</p><p>{selectedMovie.version}</p></div>
                 <div><p className="text-gray-400">Start Date:</p><p>{dayjs(selectedMovie.start_date).format('DD/MM/YYYY')}</p></div>
                 <div><p className="text-gray-400">End Date:</p><p>{dayjs(selectedMovie.end_date).format('DD/MM/YYYY')}</p></div>
-
                 <div className="col-span-2">
                   <p className="text-gray-400">Trailer Link:</p>
                   <a href={selectedMovie.trailer_link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedMovie.trailer_link}</a>

@@ -1,5 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
+import RequireRole from './components/RequireRole';
+
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import UsersDashboard from './pages/Users/UsersDashboard';
 import EmployeeDashboard from './pages/Employee/EmployeeDashboard';
@@ -13,7 +16,7 @@ import ViewMembers from './pages/Admin/ViewMembers';
 import AdminProfile from './pages/Admin/AdminProfile';
 import MovieDetails from './pages/Movie/MovieDetails';
 import MovieNews from './pages/Movie/MovieNews';
-import MovieSearch from './pages/Movie/MovieSearch'; 
+import MovieSearch from './pages/Movie/MovieSearch';
 import EmployeeProfile from './pages/Employee/EmployeeProfile';
 import ViewMembersList from './pages/Employee/ViewMembersList';
 import AddMovie from './pages/Admin/AddMovie';
@@ -32,8 +35,6 @@ import Promotions from './pages/Admin/Promotions';
 import ViewAccount from './pages/Users/ViewAccount';
 import EditAccount from './pages/Users/EditAccount';
 import BookingList from './pages/Admin/BookingList';
-// import MovieDetailsSearch from './pages/Movie/MovieDetailsSearch';
-// import MovieNewsSearch from './pages/Movie/MovieNewsSearch';
 import TicketDetail from './pages/Users/TicketDetail';
 import PaymentPage from './pages/Users/PaymentMethod';
 import CounterShowtimesPage from './pages/Employee/CounterShowtimePage';
@@ -64,45 +65,30 @@ import EditPromotion from './pages/Admin/EditPromotion';
 function AppContent() {
   const location = useLocation();
 
-  
   const hideNavbarFooter =
-    location.pathname.startsWith('/admin')
-    || location.pathname.startsWith('/employee')
-    || location.pathname.startsWith('/login')
-    || location.pathname.startsWith('/register')
-    || location.pathname.startsWith('/reset-password')
-    || location.pathname.startsWith('/forgot-password')
-    || location.pathname.startsWith('/new-password');
+    location.pathname.startsWith('/admin') ||
+    location.pathname.startsWith('/employee') ||
+    location.pathname.startsWith('/login') ||
+    location.pathname.startsWith('/register') ||
+    location.pathname.startsWith('/reset-password') ||
+    location.pathname.startsWith('/forgot-password') ||
+    location.pathname.startsWith('/new-password');
 
-
-  const showNavbarForMovieSearch = location.pathname === '/moviesearch';
-  const hideLayout = location.pathname.startsWith('/admin') || location.pathname.startsWith('/employee');
+  const hideLayout =
+    location.pathname.startsWith('/admin') ||
+    location.pathname.startsWith('/employee');
 
   return (
     <>
-      
       {!hideLayout && <NotificationBar />}
       <div className={!hideLayout ? 'pt-[0px]' : ''}>
-        
-        
-      {!hideNavbarFooter && <Navbar />}
+        {!hideNavbarFooter && <Navbar />}
         <ScrollToTop />
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
-          <Route path="/Users" element={<UsersDashboard />} />
-          <Route path="/employee" element={<EmployeeDashboard />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/view-members" element={<ViewMembers />} />
-          <Route path="/admin/admin-profile" element={<AdminProfile />} />
-          <Route path="/employee/members-list" element={<ViewMembersList />} />
-          <Route path="/employee/employee-profile" element={<EmployeeProfile />} />
-          <Route path="/moviedetails/:id" element={<MovieDetails />} />
-          <Route path="/movienews" element={<MovieNews />} />
-          <Route path="/moviesearch" element={<MovieSearch />} />
-          <Route path="/admin/add-movie" element={<AddMovie />} />
-          <Route path="/admin/movie-list" element={<MovieList />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/new-password" element={<NewPasswordPage />} />
@@ -122,11 +108,23 @@ function AppContent() {
           <Route path='/admin/add-promotion' element={<AddPromotion />} />
           <Route path='/admin/promotions/edit-promotion/:id' element={<EditPromotion />} />
           <Route path="/contact" element={<ContactPage />} />
-          <Route path="/changepassword" element={<ChangePassword />} />
-          
-         
+          <Route path="/promotions" element={<PromotionsPage />} />
+          <Route path="/terms" element={<GeneralTerms />} />
+          <Route path="/payment-policy" element={<PaymentPolicy />} />
+          <Route path="/delivery-policy" element={<DeliveryPolicy />} />
+          <Route path="/information-security" element={<InformationSecurity />} />
+          <Route path="/returns-refunds" element={<InspectionReturns />} />
 
-        { /* Booking Routes */}
+          {/* Customer */}
+          <Route path="/Users" element={<RequireRole allowedRoles={['customer']}><UsersDashboard /></RequireRole>} />
+          <Route path="/viewbookedticket" element={<RequireRole allowedRoles={['customer']}><ViewBookedTickets /></RequireRole>} />
+          <Route path="/viewscorehistory" element={<RequireRole allowedRoles={['customer']}><ViewScoreHistory /></RequireRole>} />
+          <Route path="/viewaccount" element={<RequireRole allowedRoles={['customer']}><ViewAccount /></RequireRole>} />
+          <Route path="/editaccount" element={<RequireRole allowedRoles={['customer']}><EditAccount /></RequireRole>} />
+          <Route path="/changepassword" element={<RequireRole allowedRoles={['customer']}><ChangePassword /></RequireRole>} />
+          <Route path="/customer-benefits" element={<RequireRole allowedRoles={['customer']}><CustomerBenefits /></RequireRole>} />
+
+          {/* Booking */}
           <Route path="/showtimes" element={<ShowtimePage />} />
           <Route path="/select-seats" element={<SeatSelectionPage />} />
           <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
@@ -135,30 +133,34 @@ function AppContent() {
           <Route path="/payment" element={<PaymentPage />} />
           <Route path="/ticket-detail" element={<TicketDetail />} />
 
-          { /* Counter(Employee) Routes */}
-          <Route path="/employee/counter-showtimes" element={<CounterShowtimesPage />} />
-          <Route path="/employee/counter-seat" element={<CounterSeatSelectionPage />} />
-          <Route path="/employee/counter-combo"   element={<CounterComboPage />} />
-          <Route path="/employee/counter-confirm" element={<CounterConfirmBooking />} />
-          <Route path="/employee/counter-payment" element={<PaymentCounter />} />
-          <Route path="/employee/counter-payment-success" element={<PaymentSuccess />} />
-          <Route path="/employee/counter-booking-list" element={<CounterBookingList />} />
-          <Route path="/employee/counter-get-ticket" element={<CounterGetTicket />} />
-          
-          { /* Policies Routes */}
-          <Route path="/terms" element={<GeneralTerms />} />
-          <Route path="/payment-policy" element={<PaymentPolicy />} />
-          <Route path="/delivery-policy" element={<DeliveryPolicy />} />
-          <Route path="/information-security" element={<InformationSecurity />} />
-          <Route path="/returns-refunds" element={<InspectionReturns />} />
-          
-          {/* Catch-all route for 404 */}
+          {/* Admin */}
+          <Route path="/admin" element={<RequireRole allowedRoles={['admin']}><AdminDashboard /></RequireRole>} />
+          <Route path="/admin/view-members" element={<RequireRole allowedRoles={['admin']}><ViewMembers /></RequireRole>} />
+          <Route path="/admin/admin-profile" element={<RequireRole allowedRoles={['admin']}><AdminProfile /></RequireRole>} />
+          <Route path="/admin/add-movie" element={<RequireRole allowedRoles={['admin']}><AddMovie /></RequireRole>} />
+          <Route path="/admin/movie-list" element={<RequireRole allowedRoles={['admin']}><MovieList /></RequireRole>} />
+          <Route path="/admin/movie-list/edit-movie/:movie._id" element={<RequireRole allowedRoles={['admin']}><EditMovie /></RequireRole>} />
+          <Route path="/admin/booking-list" element={<RequireRole allowedRoles={['admin']}><BookingList /></RequireRole>} />
+          <Route path="/admin/promotions" element={<RequireRole allowedRoles={['admin']}><Promotions /></RequireRole>} />
+          <Route path="/admin/add-promotion" element={<RequireRole allowedRoles={['admin']}><AddPromotion /></RequireRole>} />
+          <Route path="/admin/promotions/edit-promotion/:id" element={<RequireRole allowedRoles={['admin']}><EditPromotion /></RequireRole>} />
+          <Route path="/admin/cinema-rooms" element={<RequireRole allowedRoles={['admin']}><CinemaRooms /></RequireRole>} />
+          <Route path="/admin/room-detail/:roomId" element={<RequireRole allowedRoles={['admin']}><CinemaRoomDetail /></RequireRole>} />
+          <Route path="/admin/cinema-rooms/add-new-cinema-room" element={<RequireRole allowedRoles={['admin']}><AddCinemaRoom /></RequireRole>} />
 
-
-
-          <Route path="/promotions" element={<PromotionsPage />} />
+          {/* Employee */}
+          <Route path="/employee" element={<RequireRole allowedRoles={['employee']}><EmployeeDashboard /></RequireRole>} />
+          <Route path="/employee/employee-profile" element={<RequireRole allowedRoles={['employee']}><EmployeeProfile /></RequireRole>} />
+          <Route path="/employee/members-list" element={<RequireRole allowedRoles={['employee']}><ViewMembersList /></RequireRole>} />
+          <Route path="/employee/counter-showtimes" element={<RequireRole allowedRoles={['employee']}><CounterShowtimesPage /></RequireRole>} />
+          <Route path="/employee/counter-seat" element={<RequireRole allowedRoles={['employee']}><CounterSeatSelectionPage /></RequireRole>} />
+          <Route path="/employee/counter-combo" element={<RequireRole allowedRoles={['employee']}><CounterComboPage /></RequireRole>} />
+          <Route path="/employee/counter-confirm" element={<RequireRole allowedRoles={['employee']}><CounterConfirmBooking /></RequireRole>} />
+          <Route path="/employee/counter-payment" element={<RequireRole allowedRoles={['employee']}><PaymentCounter /></RequireRole>} />
+          <Route path="/employee/counter-payment-success" element={<RequireRole allowedRoles={['employee']}><PaymentSuccess /></RequireRole>} />
+          <Route path="/employee/counter-booking-list" element={<RequireRole allowedRoles={['employee']}><CounterBookingList /></RequireRole>} />
+          <Route path="/employee/counter-get-ticket" element={<RequireRole allowedRoles={['employee']}><CounterGetTicket /></RequireRole>} />
         </Routes>
-       
         {!hideNavbarFooter && <Footer />}
       </div>
     </>
