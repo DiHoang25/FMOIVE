@@ -73,6 +73,7 @@ router.post('/', upload.single('image'), async (req, res) => {
     }
 
     const newPromotion = new Promotion({
+      promotionId: body.promotionId,
       title: body.title,
       start_date: body.start_date,
       end_date: body.end_date,
