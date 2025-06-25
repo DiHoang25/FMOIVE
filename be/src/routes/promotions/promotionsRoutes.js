@@ -6,6 +6,7 @@ const cloudinary = require('../../config/cloudinary');
 const Promotion = require('../../models/Promotion');
 
 const upload = multer({ dest: './src/uploads/' });
+import adminMiddleware from '../../middlewares/adminMiddleware';
 
 /**
  * @swagger
