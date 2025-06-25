@@ -172,7 +172,7 @@ const MovieList = () => {
                 <th className="px-4 py-3 text-left">Name</th>
                 <th className="px-4 py-3 text-left">Genres</th>
                 <th className="px-4 py-3 text-left">Duration</th>
-                <th className="px-4 py-3 text-left">Revenue</th>
+                {/* <th className="px-4 py-3 text-left">Revenue</th> */}
                 <th className="px-4 py-3 text-left">Status</th>
                 <th className="px-4 py-3 text-center">Actions</th>
               </tr>
@@ -195,7 +195,7 @@ const MovieList = () => {
                     <td className="px-4 py-2">{movie.name}</td>
                     <td className="px-4 py-2">{movie.genres}</td>
                     <td className="px-4 py-2">{movie.running_time} min</td>
-                    <td className="px-4 py-2">${movie.revenue}</td>
+                    {/* <td className="px-4 py-2">${movie.revenue}</td> */}
                     <td className="px-4 py-2">
                       <Switch
                         checked={movie.status === 'Now showing'}

@@ -3,9 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import SidebarLayout from '../../components/Sidebar-Admin';
 import DatePicker from '../../components/DatePicker';
 import DropDown from '../../components/DropDown';
+import GenresDropDown from '../../components/GernesPicker';
 import TimePicker from '../../components/TimePicker';
-import GernesPicker from '../../components/GernesPicker';
-import MultiTimePicker from '../../components/TimePicker';
+import { Modal, message } from 'antd';
+import dayjs from 'dayjs';
+
 
 const EditMovie = () => {
     const { id } = useParams();
@@ -21,10 +23,19 @@ const EditMovie = () => {
         director: '',
         runningTime: '',
         moviePoster: '',
+        moviePosterPreview: '',
+        movieBanner: '',
+        movieBannerPreview: '',
         movieDescription: '',
-        genres: {},
-        version: {},
-        showTimes: [],
+        status: '',
+        genres: [],
+        version: {
+            '2D': false,
+            '3D': false,
+            'IMAX': false
+        },
+        cinemaRoom: [],
+        showTimes: []
     });
 
     const [loading, setLoading] = useState(true);
@@ -34,26 +45,36 @@ const EditMovie = () => {
             try {
                 const response = await fetch(`http://localhost:5000/api/movies/${id}`);
                 const data = await response.json();
+
                 setFormData({
                     movieName: data.name || '',
                     trailerLink: data.trailer_link || '',
-                    fromDate: data.start_date || '',
-                    toDate: data.end_date || '',
+                    fromDate: data.start_date ? dayjs(data.start_date) : null,
+                    toDate: data.end_date ? dayjs(data.end_date) : null,
                     actors: data.actors || '',
                     productionCompany: data.production_company || '',
                     director: data.director || '',
                     runningTime: data.running_time || '',
-                    moviePoster: '',
                     movieDescription: data.description || '',
-                    genres: data.genres || {},
-                    version: data.version || {}
+                    moviePosterPreview: data.image_url || '',
+                    movieBannerPreview: data.banner_url || '',
+                    genres: data.genres || [],
+                    version: {
+                        '2D': data.version?.includes('2D'),
+                        '3D': data.version?.includes('3D'),
+                        'IMAX': data.version?.includes('IMAX'),
+                    },
+                    cinemaRoom: data.cinema_room ? [data.cinema_room] : [],
+                    showTimes: data.showtimes || []
                 });
-            } catch (error) {
-                console.error('Failed to fetch movie:', error);
+            } catch (err) {
+                console.error('Failed to fetch movie:', err);
+                message.error('Lỗi khi tải thông tin phim');
             } finally {
                 setLoading(false);
             }
         };
+
         fetchMovie();
     }, [id]);
 
@@ -65,10 +86,56 @@ const EditMovie = () => {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Submitted movie data:', formData);
-        // Call API to update movie here
+        setLoading(true);
+        
+        try {
+            const formDataToSend = new FormData();
+            formDataToSend.append('name', formData.movieName);
+            formDataToSend.append('trailer_link', formData.trailerLink);
+            formDataToSend.append('start_date', formData.fromDate?.toISOString());
+            formDataToSend.append('end_date', formData.toDate?.toISOString());
+            formDataToSend.append('actors', formData.actors);
+            formDataToSend.append('production_company', formData.productionCompany);
+            formDataToSend.append('director', formData.director);
+            formDataToSend.append('running_time', formData.runningTime);
+            formDataToSend.append('description', formData.movieDescription);
+            formDataToSend.append('genres', formData.genres.join(','));
+            
+            const versions = [];
+            if (formData.version['2D']) versions.push('2D');
+            if (formData.version['3D']) versions.push('3D');
+            if (formData.version['IMAX']) versions.push('IMAX');
+            formDataToSend.append('version', versions.join(','));
+            
+            if (formData.moviePoster) {
+                formDataToSend.append('image', formData.moviePoster);
+            }
+            
+            if (formData.movieBanner) {
+                formDataToSend.append('banner', formData.movieBanner);
+            }
+            
+            const response = await fetch(`http://localhost:5000/api/movies/${id}`, {
+                method: 'PUT',
+                body: formDataToSend
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Cập nhật thất bại');
+            }
+            
+            const result = await response.json();
+            message.success('Đã cập nhật thông tin phim thành công!');
+            navigate('/admin/movie-list');
+        } catch (err) {
+            console.error('Error updating movie:', err);
+            message.error(`Cập nhật thất bại: ${err.message}`);
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (loading) return <div className="text-white p-4">Loading...</div>;
@@ -85,44 +152,70 @@ const EditMovie = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-3">
                                 <div>
-                                    <label className="block text-gray-300 mb-1">Movie Name *</label>
+                                    <label className="block text-gray-300 mb-1">
+                                        Movie Name <span className="text-red-500">*</span>
+                                    </label>
                                     <input type="text" name="movieName" value={formData.movieName} onChange={handleInputChange} className="w-full p-3 rounded-lg bg-slate-700 text-white" required />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-gray-300 mb-1">From Date *</label>
-                                        <DatePicker name="fromDate" value={formData.fromDate} onChange={(date, dateString) => handleInputChange({ target: { name: 'fromDate', value: dateString } })} className="w-full" required />
+                                        <label className="block text-gray-300 mb-1">
+                                            From Date <span className="text-red-500">*</span>
+                                        </label>
+                                        <DatePicker
+                                            value={formData.fromDate}
+                                            onChange={(date) =>
+                                                setFormData((prev) => ({ ...prev, fromDate: date }))
+                                            }
+                                        />
                                     </div>
                                     <div>
-                                        <label className="block text-gray-300 mb-1">To Date *</label>
-                                        <DatePicker name="toDate" value={formData.toDate} onChange={(date, dateString) => handleInputChange({ target: { name: 'toDate', value: dateString } })} className="w-full" required />
+                                        <label className="block text-gray-300 mb-1">
+                                            To Date <span className="text-red-500">*</span>
+                                        </label>
+                                        <DatePicker
+                                            value={formData.toDate}
+                                            onChange={(date) =>
+                                                setFormData((prev) => ({ ...prev, toDate: date }))
+                                            }
+                                        />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-gray-300 mb-1">Actor(s) *</label>
+                                    <label className="block text-gray-300 mb-1">
+                                        Actor(s) <span className="text-red-500">*</span>
+                                    </label>
                                     <input type="text" name="actors" value={formData.actors} onChange={handleInputChange} className="w-full p-2 rounded bg-slate-700 text-white" required />
                                 </div>
 
                                 <div>
-                                    <label className="block text-gray-300 mb-1">Production Company *</label>
+                                    <label className="block text-gray-300 mb-1">
+                                        Product Company <span className="text-red-500">*</span>
+                                    </label>
                                     <input type="text" name="productionCompany" value={formData.productionCompany} onChange={handleInputChange} className="w-full p-2 rounded bg-slate-700 text-white" required />
                                 </div>
 
                                 <div>
-                                    <label className="block text-gray-300 mb-1">Director *</label>
+                                    <label className="block text-gray-300 mb-1">
+                                        Director <span className="text-red-500">*</span>
+                                    </label>
                                     <input type="text" name="director" value={formData.director} onChange={handleInputChange} className="w-full p-2 rounded bg-slate-700 text-white" required />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-gray-300 mb-1">Running Time (minutes) *</label>
+                                        <label className="block text-gray-300 mb-1">
+                                            Running Time (minutes) <span className="text-red-500">*</span>
+                                        </label>
                                         <input type="number" name="runningTime" value={formData.runningTime} onChange={handleInputChange} className="w-full p-2 rounded bg-slate-700 text-white" required />
                                     </div>
 
                                     <div>
-                                        <label className="block text-gray-300 mb-1">Version *</label>
+                                        <label className="block text-gray-300 mb-1">
+                                            Version <span className="text-red-500">*</span>
+                                        </label>
                                         <div className="flex space-x-3 mt-2">
                                             {['2D', '3D', 'IMAX'].map((ver) => (
                                                 <button key={ver} type="button" onClick={() => setFormData({ ...formData, version: { ...formData.version, [ver]: !formData.version[ver] } })} className={`px-4 py-2 rounded-lg border transition ${formData.version[ver] ? 'bg-red-600 text-white border-red-700' : 'bg-slate-700 text-gray-300 border-slate-600 hover:bg-slate-600'}`}>
@@ -133,12 +226,20 @@ const EditMovie = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-gray-300 mb-1">Cinema Rooms</label>
-                                        <DropDown />
+                                        <label className="block text-gray-300 mb-1">
+                                            Cinema Rooms <span className="text-red-500">*</span>
+                                        </label>
+                                        <DropDown
+                                            value={formData.cinemaRoom}
+                                            onChange={(val) => setFormData({ ...formData, cinemaRoom: val })}
+                                        />
+
                                     </div>
 
                                     <div>
-                                        <label className="block text-gray-300 mb-1">Show Times</label>
+                                        <label className="block text-gray-300 mb-1">
+                                            Show Times <span className="text-red-500">*</span>
+                                        </label>
                                         <TimePicker
                                             value={formData.showTimes}
                                             onChange={(times) =>
@@ -152,28 +253,105 @@ const EditMovie = () => {
 
                             <div className="space-y-3">
                                 <div>
-                                    <label className="block text-gray-300 mb-1">Trailer Link *</label>
+                                    <label className="block text-gray-300 mb-1">
+                                        Trailer Link <span className="text-red-500">*</span>
+                                    </label>
                                     <input type="url" name="trailerLink" value={formData.trailerLink} onChange={handleInputChange} className="w-full p-2 rounded bg-slate-700 text-white" required />
                                 </div>
 
                                 <div>
                                     <label className="block text-gray-300 mb-1">Genres *</label>
-                                    <GernesPicker />
+                                    <GenresDropDown
+                                        value={formData.genres}
+                                        onChange={(val) => setFormData({ ...formData, genres: val })}
+                                    />
                                 </div>
 
                                 <div>
-                                    <label className="block text-gray-300 mb-1">Movie Poster *</label>
-                                    <input type="file" name="moviePoster" accept="image/*" className="hidden" id="poster-upload" onChange={(e) => console.log(e.target.files[0])} required />
-                                    <label htmlFor="poster-upload" className="w-full h-32 border-2 border-dashed border-gray-600 flex items-center justify-center cursor-pointer rounded">
-                                        <div className="text-center text-gray-400">
-                                            <p>Click to upload poster</p>
-                                        </div>
+                                    <label className="block text-gray-300 mb-1">
+                                        Movie Poster <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="file"
+                                        name="moviePoster"
+                                        accept="image/*"
+                                        className="hidden"
+                                        id="poster-upload"
+                                        onChange={(e) => {
+                                            if (e.target.files && e.target.files[0]) {
+                                                const file = e.target.files[0];
+                                                setFormData({
+                                                    ...formData,
+                                                    moviePoster: file,
+                                                    moviePosterPreview: URL.createObjectURL(file)
+                                                });
+                                            }
+                                        }}
+                                        required
+                                    />
+                                    <label htmlFor="poster-upload" className="block cursor-pointer">
+                                        {formData.moviePosterPreview ? (
+                                            <img
+                                                src={formData.moviePosterPreview}
+                                                alt="Poster Preview"
+                                                className="w-full h-32 object-contain rounded border-2 border-dashed border-gray-600"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-32 border-2 border-dashed border-gray-600 flex items-center justify-center rounded text-gray-400">
+                                                Click to upload poster
+                                            </div>
+                                        )}
                                     </label>
                                 </div>
 
                                 <div>
-                                    <label className="block text-gray-300 mb-1">Movie Description *</label>
-                                    <textarea name="movieDescription" value={formData.movieDescription} onChange={handleInputChange} className="w-full p-2 rounded bg-slate-700 text-white" required></textarea>
+                                    <label className="block text-gray-300 mb-1">
+                                        Banner Image <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="file"
+                                        name="movieBanner"
+                                        accept="image/*"
+                                        className="hidden"
+                                        id="banner-upload"
+                                        onChange={(e) => {
+                                            if (e.target.files && e.target.files[0]) {
+                                                const file = e.target.files[0];
+                                                setFormData({
+                                                    ...formData,
+                                                    movieBanner: file,
+                                                    movieBannerPreview: URL.createObjectURL(file)
+                                                });
+                                            }
+                                        }}
+                                        required
+                                    />
+                                    <label htmlFor="banner-upload" className="block cursor-pointer">
+                                        {formData.movieBannerPreview ? (
+                                            <img
+                                                src={formData.movieBannerPreview}
+                                                alt="Banner Preview"
+                                                className="w-full h-32 object-contain rounded border-2 border-dashed border-gray-600"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-32 border-2 border-dashed border-gray-600 flex items-center justify-center rounded text-gray-400">
+                                                Click to upload banner
+                                            </div>
+                                        )}
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label className="block text-gray-300 mb-1">
+                                        Movie Description <span className="text-red-500">*</span>
+                                    </label>
+                                    <textarea
+                                        name="movieDescription"
+                                        value={formData.movieDescription}
+                                        onChange={handleInputChange}
+                                        className="w-full p-2 rounded bg-slate-700 text-white"
+                                        required
+                                    ></textarea>
                                 </div>
                             </div>
                         </div>

@@ -6,13 +6,15 @@ import MultiTimePicker from '../../components/TimePicker';
 import GenresDropDown from '../../components/GernesPicker';
 import { useNavigate } from 'react-router-dom';
 import { Modal, message } from 'antd';
+import dayjs from 'dayjs';
+
 
 const AddMovie = () => {
     const [formData, setFormData] = useState({
         movieName: '',
         trailerLink: '',
-        fromDate: new Date().toISOString(),
-        toDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        fromDate: null,
+        toDate: null,
         actors: '',
         productionCompany: '',
         director: '',
@@ -47,19 +49,19 @@ const AddMovie = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
+
         if (!formData.cinemaRoom || formData.cinemaRoom.length === 0) {
             alert('Vui lòng chọn ít nhất một phòng chiếu!');
             return;
         }
-    
+
         const selectedVersions = Object.keys(formData.version).filter(v => formData.version[v]);
-    
+
         const formDataToSend = new FormData();
         formDataToSend.append('name', formData.movieName);
         formDataToSend.append('trailer_link', formData.trailerLink);
-        formDataToSend.append('start_date', formData.fromDate);
-        formDataToSend.append('end_date', formData.toDate);
+        formDataToSend.append('start_date', formData.fromDate.toISOString());
+        formDataToSend.append('end_date', formData.toDate.toISOString());
         formDataToSend.append('actors', formData.actors);
         formDataToSend.append('production_company', formData.productionCompany);
         formDataToSend.append('director', formData.director);
@@ -70,38 +72,35 @@ const AddMovie = () => {
         formDataToSend.append('genres', formData.genres.join(', '));
         formDataToSend.append('cinema_room', formData.cinemaRoom[0]);
         formDataToSend.append('showtimes', formData.showTimes.join(', '));
-    
+
         if (formData.moviePoster) {
             formDataToSend.append('image', formData.moviePoster);
         }
         if (formData.movieBanner) {
             formDataToSend.append('banner', formData.movieBanner);
         }
-    
-        // 🔄 Hiển thị loading
+
         const hide = message.loading('Adding movie...', 0); // 0 means manual dismiss
-    
+
         try {
             const response = await fetch('http://localhost:5000/api/movies', {
                 method: 'POST',
                 body: formDataToSend
             });
-    
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-    
+
             await response.json();
-            hide(); // ✅ Tắt loading
+            hide(); 
             setSuccess(true);
         } catch (error) {
-            hide(); // ❌ Tắt loading khi lỗi
+            hide(); 
             console.error('Error:', error);
             message.error('Error adding movie');
         }
     };
-    
-
 
     const resetForm = () => {
         setFormData({
@@ -165,7 +164,7 @@ const AddMovie = () => {
                                         <DatePicker
                                             name="fromDate"
                                             value={formData.fromDate}
-                                            onChange={(date, dateString) => handleInputChange({ target: { name: 'fromDate', value: dateString } })}
+                                            onChange={(date) => setFormData({ ...formData, fromDate: date })}
                                         />
                                     </div>
                                     <div>
@@ -175,7 +174,7 @@ const AddMovie = () => {
                                         <DatePicker
                                             name="toDate"
                                             value={formData.toDate}
-                                            onChange={(date, dateString) => handleInputChange({ target: { name: 'toDate', value: dateString } })}
+                                            onChange={(date) => setFormData({ ...formData, toDate: date })}
                                         />
                                     </div>
                                 </div>
