@@ -45,44 +45,7 @@ router.get('/', authMiddleware, adminMiddleware, async (req, res) => {
 //     }
 // });
 
-// @route   PATCH /api/user-management/:userId/status
-// @desc    Sửa trạng thái is_actived của người dùng (true/false)
-// @access  Private (Chỉ Admin)
-router.patch('/:userId/status', authMiddleware, adminMiddleware, async (req, res) => {
-    const { status } = req.body; // status sẽ là chuỗi 'true' hoặc 'false'
 
-    // Chuyển đổi giá trị status từ chuỗi sang boolean
-    let newIsActivedStatus;
-    if (status === 'true') {
-        newIsActivedStatus = true;
-    } else if (status === 'false') {
-        newIsActivedStatus = false;
-    } else {
-        return res.status(400).json({ message: 'Trạng thái không hợp lệ.' });
-    }
-
-    try {
-        // Tìm người dùng bằng userId (đã được thêm vào User model)
-        const user = await User.findOne({ userId: req.params.userId });
-
-        if (!user) {
-            return res.status(404).json({ message: 'Không tìm thấy người dùng để cập nhật trạng thái.' });
-        }
-
-        // Cập nhật trạng thái is_actived
-        user.is_actived = newIsActivedStatus;
-        await user.save();
-
-        res.status(200).json({
-            message: `Trạng thái hoạt động của người dùng đã được cập nhật thành "${newIsActivedStatus}".`,
-            user: user // Trả về thông tin người dùng đã cập nhật
-        });
-
-    } catch (error) {
-        console.error('Lỗi khi cập nhật trạng thái hoạt động của người dùng:', error.message);
-        res.status(500).send('Lỗi máy chủ khi cập nhật trạng thái người dùng.');
-    }
-});
 
 
 module.exports = router;
