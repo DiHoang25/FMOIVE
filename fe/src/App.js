@@ -104,7 +104,7 @@ function AppContent() {
           <Route path="/customer-benefits" element={<CustomerBenefits />} />
           <Route path="/admin/cinema-rooms" element={<CinemaRooms />} />
           <Route path="/admin/room-detail/:roomId" element={<CinemaRoomDetail />} />
-          <Route path="/admin/movie-list/edit-movie/:movie._id" element={<EditMovie />} />
+          <Route path="/admin/movie-list/edit-movie/:id" element={<EditMovie />} />
           <Route path='/admin/cinema-rooms/add-new-cinema-room' element={<AddCinemaRoom />} />
           <Route path='/admin/add-promotion' element={<AddPromotion />} />
           <Route path='/admin/promotions/edit-promotion/:id' element={<EditPromotion />} />
