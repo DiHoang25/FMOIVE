@@ -5,8 +5,7 @@ const Counter = require('./Counter'); // Import mô hình Counter để sử d�
 const userSchema = new mongoose.Schema({
     userId: {
         type: String,
-        unique: true,    
-        required: true   
+        unique: true,     
     },
     username: {
         type: String,
