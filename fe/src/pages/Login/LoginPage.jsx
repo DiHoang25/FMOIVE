@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode'; // ✅ Dùng đúng cú pháp phiên bản mới
+import { jwtDecode } from 'jwt-decode';
+import { useAuth } from '../../contexts/AuthContext';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { login } = useAuth(); // ✅ Đặt hook trong component
+
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [errors, setErrors] = useState({ username: '', password: '', general: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -50,21 +53,20 @@ const LoginPage = () => {
         return;
       }
 
-      // Lưu token vào localStorage
+      // ✅ Lưu token và gọi login từ AuthContext
       localStorage.setItem('token', data.token);
-      localStorage.setItem('username', formData.username);
+      login(data.token);
 
-      // ✅ Giải mã token để lấy role
+      // ✅ Giải mã token để điều hướng theo vai trò
       const decoded = jwtDecode(data.token);
       const role = decoded.user.role;
 
-      // ✅ Điều hướng theo vai trò
       if (role === 'admin') {
         navigate('/admin');
       } else if (role === 'employee') {
         navigate('/employee');
       } else {
-        navigate('/'); // customer hoặc role không xác định
+        navigate('/');
       }
 
     } catch (error) {
