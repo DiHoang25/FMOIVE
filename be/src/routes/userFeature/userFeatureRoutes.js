@@ -9,7 +9,7 @@ const authMiddleware = require('../../middleware/authMiddleware'); // Middleware
 // @desc    Lấy danh sách các bộ phim và lịch chiếu có sẵn
 // @access  Private (Người dùng đã đăng nhập)
 // Query Params: search (tên phim), date (yyyy-mm-dd)
-router.get('/search', authMiddleware, async (req, res) => {
+router.get('/search', async (req, res) => {
     const { search, date } = req.query; // 'date' here should ideally be a YYYY-MM-DD string
     let query = { is_deleted: false }; // Always exclude deleted movies
 

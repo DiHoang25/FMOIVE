@@ -11,7 +11,7 @@ router.get('/', authMiddleware, adminMiddleware, async (req, res) => {
     try {
         // Lấy danh sách tất cả người dùng có role là 'user'
         // .select('-password') để không trả về mật khẩu đã mã hóa vì lý do bảo mật.
-        const Employee = await Customer.find({ role: { $in: ["employee", "admin"] } }).select('-password');
+        const Employee = await User.find({ role: { $in: ["employee", "admin"] } }).select('-password');
 
         res.status(200).json({
             message: 'Lấy danh sách nhân viên thành công.',
@@ -50,7 +50,7 @@ router.get('/', authMiddleware, adminMiddleware, async (req, res) => {
 router.post('/new_employee', authMiddleware, adminMiddleware, async (req, res) => {
     // userId sẽ được tạo tự động bởi Mongoose model.
     // role sẽ được cố định là 'employee' ở đây, không lấy từ req.body.
-    const { username, fullname, password, email, gender, id_card, phone, address, is_actived, is_deleted } = req.body;
+    const { username, fullname, password, email, gender,date_of_birth , id_card, phone, address, is_actived, is_deleted } = req.body;
 
     try {
         // Kiểm tra các trường bắt buộc
@@ -66,12 +66,13 @@ router.post('/new_employee', authMiddleware, adminMiddleware, async (req, res) =
         }
 
         const newEmployee = new User({
+            id_card,
             username,
             fullname,
             password,
             email,
             gender,
-            id_card,
+            date_of_birth,
             phone,
             address,
             role: 'employee',
@@ -175,5 +176,38 @@ router.patch('/:userId/delete', authMiddleware, adminMiddleware, async (req, res
 //         res.status(500).send('Lỗi máy chủ khi xóa người dùng.');
 //     }
 // });
+router.patch('/:userId/role', authMiddleware, adminMiddleware, async (req, res) => {
+    const { role } = req.body; // status sẽ là chuỗi 'true' hoặc 'false'
+
+    // Chuyển đổi giá trị status từ chuỗi sang boolean
+    let newroleStatus;
+    if (role === 'admin') {
+        newroleStatus = 'admin';
+    } else if (role === 'employee') {
+        newroleStatus = 'employee';
+    } else {
+        return res.status(400).json({ message: 'Trạng thái không hợp lệ.' });
+    }
+
+    try {
+        // Tìm người dùng bằng userId (đã được thêm vào User model)
+        const user = await User.findOne({ userId: req.params.userId });
+
+        if (!user) {
+            return res.status(404).json({ message: 'Không tìm thấy người dùng để cập nhật trạng thái.' });
+        }
+
+        user.role = newroleStatus;
+        await user.save();
+
+        res.status(200).json({
+            message: `Trạng thái hoạt động của nhân viên`,
+        });
+
+    } catch (error) {
+        console.error('Lỗi khi cập nhật quyền', error.message);
+        res.status(500).send('Lỗi máy chủ khi cập nhật quyền');
+    }
+});
 
 module.exports = router;
