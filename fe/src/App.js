@@ -120,7 +120,7 @@ function AppContent() {
           <Route path="/admin/movie-list/edit-movie/:movieId" element={<EditMovie />} />
           <Route path='/admin/cinema-rooms/add-new-cinema-room' element={<AddCinemaRoom />} />
           <Route path='/admin/add-promotion' element={<AddPromotion />} />
-          <Route path='/admin/promotions/edit-promotion/:promotionId' element={<EditPromotion />} />
+          <Route path='/admin/promotions/edit-promotion/:id' element={<EditPromotion />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/changepassword" element={<ChangePassword />} />
           

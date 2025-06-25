@@ -143,21 +143,35 @@ router.post('/', upload.fields([
  *       200:
  *         description: Danh sách phim
  */
-router.get('/:name', async (req, res) => {
 
+//VIEW DETAILS FILM 
+// router.get('/:name', async (req, res) => {
+
+//   try {
+//     const movies = await Movie.find({ name: req.params.name });
+//     if (movies.length === 0) {
+//       return res.status(404).json({ error: 'Không tìm thấy phim' });
+//     }
+//     // const moviesNotDeleted = await Movie.find({ is_deleted: false });
+
+
+//     res.json(movies);
+//   } catch (err) {
+//     res.status(500).json({ error: 'Không thể lấy danh sách phim' });
+//   }
+// }); 
+
+//VIEW ALL FILM
+
+router.get('/', async (req, res) => {
   try {
-    const movies = await Movie.find({ name: req.params.name });
-    if (movies.length === 0) {
-      return res.status(404).json({ error: 'Không tìm thấy phim' });
-    }
-    // const moviesNotDeleted = await Movie.find({ is_deleted: false });
-
-
+    const movies = await Movie.find({ is_deleted: false });
     res.json(movies);
   } catch (err) {
     res.status(500).json({ error: 'Không thể lấy danh sách phim' });
   }
 });
+
 
 /**
  * @swagger
