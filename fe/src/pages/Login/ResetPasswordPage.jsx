@@ -121,7 +121,7 @@ function ResetPasswordPage() {
         throw new Error(data.message || 'Invalid verification code');
       }
 
-      // Save the reset token for the next step
+      
       if (data.resetToken) {
         console.log("Received reset token from API");
         // Clear any existing token first
