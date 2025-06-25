@@ -10,7 +10,7 @@ const adminMiddleware = require('../../middleware/adminMiddleware'); // Import m
 // @access  Private (Chỉ dành cho quản trị viên)
 
 router.post('/new_room', authMiddleware, adminMiddleware, async (req, res) => {
-    const { roomId, roomName, quantity, roomType } = req.body;
+    const { roomId, roomName, quantity, roomType, is_deleted } = req.body;
     try {
         // Kiểm tra các trường bắt buộc
         if (!roomName || !quantity || !roomType) {
@@ -21,7 +21,8 @@ router.post('/new_room', authMiddleware, adminMiddleware, async (req, res) => {
             roomId,
             roomName,
             quantity,
-            roomType
+            roomType,
+            is_deleted
         });
 
         // Lưu phòng vào cơ sở dữ liệu
@@ -51,6 +52,37 @@ router.get('/', authMiddleware, adminMiddleware, async (req, res) => {
     } catch (error) {
         console.error('Lỗi khi lấy danh sách phòng:', error.message);
         res.status(500).send('Lỗi máy chủ khi lấy danh sách phòng.');
+    }
+});
+
+// @route   PATCH /api/user-management/users/:userId/delete
+// @desc    đập phòng (chuyển is_deleted = true)
+// @access  Private (Chỉ Admin)
+router.delete('/:roomId/delete', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const room = await Room.findOne({ roomId: req.params.roomId });
+
+        if (!room) {
+            return res.status(404).json({ message: 'Không tìm thấy phòng.' });
+        }
+
+        if (room.is_deleted) {
+            return res.status(400).json({ message: 'Phòng này đã bị đập.' });
+        }
+
+        // Cập nhật trạng thái is_deleted thành true
+        room.is_deleted = true;
+        // Optionally, also deactivate the user when they are soft-deleted
+        room.is_actived = false;
+        await room.save();
+
+        res.status(200).json({
+            message: `Phòng "${room.roomId}" đã được san lấp.`,
+        });
+
+    } catch (error) {
+        console.error('Lỗi khi đập phòng:', error.message);
+        res.status(500).send('Lỗi máy chủ khi đập phòng.');
     }
 });
 

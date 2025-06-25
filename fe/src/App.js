@@ -61,6 +61,7 @@ import EditMovie from './pages/Admin/EditMovie';
 import AddCinemaRoom from './pages/Admin/AddCinemaRoom';
 import AddPromotion from './pages/Admin/AddPromotion';
 import EditPromotion from './pages/Admin/EditPromotion';
+import { AuthProvider } from './contexts/AuthContext';
 
 function AppContent() {
   const location = useLocation();
@@ -158,7 +159,9 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
+    <AuthProvider>
       <AppContent />
+      </AuthProvider>
     </BrowserRouter>
   );
 }
