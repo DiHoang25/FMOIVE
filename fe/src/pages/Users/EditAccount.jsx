@@ -55,6 +55,15 @@ const EditAccount = () => {
     }
   };
 
+  const formatDate = (isoString) => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
   useEffect(() => {
     fetchUserData();
   }, []);
@@ -204,7 +213,7 @@ const EditAccount = () => {
                   />
                 ) : (
                   <div className="flex justify-between items-center bg-white text-black font-medium px-3 py-2 rounded">
-                    <span>{formData.date_of_birth}</span>
+                    <span>{formData.date_of_birth ? formatDate(formData.date_of_birth) : ''}</span>
                     <button onClick={() => toggleEdit('date_of_birth')} className="text-gray-500 text-sm">Edit</button>
                   </div>
                 )}
