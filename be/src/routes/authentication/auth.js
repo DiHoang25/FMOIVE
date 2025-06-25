@@ -38,7 +38,7 @@ router.post('/register', async (req, res) => {
 
         // Tạo người dùng mới với các trường được truyền vào
         // Mật khẩu sẽ được mã hóa tự động thông qua middleware 'pre-save' trong User model
-        const newUser = new User({ userId, username, fullname, password, role, email, gender, id_card, phone, address, is_deleted, is_actived });
+        const newUser = new User({ userId, username, fullname, password, role: 'customer', email, gender, id_card, phone, address, is_deleted, is_actived });
 
         await newUser.save(); // Lưu người dùng mới vào database
 

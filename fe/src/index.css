@@ -14,3 +14,18 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+
+/* Fix màu nền và màu nút OK trong dark mode */
+.custom-timepicker-popup .ant-picker-ok button {
+  background-color: gray; /* Tailwind red-500 */
+  color: white;
+  border: none;
+}
+
+
+.custom-timepicker-popup .ant-picker-panel {
+  background-color: #1e293b; /* slate-800 */
+  color: white;
+}
+
