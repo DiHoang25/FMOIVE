@@ -98,7 +98,7 @@ function AppContent() {
           <Route path="/admin/admin-profile" element={<AdminProfile />} />
           <Route path="/employee/members-list" element={<ViewMembersList />} />
           <Route path="/employee/employee-profile" element={<EmployeeProfile />} />
-          <Route path="/moviedetails" element={<MovieDetails />} />
+          <Route path="/moviedetails/:id" element={<MovieDetails />} />
           <Route path="/movienews" element={<MovieNews />} />
           <Route path="/moviesearch" element={<MovieSearch />} />
           <Route path="/admin/add-movie" element={<AddMovie />} />
@@ -120,7 +120,7 @@ function AppContent() {
           <Route path="/admin/movie-list/edit-movie/:movie._id" element={<EditMovie />} />
           <Route path='/admin/cinema-rooms/add-new-cinema-room' element={<AddCinemaRoom />} />
           <Route path='/admin/add-promotion' element={<AddPromotion />} />
-          <Route path='/admin/promotions/edit-promotion/:promotionId' element={<EditPromotion />} />
+          <Route path='/admin/promotions/edit-promotion/:id' element={<EditPromotion />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/changepassword" element={<ChangePassword />} />
           
