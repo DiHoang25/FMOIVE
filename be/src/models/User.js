@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema({
     role: { // Thêm trường role
         type: String,
         enum: ['customer','employee', 'admin'], // Ví dụ: chỉ cho phép các giá trị 'user' hoặc 'admin'
-        default: 'user' // Mặc định là 'user' nếu không được cung cấp
+        // default: 'user' // Mặc định là 'user' nếu không được cung cấp
     },
     email: { // Thêm trường email
         type: String,
