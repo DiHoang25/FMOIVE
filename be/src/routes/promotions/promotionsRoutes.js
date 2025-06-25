@@ -52,50 +52,52 @@ const upload = multer({ dest: './src/uploads/' });
  *                 format: binary
  */
 router.post('/', upload.single('image'), async (req, res) => {
+  try {
+    const { body, file } = req;
+    if (!file) return res.status(400).json({ error: 'Vui lòng chọn ảnh khuyến mãi' });
+
+    const uploadResult = await cloudinary.uploader.upload(file.path, {
+      folder: 'promotions'
+    });
+    fs.unlinkSync(file.path);
+
+    // ✅ Đảm bảo tên field là "combos", không phải "combo"
+    let combos = [];
+    let conditions = [];
+
     try {
-      const { body, file } = req;
-      if (!file) return res.status(400).json({ error: 'Vui lòng chọn ảnh khuyến mãi' });
-  
-      const uploadResult = await cloudinary.uploader.upload(file.path, {
-        folder: 'promotions'
-      });
-      fs.unlinkSync(file.path);
-  
-      // ✅ Đảm bảo tên field là "combos", không phải "combo"
-      let combos = [];
-      let conditions = [];
-  
-      try {
-        if (body.combos) combos = JSON.parse(body.combos);  // 🔁 combo → combos
-        if (body.conditions) conditions = JSON.parse(body.conditions);
-      } catch (e) {
-        return res.status(400).json({ error: 'Combos/Conditions không phải JSON hợp lệ' });
-      }
-  
-      const newPromotion = new Promotion({
-        title: body.title,
-        start_date: body.start_date,
-        end_date: body.end_date,
-        short_description: body.short_description,
-        full_details: {
-          rules: body.rules || '',
-          notes: body.notes || '',
-          combos,          // ✅ combos đúng tên
-          conditions
-        },
-        image_url: uploadResult.secure_url,
-        is_deleted: false
-      });
-  
-      const saved = await newPromotion.save();
-      res.status(201).json(saved);
-    } catch (err) {
-      res.status(500).json({ error: 'Thêm thất bại', details: err.message });
+      if (body.combos) combos = JSON.parse(body.combos);  // 🔁 combo → combos
+      if (body.conditions) conditions = JSON.parse(body.conditions);
+    } catch (e) {
+      return res.status(400).json({ error: 'Combos/Conditions không phải JSON hợp lệ' });
     }
-  });
-  
-  
-  
+
+    const newPromotion = new Promotion({
+      title: body.title,
+      start_date: body.start_date,
+      end_date: body.end_date,
+      short_description: body.short_description,
+      promotion_code: body.promotion_code ,  // ✅ thêm dòng này
+      discount: body.discount ,               // ✅ và dòng này
+      full_details: {
+        rules: body.rules || '',
+        notes: body.notes || '',
+        combos,          // ✅ combos đúng tên
+        conditions
+      },
+      image_url: uploadResult.secure_url,
+      is_deleted: false
+    });
+
+    const saved = await newPromotion.save();
+    res.status(201).json(saved);
+  } catch (err) {
+    res.status(500).json({ error: 'Thêm thất bại', details: err.message });
+  }
+});
+
+
+
 
 /**
  * @swagger
@@ -210,32 +212,59 @@ router.get('/:id', async (req, res) => {
  *         description: Không tìm thấy
  */
 router.put('/:id', upload.single('image'), async (req, res) => {
+  try {
+    const promo = await Promotion.findById(req.params.id);
+    if (!promo) return res.status(404).json({ error: 'Không tìm thấy để cập nhật' });
+
+    // Parse combos và conditions nếu có
+    let combos = promo.full_details.combos;
+    let conditions = promo.full_details.conditions;
+
     try {
-      const updateData = {
-        ...req.body,
-        combos: req.body.combos ? JSON.parse(req.body.combos) : undefined,
-        conditions: req.body.conditions ? JSON.parse(req.body.conditions) : undefined
-      };
-  
-      if (req.file) {
-        const result = await cloudinary.uploader.upload(req.file.path, {
-          folder: 'promotions'
-        });
-        updateData.image_url = result.secure_url;
-        fs.unlinkSync(req.file.path);
-      }
-  
-      const updated = await Promotion.findByIdAndUpdate(req.params.id, updateData, {
-        new: true,
-        runValidators: true
-      });
-  
-      if (!updated) return res.status(404).json({ error: 'Không tìm thấy để cập nhật' });
-      res.json({ message: 'Cập nhật thành công!', data: updated });
+      if (req.body.combos) combos = JSON.parse(req.body.combos);
+      if (req.body.conditions) conditions = JSON.parse(req.body.conditions);
     } catch (err) {
-      res.status(400).json({ error: 'Lỗi cập nhật', details: err.message });
+      return res.status(400).json({ error: 'Combos/Conditions không phải JSON hợp lệ' });
     }
-  });
+
+    // Nếu có ảnh mới thì upload lên Cloudinary
+    let image_url = promo.image_url;
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: 'promotions'
+      });
+      image_url = result.secure_url;
+      fs.unlinkSync(req.file.path);
+    }
+
+    // Cập nhật với dữ liệu mới hoặc giữ nguyên dữ liệu cũ
+    const updatedData = {
+      title: req.body.title || promo.title,
+      start_date: req.body.start_date || promo.start_date,
+      end_date: req.body.end_date || promo.end_date,
+      short_description: req.body.short_description || promo.short_description,
+      promotion_code: req.body.promotion_code || promo.promotion_code,
+      discount: req.body.discount || promo.discount,
+      full_details: {
+        rules: req.body.rules || promo.full_details.rules,
+        notes: req.body.notes || promo.full_details.notes,
+        combos,
+        conditions
+      },
+      image_url
+    };
+
+    const updatedPromo = await Promotion.findByIdAndUpdate(req.params.id, updatedData, {
+      new: true,
+      runValidators: true
+    });
+
+    res.json({ message: 'Cập nhật thành công!', data: updatedPromo });
+  } catch (err) {
+    res.status(500).json({ error: 'Lỗi cập nhật', details: err.message });
+  }
+});
+
 
 /**
  * @swagger

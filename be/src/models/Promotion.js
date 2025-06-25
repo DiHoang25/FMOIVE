@@ -31,6 +31,17 @@ const promotionSchema = new mongoose.Schema({
     }, { _id: false }),
     required: true
   },
+  promotion_code: {
+    type: String,
+    trim: true,
+    maxlength: [50, 'Mã khuyến mãi không được vượt quá 50 ký tự']
+  },
+  discount: {
+    type: Number,
+    min: [0, 'Giảm giá không được nhỏ hơn 0%'],
+    max: [100, 'Giảm giá không được lớn hơn 100%']
+  },
+  
   start_date: {
     type: Date,
     required: [true, 'Ngày bắt đầu là bắt buộc']
