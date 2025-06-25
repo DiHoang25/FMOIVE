@@ -1,25 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import bgImage from '../assets/bg.jpg';
 import logo from '../assets/logo.png';
-import userIcon from '../assets/user.png';
+import avatar from '../assets/avatar.png';
+import { useAuth } from '../contexts/AuthContext';
 
 const NotificationBar = () => {
-  const [username, setUsername] = useState('');
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const name = localStorage.getItem('username');
-    if (token && name) {
-      setUsername(name);
-    }
-  }, []);
+  const { user, logout } = useAuth(); // ✅ lấy user & logout từ context
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('username');
-    setUsername('');
+    logout(); // ✅ gọi hàm context logout
     navigate('/login');
   };
 
@@ -39,20 +30,18 @@ const NotificationBar = () => {
           <img src={logo} alt="Logo" className="h-12 object-contain" />
         </Link>
 
-
-        {/* User section */}
         {/* User section */}
         <div className="flex items-center space-x-4">
-          {username ? (
+          {user ? (
             <>
               <div
                 onClick={() => navigate('/viewaccount')}
                 className="cursor-pointer hover:scale-105 transition-transform duration-200"
                 title="View Account"
               >
-                <img src={userIcon} alt="User Icon" className="h-10 w-10 object-contain" />
+                <img src={avatar} alt="User Icon" className="h-10 w-10 object-contain" />
               </div>
-              <span className="text-white font-semibold">Hello {username}</span>
+              <span className="text-white font-semibold">Hello {user.username}</span>
               <button
                 onClick={handleLogout}
                 className="bg-red-600 px-3 py-2 rounded text-white text-sm hover:bg-red-700 border-2 border-white"

@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
+import { useAuth } from '../../contexts/AuthContext';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { login } = useAuth(); // ✅ Đặt hook trong component
+
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [errors, setErrors] = useState({ username: '', password: '', general: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -41,22 +45,30 @@ const LoginPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
-    
+
       const data = await response.json();
-    
+
       if (!response.ok) {
         setErrors(prev => ({ ...prev, general: data.message || 'Login failed' }));
         return;
       }
-    
-      // Save token and username
+
+      // ✅ Lưu token và gọi login từ AuthContext
       localStorage.setItem('token', data.token);
-      localStorage.setItem('username', formData.username); // dùng username đã nhập
-    
-      // Navigate to home and reload to update UI
-      navigate('/');
-      window.location.reload();
-    
+      login(data.token);
+
+      // ✅ Giải mã token để điều hướng theo vai trò
+      const decoded = jwtDecode(data.token);
+      const role = decoded.user.role;
+
+      if (role === 'admin') {
+        navigate('/admin');
+      } else if (role === 'employee') {
+        navigate('/employee');
+      } else {
+        navigate('/');
+      }
+
     } catch (error) {
       console.error('Login error:', error);
       setErrors(prev => ({ ...prev, general: 'Something went wrong. Please try again later.' }));

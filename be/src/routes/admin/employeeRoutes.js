@@ -108,10 +108,10 @@ router.post('/new_employee', authMiddleware, adminMiddleware, async (req, res) =
 
 
 
-// @route   PATCH /api/user-management/users/:userId/delete
+// @route   DELETE /api/user-management/users/:userId/delete
 // @desc    Xóa mềm người dùng (chuyển is_deleted = true)
 // @access  Private (Chỉ Admin)
-router.patch('/:userId/delete', authMiddleware, adminMiddleware, async (req, res) => {
+router.delete('/:userId/delete', authMiddleware, adminMiddleware, async (req, res) => {
     try {
         const user = await User.findOne({ userId: req.params.userId });
 

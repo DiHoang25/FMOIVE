@@ -152,7 +152,7 @@ movieSchema.pre('save', async function (next) {
         { new: true, upsert: true }
       );
 
-      this.userId = 'MOV' + String(counter.seq).padStart(9, '0');
+      this.movieId = 'MOV' + String(counter.seq).padStart(9, '0');
     } catch (error) {
       return next(error); // Chuyển lỗi nếu không thể tạo Id
     }

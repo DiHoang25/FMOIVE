@@ -1,422 +1,349 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import SidebarLayout from "../../components/Sidebar-Admin";
-import { Switch, Modal, message, Select, Tag, Button } from "antd";
-import { PlusOutlined, ExclamationCircleFilled } from "@ant-design/icons";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import SidebarLayout from '../../components/Sidebar-Admin';
+import { Switch, Modal, message, Select, Tag, Button } from 'antd';
+import {
+    PlusOutlined,   
+    ExclamationCircleFilled
+} from '@ant-design/icons';
 
 const { Option } = Select;
 const { confirm } = Modal;
 
 // This API_BASE_URL is generally for admin-specific employee fetches/actions.
-const API_BASE_URL = "http://localhost:5000/api/admin";
-const AUTH_API_BASE_URL = "http://localhost:5000/api/auth"; // Base URL for auth-related actions
+const API_BASE_URL = 'http://localhost:5000/api/admin';
+const AUTH_API_BASE_URL = 'http://localhost:5000/api/auth'; // Base URL for auth-related actions
 
 const ViewEmployees = () => {
-  const [employees, setEmployees] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const navigate = useNavigate();
+    const [employees, setEmployees] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [token, setToken] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const navigate = useNavigate();
 
-  const employeesPerPage = 5;
+    const employeesPerPage = 5;
 
-  useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    if (storedToken) {
-      setToken(storedToken);
-    } else {
-      message.error("No authentication token found. Please log in.");
-      setLoading(false);
-      navigate("/login");
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    if (token) {
-      fetchEmployees();
-    }
-  }, [token]);
-
-  const fetchEmployees = async () => {
-    setLoading(true);
-    try {
-      // This fetch still uses the admin API base URL for getting employee list
-      const response = await axios.get(`${API_BASE_URL}/employees`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const fetchedEmployees = (response.data.Employee || []).map((emp) => ({
-        ...emp,
-        id: emp.userId,
-        key: emp.userId,
-      }));
-      setEmployees(fetchedEmployees);
-      message.success("Fetched employees successfully!");
-    } catch (error) {
-      console.error("Error fetching employees:", error);
-      message.error(
-        error.response?.data?.message ||
-          "Failed to fetch employees. Please try again."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Modified handleUpdateStatus to only change the active status (true/false)
-  const handleUpdateStatus = (employeeId, currentStatus, employeeName) => {
-    const newStatusValue = !currentStatus; // What the status *will be* if confirmed
-
-    let confirmTitle = newStatusValue
-      ? "Confirm Activation"
-      : "Confirm Deactivation";
-    let confirmContent = newStatusValue
-      ? `Do you want to activate employee "${employeeName}"?`
-      : `Do you want to deactivate employee "${employeeName}"?`;
-    let successMessage = newStatusValue
-      ? `Employee "${employeeName}" activated successfully.`
-      : `Employee "${employeeName}" deactivated successfully.`;
-    let errorMessage = newStatusValue
-      ? `Failed to activate employee "${employeeName}":`
-      : `Failed to deactivate employee "${employeeName}":`;
-
-    // Always point to the AUTH_API_BASE_URL for status updates
-    const apiEndpoint = `${AUTH_API_BASE_URL}/${employeeId}/status`;
-    const apiBody = { status: newStatusValue.toString() }; // Send as string 'true' or 'false'
-
-    confirm({
-      title: confirmTitle,
-      icon: <ExclamationCircleFilled />,
-      content: confirmContent,
-      okText: "Yes",
-      cancelText: "No",
-      okButtonProps: {
-        style: {
-          backgroundColor: "#dc2626",
-          color: "white",
-          borderColor: "#dc2626",
-        },
-      },
-      onOk: async () => {
-        try {
-          await axios.patch(
-            // Use patch for partial update (status)
-            apiEndpoint,
-            apiBody,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          message.success(successMessage);
-          fetchEmployees(); // Refresh the list to reflect changes
-        } catch (error) {
-          console.error("Error updating status:", error);
-          message.error(
-            `${errorMessage} ${error.response?.data?.message || error.message}`
-          );
+    useEffect(() => {
+        const storedToken = localStorage.getItem('token');
+        if (storedToken) {
+            setToken(storedToken);
+        } else {
+            message.error('No authentication token found. Please log in.');
+            setLoading(false);
+            navigate('/login');
         }
-      },
-    });
-  };
+    }, [navigate]);
 
-  // Modified handleUpdateRole to use selectedRole directly
-  const handleUpdateRole = (employeeId, employeeName, selectedRole) => {
-    // Only trigger update if the role actually changed
-    const employeeToUpdate = employees.find((emp) => emp.id === employeeId);
-    if (employeeToUpdate && employeeToUpdate.role === selectedRole) {
-      // Role is the same, no action needed.
-      return;
-    }
-
-    if (!selectedRole) {
-      message.error("Please select a role.");
-      return;
-    }
-    confirm({
-      title: "Confirm Role Change",
-      icon: <ExclamationCircleFilled />,
-      content: `Do you want to change role of "${employeeName}" to "${selectedRole}"?`,
-      okText: "Yes",
-      cancelText: "No",
-      okButtonProps: {
-        style: {
-          backgroundColor: "#dc2626",
-          color: "white",
-          borderColor: "#dc2626",
-        },
-      },
-      onOk: async () => {
-        try {
-          // This role update endpoint is still assumed to be under the admin base URL
-          await axios.patch(
-            `${API_BASE_URL}/employees/${employeeId}/role`,
-            { newRole: selectedRole },
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          message.success(
-            `Role for "${employeeName}" updated to "${selectedRole}".`
-          );
-          fetchEmployees(); // Refresh the list
-        } catch (error) {
-          console.error("Error updating role:", error);
-          message.error(
-            `Failed to update role for "${employeeName}": ${
-              error.response?.data?.message || error.message
-            }`
-          );
+    useEffect(() => {
+        if (token) {
+            fetchEmployees();
         }
-      },
-    });
-  };
+    }, [token]);
 
-  const handleAddEmployeeClick = () => {
-    navigate("/admin/add-employee");
-  };
+    const fetchEmployees = async () => {
+        setLoading(true);
+        try {
+            // This fetch still uses the admin API base URL for getting employee list
+            const response = await axios.get(`${API_BASE_URL}/employees`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            const fetchedEmployees = (response.data.Employee || []).map(emp => ({
+                ...emp,
+                id: emp.userId,
+                key: emp.userId
+            }));
+            setEmployees(fetchedEmployees);
+            message.success('Fetched employees successfully!');
+        } catch (error) {
+            console.error('Error fetching employees:', error);
+            message.error(error.response?.data?.message || 'Failed to fetch employees. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  const filteredEmployees = employees.filter(
-    (employee) =>
-      employee.id.toString().includes(searchTerm) ||
-      employee.fullname
-        .trim()
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase().trim()) ||
-      employee.email
-        .trim()
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase().trim()) ||
-      employee.address
-        .trim()
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase().trim()) ||
-      employee.username
-        .trim()
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase().trim())
-  );
+    // Modified handleUpdateStatus to only change the active status (true/false)
+    const handleUpdateStatus = (employeeId, currentStatus, employeeName) => {
+        const newStatusValue = !currentStatus; // What the status *will be* if confirmed
 
-  const totalPages = Math.ceil(filteredEmployees.length / employeesPerPage);
-  const currentEmployees = filteredEmployees.slice(
-    (currentPage - 1) * employeesPerPage,
-    currentPage * employeesPerPage
-  );
+        let confirmTitle = newStatusValue ? 'Confirm Activation' : 'Confirm Deactivation';
+        let confirmContent = newStatusValue ?
+            `Do you want to activate employee "${employeeName}"?` :
+            `Do you want to deactivate employee "${employeeName}"?`;
+        let successMessage = newStatusValue ?
+            `Employee "${employeeName}" activated successfully.` :
+            `Employee "${employeeName}" deactivated successfully.`;
+        let errorMessage = newStatusValue ?
+            `Failed to activate employee "${employeeName}":` :
+            `Failed to deactivate employee "${employeeName}":`;
 
-  // Columns: ID, Username, Full Name, Email, Phone, Address, Role, Active (8 columns)
-  const numberOfColumns = 8;
+        // Always point to the AUTH_API_BASE_URL for status updates
+        const apiEndpoint = `${AUTH_API_BASE_URL}/${employeeId}/status`;
+        const apiBody = { status: newStatusValue.toString() }; // Send as string 'true' or 'false'
 
-  return (
-    <SidebarLayout>
-      <div className="flex h-screen text-white">
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="p-4 flex items-center justify-between shadow-md">
-            <h2 className="text-2xl text-white-500 font-bold text-center w-full">
-              Employee Management
-            </h2>
-          </div>
+        confirm({
+            title: confirmTitle,
+            icon: <ExclamationCircleFilled />,
+            content: confirmContent,
+            okText: 'Yes',
+            cancelText: 'No',
+            okButtonProps: {
+                style: {
+                    backgroundColor: '#dc2626',
+                    color: 'white',
+                    borderColor: '#dc2626',
+                },
+            },
+            onOk: async () => {
+                try {
+                    await axios.patch( // Use patch for partial update (status)
+                        apiEndpoint,
+                        apiBody,
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    );
+                    message.success(successMessage);
+                    fetchEmployees(); // Refresh the list to reflect changes
+                } catch (error) {
+                    console.error('Error updating status:', error);
+                    message.error(`${errorMessage} ${error.response?.data?.message || error.message}`);
+                }
+            },
+        });
+    };
 
-          <div className="flex-1 overflow-y-auto p-4">
-            <div className="mb-4 flex items-center justify-between">
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-gray-800 text-gray-300 pl-4 pr-10 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-red-700 w-64"
-              />
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={handleAddEmployeeClick}
-                style={{
-                  backgroundColor: "#dc2626",
-                  borderColor: "#dc2626",
-                  color: "white",
-                }}
-                className="hover:bg-red-700"
-              >
-                Add New Employee
-              </Button>
-            </div>
+    // Modified handleUpdateRole to use selectedRole directly
+    const handleUpdateRole = (employeeId, employeeName, selectedRole) => {
+        // Only trigger update if the role actually changed
+        const employeeToUpdate = employees.find(emp => emp.id === employeeId);
+        if (employeeToUpdate && employeeToUpdate.role === selectedRole) {
+            // Role is the same, no action needed.
+            return;
+        }
 
-            {loading ? (
-              <div className="text-center text-gray-400">
-                Loading employees...
-              </div>
-            ) : (
-              <>
-                <div className="text-sm text-gray-400 mb-2">
-                  Showing {filteredEmployees.length} employees
-                </div>
+        if (!selectedRole) {
+            message.error("Please select a role.");
+            return;
+        }
+        confirm({
+            title: 'Confirm Role Change',
+            icon: <ExclamationCircleFilled />,
+            content: `Do you want to change role of "${employeeName}" to "${selectedRole}"?`,
+            okText: 'Yes',
+            cancelText: 'No',
+            okButtonProps: {
+                style: {
+                    backgroundColor: '#dc2626',
+                    color: 'white',
+                    borderColor: '#dc2626',
+                },
+            },
+            onOk: async () => {
+                try {
+                    // This role update endpoint is still assumed to be under the admin base URL
+                    await axios.patch(
+                        `${API_BASE_URL}/employees/${employeeId}/role`,
+                        { newRole: selectedRole },
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    );
+                    message.success(`Role for "${employeeName}" updated to "${selectedRole}".`);
+                    fetchEmployees(); // Refresh the list
+                } catch (error) {
+                    console.error('Error updating role:', error);
+                    message.error(`Failed to update role for "${employeeName}": ${error.response?.data?.message || error.message}`);
+                }
+            },
+        });
+    };
 
-                <div className="bg-gray-800 rounded-md overflow-hidden border border-zinc-700 overflow-x-auto">
-                  <table className="min-w-full divide-y divide-zinc-700">
-                    <thead>
-                      <tr className="bg-gray-800">
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">
-                          ID #
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">
-                          Username
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">
-                          Full Name
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">
-                          Email
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">
-                          Phone
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">
-                          Address
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">
-                          Role
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">
-                          Active
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-gray-800 divide-y divide-zinc-700">
-                      {currentEmployees.length === 0 ? (
-                        <tr>
-                          <td
-                            colSpan={numberOfColumns}
-                            className="px-6 py-4 text-sm text-gray-300 text-center"
-                          >
-                            No employees found.
-                          </td>
-                        </tr>
-                      ) : (
-                        currentEmployees.map((employee) => (
-                          <tr
-                            key={employee.key}
-                            className="hover:bg-gray-700 transition-colors duration-200"
-                          >
-                            <td className="px-6 py-4 text-sm text-gray-300">
-                              {employee.id}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-300">
-                              {employee.username}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-300">
-                              {employee.fullname}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-300">
-                              {employee.email}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-300">
-                              {employee.phone}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-300">
-                              {employee.address}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-white">
-                              {/* Added inline style for color and bordered={false} */}
-                              <Select
-                                value={employee.role}
-                                onChange={(value) =>
-                                  handleUpdateRole(
-                                    employee.id,
-                                    employee.fullname,
-                                    value
-                                  )
-                                }
-                                style={{ width: 120, color: "white" }}
-                                className="bg-gray-700 rounded"
-                                dropdownStyle={{
-                                  backgroundColor: "#1f2937",
-                                  color: "white",
-                                }} // Thêm color: white
-                                optionLabelProp="label"
-                                bordered={false}
-                              >
-                                <Option
-                                  value="employee"
-                                  label="Employee"
-                                >
-                                  Employee
-                                </Option>
-                                <Option
-                                  value="admin"
-                                  label="Admin"
-                                >
-                                  Admin
-                                </Option>
-                              </Select>
-                            </td>
-                            <td className="px-6 py-4">
-                              <Switch
-                                checkedChildren="Active"
-                                unCheckedChildren="Inactive"
-                                checked={employee.is_actived}
-                                onChange={() =>
-                                  handleUpdateStatus(
-                                    employee.id,
-                                    employee.is_actived,
-                                    employee.fullname
-                                  )
-                                }
+    const handleAddEmployeeClick = () => {
+        navigate('/admin/add-employee');
+    };
+
+    const filteredEmployees = employees.filter(employee =>
+        employee.id.toString().includes(searchTerm) ||
+        employee.fullname.trim().toLowerCase().includes(searchTerm.toLowerCase().trim()) ||
+        employee.email.trim().toLowerCase().includes(searchTerm.toLowerCase().trim()) ||
+        employee.address.trim().toLowerCase().includes(searchTerm.toLowerCase().trim()) ||
+        employee.username.trim().toLowerCase().includes(searchTerm.toLowerCase().trim())
+    );
+
+    const totalPages = Math.ceil(filteredEmployees.length / employeesPerPage);
+    const currentEmployees = filteredEmployees.slice((currentPage - 1) * employeesPerPage, currentPage * employeesPerPage);
+
+    // Columns: ID, Username, Full Name, Email, Phone, Address, Role, Active (8 columns)
+    const numberOfColumns = 8;
+
+    return (
+        <SidebarLayout>
+            {/* Added style block for custom Ant Design Select dropdown options and selected text */}
+            <style>
+                {`
+                /* Target the Select input text when a value is selected */
+                .ant-select-selector .ant-select-selection-item {
+                    color: white !important; /* Ensure selected text is white */
+                }
+
+                /* Target the placeholder text if no value is selected */
+                .ant-select-selector .ant-select-selection-placeholder {
+                    color: rgba(255, 255, 255, 0.6) !important; /* Lighter white for placeholder */
+                }
+
+                /* Target the dropdown overlay and options */
+                .ant-select-dropdown.ant-select-dropdown-dark-theme-override .ant-select-item-option {
+                    color: white; /* Default text color for options */
+                    background-color: #1f2937; /* Dark background for options */
+                }
+
+                /* Target hover state */
+                .ant-select-dropdown.ant-select-dropdown-dark-theme-override .ant-select-item-option-active {
+                    background-color: #374151; /* Darker background on hover */
+                }
+
+                /* Target selected item */
+                .ant-select-dropdown.ant-select-dropdown-dark-theme-override .ant-select-item-option-selected {
+                    background-color: #dc2626; /* Red background for selected item */
+                    color: white; /* White text for selected item */
+                }
+                `}
+            </style>
+            <div className="flex h-screen text-white">
+                <div className="flex-1 flex flex-col overflow-hidden">
+                    <div className="p-4 flex items-center justify-between shadow-md">
+                        <h2 className="text-2xl text-white-500 font-bold text-center w-full">Employee Management</h2>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-4">
+                        <div className="mb-4 flex items-center justify-between">
+                            <input
+                                type="text"
+                                placeholder="Search..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="bg-gray-800 text-gray-300 pl-4 pr-10 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-red-700 w-64"
+                            />
+                            <Button
+                                type="primary"
+                                icon={<PlusOutlined />}
+                                onClick={handleAddEmployeeClick}
                                 style={{
-                                  backgroundColor: employee.is_actived
-                                    ? "green"
-                                    : "red",
-                                  borderColor: employee.is_actived
-                                    ? "green"
-                                    : "red",
+                                    backgroundColor: '#dc2626',
+                                    borderColor: '#dc2626',
+                                    color: 'white',
                                 }}
-                              />
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                                className="hover:bg-red-700"
+                            >
+                                Add New Employee
+                            </Button>
+                        </div>
 
-                <div className="flex justify-center items-center space-x-2 mt-4">
-                  <button
-                    className="p-2 rounded-md text-red-500 hover:bg-zinc-800"
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(1, prev - 1))
-                    }
-                    disabled={currentPage === 1}
-                  >
-                    Previous
-                  </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (page) => (
-                      <button
-                        key={page}
-                        className={`w-8 h-8 rounded-md flex items-center justify-center ${
-                          currentPage === page
-                            ? "bg-red-600 text-white"
-                            : "text-gray-400 hover:bg-zinc-800"
-                        }`}
-                        onClick={() => setCurrentPage(page)}
-                      >
-                        {page}
-                      </button>
-                    )
-                  )}
-                  <button
-                    className="p-2 rounded-md text-red-500 hover:bg-zinc-800"
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                    }
-                    disabled={currentPage === totalPages}
-                  >
-                    Next
-                  </button>
+                        {loading ? (
+                            <div className="text-center text-gray-400">Loading employees...</div>
+                        ) : (
+                            <>
+                                <div className="text-sm text-gray-400 mb-2">
+                                    Showing {filteredEmployees.length} employees
+                                </div>
+
+                                <div className="bg-gray-800 rounded-md overflow-hidden border border-zinc-700 overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-zinc-700">
+                                        <thead>
+                                            <tr className="bg-gray-800">
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">ID #</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Username</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Full Name</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Email</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Phone</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Address</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Role</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Active</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-gray-800 divide-y divide-zinc-700">
+                                            {currentEmployees.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={numberOfColumns} className="px-6 py-4 text-sm text-gray-300 text-center">No employees found.</td>
+                                                </tr>
+                                            ) : (
+                                                currentEmployees.map(employee => (
+                                                    <tr key={employee.key} className="hover:bg-gray-700 transition-colors duration-200">
+                                                        <td className="px-6 py-4 text-sm text-gray-300">{employee.id}</td>
+                                                        <td className="px-6 py-4 text-sm text-gray-300">{employee.username}</td>
+                                                        <td className="px-6 py-4 text-sm text-gray-300">{employee.fullname}</td>
+                                                        <td className="px-6 py-4 text-sm text-gray-300">{employee.email}</td>
+                                                        <td className="px-6 py-4 text-sm text-gray-300">{employee.phone}</td>
+                                                        <td className="px-6 py-4 text-sm text-gray-300">{employee.address}</td>
+                                                        <td className="px-6 py-4 text-sm text-gray-300">
+                                                            <Select
+                                                                value={employee.role}
+                                                                onChange={(value) => handleUpdateRole(employee.id, employee.fullname, value)}
+                                                                style={{ width: 120, color: 'white' }}
+                                                                className="bg-gray-700 rounded"
+                                                                // Added dropdownClassName for custom styling
+                                                                dropdownClassName="ant-select-dropdown-dark-theme-override"
+                                                                optionLabelProp="label"
+                                                                bordered={false}
+                                                            >
+                                                                <Option value="employee" label="Employee">Employee</Option>
+                                                                <Option value="admin" label="Admin">Admin</Option>
+                                                            </Select>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <Switch
+                                                                checkedChildren="Active"
+                                                                unCheckedChildren="Inactive"
+                                                                checked={employee.is_actived}
+                                                                onChange={() => handleUpdateStatus(employee.id, employee.is_actived, employee.fullname)}
+                                                                style={{
+                                                                    backgroundColor: employee.is_actived ? 'green' : 'red',
+                                                                    borderColor: employee.is_actived ? 'green' : 'red',
+                                                                }}
+                                                            />
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div className="flex justify-center items-center space-x-2 mt-4">
+                                    <button
+                                        className="p-2 rounded-md text-red-500 hover:bg-zinc-800"
+                                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                        disabled={currentPage === 1}
+                                    >
+                                        Previous
+                                    </button>
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                        <button
+                                            key={page}
+                                            className={`w-8 h-8 rounded-md flex items-center justify-center ${
+                                                currentPage === page ? 'bg-red-600 text-white' : 'text-gray-400 hover:bg-zinc-800'
+                                            }`}
+                                            onClick={() => setCurrentPage(page)}
+                                        >
+                                            {page}
+                                        </button>
+                                    ))}
+                                    <button
+                                        className="p-2 rounded-md text-red-500 hover:bg-zinc-800"
+                                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                        disabled={currentPage === totalPages}
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    </SidebarLayout>
-  );
+            </div>
+        </SidebarLayout>
+    );
 };
 
 export default ViewEmployees;
