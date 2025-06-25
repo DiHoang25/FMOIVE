@@ -6,7 +6,7 @@ require('dotenv').config();
 // Import các tuyến (routes) từ thư mục routes
 const authRoutes = require('./routes/authentication/auth'); 
 const profileRoutes = require('./routes/userFeature/profileRoutes');
-const featureRoutes = require('./routes/userFeature/profileRoutes'); // Import các tuyến người dùng
+const featureRoutes = require('./routes/userFeature/userFeatureRoutes'); // Import các tuyến người dùng
 const customerManagementRoutes = require('./routes/admin/customerRoutes');
 const employeeManagementRoutes = require('./routes/admin/employeeRoutes');
 const uploadRoutes = require('./routes/movie/uploadRoute');
