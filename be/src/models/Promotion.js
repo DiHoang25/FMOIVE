@@ -46,7 +46,7 @@ const promotionSchema = new mongoose.Schema({
     min: [0, 'Giảm giá không được nhỏ hơn 0%'],
     max: [100, 'Giảm giá không được lớn hơn 100%']
   },
-  
+
   start_date: {
     type: Date,
     required: [true, 'Ngày bắt đầu là bắt buộc']
@@ -78,7 +78,7 @@ promotionSchema.pre('save', async function (next) {
         { new: true, upsert: true }
       );
 
-      this.userId = 'PROMO' + String(counter.seq).padStart(9, '0');
+      this.movieId = 'PROMO' + String(counter.seq).padStart(9, '0');
     } catch (error) {
       return next(error); // Chuyển lỗi nếu không thể tạo Id
     }

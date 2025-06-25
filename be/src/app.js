@@ -13,6 +13,7 @@ const uploadRoutes = require('./routes/movie/uploadRoute');
 const movieRoutes = require('./routes/movie/movieRoutes');
 const homepageRoutes = require('./routes/movie/homepageRoutes');
 const promotionRoutes = require('./routes/promotions/promotionsRoutes');
+const roomManagermentRoutes = require('./routes/theather/room'); // Import tuyến quản lý phòng
 // Khởi tạo ứng dụng Express
 
 const app = express();
@@ -30,15 +31,21 @@ app.use(cors());
 app.use(express.json());
 
 // Định nghĩa các tuyến (routes) API
+//tuyến người dùng
 app.use('/api/auth', authRoutes);
 app.use('/api/user', profileRoutes);
 app.use('/api/feature', featureRoutes);
+//tuyến quản trị viên
 app.use('/api/admin/customers', customerManagementRoutes);
 app.use('/api/admin/employees', employeeManagementRoutes);
+//tuyến quản lý phim
 app.use('/api/upload', uploadRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/home', homepageRoutes);
-app.use('/api/promotions', promotionRoutes)
+app.use('/api/promotions', promotionRoutes);
+// tuyến quản lý phòng
+app.use('/api/theater/rooms', roomManagermentRoutes);
+
 
 
 // // Tuyến mặc định cho kiểm tra server
