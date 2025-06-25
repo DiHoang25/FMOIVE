@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode'; // ✅ Dùng đúng cú pháp phiên bản mới
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -41,22 +42,31 @@ const LoginPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
-    
+
       const data = await response.json();
-    
+
       if (!response.ok) {
         setErrors(prev => ({ ...prev, general: data.message || 'Login failed' }));
         return;
       }
-    
-      // Save token and username
+
+      // Lưu token vào localStorage
       localStorage.setItem('token', data.token);
-      localStorage.setItem('username', formData.username); // dùng username đã nhập
-    
-      // Navigate to home and reload to update UI
-      navigate('/');
-      window.location.reload();
-    
+      localStorage.setItem('username', formData.username);
+
+      // ✅ Giải mã token để lấy role
+      const decoded = jwtDecode(data.token);
+      const role = decoded.user.role;
+
+      // ✅ Điều hướng theo vai trò
+      if (role === 'admin') {
+        navigate('/admin');
+      } else if (role === 'employee') {
+        navigate('/employee');
+      } else {
+        navigate('/'); // customer hoặc role không xác định
+      }
+
     } catch (error) {
       console.error('Login error:', error);
       setErrors(prev => ({ ...prev, general: 'Something went wrong. Please try again later.' }));
