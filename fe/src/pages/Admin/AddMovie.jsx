@@ -151,7 +151,7 @@ const AddMovie = () => {
                                         name="movieName"
                                         value={formData.movieName}
                                         onChange={handleInputChange}
-                                        className="w-full p-3 rounded-lg bg-slate-700 text-white"
+                                        className="w-full p-2 rounded bg-slate-700 text-white"
                                         required
                                     />
                                 </div>
@@ -165,6 +165,7 @@ const AddMovie = () => {
                                             name="fromDate"
                                             value={formData.fromDate}
                                             onChange={(date) => setFormData({ ...formData, fromDate: date })}
+                                            disabledDate={(current) => current && current < dayjs().startOf('day')}
                                         />
                                     </div>
                                     <div>
@@ -175,6 +176,7 @@ const AddMovie = () => {
                                             name="toDate"
                                             value={formData.toDate}
                                             onChange={(date) => setFormData({ ...formData, toDate: date })}
+                                            disabledDate={(current) => current && current < dayjs().startOf('day')}
                                         />
                                     </div>
                                 </div>

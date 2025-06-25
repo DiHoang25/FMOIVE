@@ -58,14 +58,16 @@ const EditMovie = () => {
                     movieDescription: data.description || '',
                     moviePosterPreview: data.image_url || '',
                     movieBannerPreview: data.banner_url || '',
+                    cinemaRoom: data.cinema_room ? [data.cinema_room] : [],
+
                     genres: data.genres || [],
                     version: {
                         '2D': data.version?.includes('2D'),
                         '3D': data.version?.includes('3D'),
                         'IMAX': data.version?.includes('IMAX'),
                     },
-                    cinemaRoom: data.cinema_room ? [data.cinema_room] : [],
-                    showTimes: data.showtimes || []
+                    showTimes: Array.isArray(data.showtimes) ? data.showtimes : [],
+
                 });
             } catch (err) {
                 console.error('Failed to fetch movie:', err);
@@ -89,7 +91,7 @@ const EditMovie = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        
+
         try {
             const formDataToSend = new FormData();
             formDataToSend.append('name', formData.movieName);
@@ -102,31 +104,34 @@ const EditMovie = () => {
             formDataToSend.append('running_time', formData.runningTime);
             formDataToSend.append('description', formData.movieDescription);
             formDataToSend.append('genres', formData.genres.join(','));
-            
+            formDataToSend.append('cinema_room', formData.cinemaRoom.join(','));
+            formData.showTimes.forEach((time) => {
+                formDataToSend.append('showtimes[]', time.trim());
+            });
             const versions = [];
             if (formData.version['2D']) versions.push('2D');
             if (formData.version['3D']) versions.push('3D');
             if (formData.version['IMAX']) versions.push('IMAX');
             formDataToSend.append('version', versions.join(','));
-            
+
             if (formData.moviePoster) {
                 formDataToSend.append('image', formData.moviePoster);
             }
-            
+
             if (formData.movieBanner) {
                 formDataToSend.append('banner', formData.movieBanner);
             }
-            
+
             const response = await fetch(`http://localhost:5000/api/movies/${id}`, {
                 method: 'PUT',
                 body: formDataToSend
             });
-            
+
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Cập nhật thất bại');
             }
-            
+
             const result = await response.json();
             message.success('Đã cập nhật thông tin phim thành công!');
             navigate('/admin/movie-list');
@@ -155,7 +160,7 @@ const EditMovie = () => {
                                     <label className="block text-gray-300 mb-1">
                                         Movie Name <span className="text-red-500">*</span>
                                     </label>
-                                    <input type="text" name="movieName" value={formData.movieName} onChange={handleInputChange} className="w-full p-3 rounded-lg bg-slate-700 text-white" required />
+                                    <input type="text" name="movieName" value={formData.movieName} onChange={handleInputChange} className="w-full p-2 rounded bg-slate-700 text-white" required />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
@@ -168,6 +173,7 @@ const EditMovie = () => {
                                             onChange={(date) =>
                                                 setFormData((prev) => ({ ...prev, fromDate: date }))
                                             }
+                                            disabledDate={(current) => current && current < dayjs().startOf('day')}
                                         />
                                     </div>
                                     <div>
@@ -179,6 +185,7 @@ const EditMovie = () => {
                                             onChange={(date) =>
                                                 setFormData((prev) => ({ ...prev, toDate: date }))
                                             }
+                                            disabledDate={(current) => current && current < dayjs().startOf('day')}
                                         />
                                     </div>
                                 </div>
@@ -260,7 +267,9 @@ const EditMovie = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-gray-300 mb-1">Genres *</label>
+                                    <label className="block text-gray-300 mb-1">
+                                        Genres <span className="text-red-500">*</span>
+                                    </label>
                                     <GenresDropDown
                                         value={formData.genres}
                                         onChange={(val) => setFormData({ ...formData, genres: val })}
@@ -287,7 +296,6 @@ const EditMovie = () => {
                                                 });
                                             }
                                         }}
-                                        required
                                     />
                                     <label htmlFor="poster-upload" className="block cursor-pointer">
                                         {formData.moviePosterPreview ? (
@@ -324,7 +332,6 @@ const EditMovie = () => {
                                                 });
                                             }
                                         }}
-                                        required
                                     />
                                     <label htmlFor="banner-upload" className="block cursor-pointer">
                                         {formData.movieBannerPreview ? (

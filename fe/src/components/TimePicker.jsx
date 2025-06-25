@@ -37,7 +37,14 @@ const MultiTimePicker = ({ value = [], onChange }) => {
             className="flex items-center gap-2 px-3 py-1 bg-red-600 text-white rounded-full text-sm"
           >
             {t}
-            <button onClick={() => removeTime(t)} className="hover:text-gray-200 text-xs">✕</button>
+            <button
+              type="button"
+              onClick={() => removeTime(t)}
+              className="hover:text-gray-200 text-xs"
+            >
+              ✕
+            </button>
+
           </span>
         ))}
       </div>
