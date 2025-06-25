@@ -4,8 +4,7 @@ const Counter = require('./Counter'); // Import mô hình Counter để sử d�
 const movieSchema = new mongoose.Schema({
   movieId: {
     type: String,
-    unique: true,
-    required: true
+    unique: true
   },
   name: {
     type: String,
