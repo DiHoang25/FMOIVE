@@ -98,7 +98,7 @@ function AppContent() {
           <Route path="/admin/admin-profile" element={<AdminProfile />} />
           <Route path="/employee/members-list" element={<ViewMembersList />} />
           <Route path="/employee/employee-profile" element={<EmployeeProfile />} />
-          <Route path="/moviedetails" element={<MovieDetails />} />
+          <Route path="/moviedetails/:id" element={<MovieDetails />} />
           <Route path="/movienews" element={<MovieNews />} />
           <Route path="/moviesearch" element={<MovieSearch />} />
           <Route path="/admin/add-movie" element={<AddMovie />} />
@@ -117,7 +117,7 @@ function AppContent() {
           <Route path="/customer-benefits" element={<CustomerBenefits />} />
           <Route path="/admin/cinema-rooms" element={<CinemaRooms />} />
           <Route path="/admin/room-detail/:roomId" element={<CinemaRoomDetail />} />
-          <Route path="/admin/movie-list/edit-movie/:movieId" element={<EditMovie />} />
+          <Route path="/admin/movie-list/edit-movie/:movie._id" element={<EditMovie />} />
           <Route path='/admin/cinema-rooms/add-new-cinema-room' element={<AddCinemaRoom />} />
           <Route path='/admin/add-promotion' element={<AddPromotion />} />
           <Route path='/admin/promotions/edit-promotion/:promotionId' element={<EditPromotion />} />
@@ -126,11 +126,11 @@ function AppContent() {
           
          
 
-        
+        { /* Booking Routes */}
           <Route path="/showtimes" element={<ShowtimePage />} />
           <Route path="/select-seats" element={<SeatSelectionPage />} />
           <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
-          <Route path="/combo" element={<ComboSelection />} />
+          <Route path="/combo-selection" element={<ComboSelection />} />
           <Route path="/confirm-booking" element={<ConfirmBooking />} />
           <Route path="/payment" element={<PaymentPage />} />
           <Route path="/ticket-detail" element={<TicketDetail />} />

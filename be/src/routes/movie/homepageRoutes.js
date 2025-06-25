@@ -57,11 +57,13 @@ const Movie = require('../../models/Movie');
 
 router.get('/', async (req, res) => {
   try {
+    const commonFields = 'name image_url trailer_link genres rating version rating_score actors description start_date end_date';
+
     const [bannerMovies, nowShowing, comingSoon, hotMovies] = await Promise.all([
       Movie.find({ banner_url: { $ne: null }, is_deleted: false }).select('banner_url'),
-      Movie.find({ status: 'now_showing', is_deleted: false }),
-      Movie.find({ status: 'coming_soon', is_deleted: false }),
-      Movie.find({ is_hot: true, is_deleted: false })
+      Movie.find({ status: 'now_showing', is_deleted: false }).select(commonFields),
+      Movie.find({ status: 'coming_soon', is_deleted: false }).select(commonFields),
+      Movie.find({ is_hot: true, is_deleted: false }).select(commonFields)
     ]);
 
     const banners = bannerMovies

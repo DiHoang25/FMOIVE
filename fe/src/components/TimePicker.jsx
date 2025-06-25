@@ -1,35 +1,48 @@
 import React from 'react';
-import { Checkbox, Col, Row } from 'antd';
+import { TimePicker } from 'antd';
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import 'dayjs/locale/en';
 
-const generateTimeOptions = () => {
-  const startHour = 8;
-  const endHour = 22;
-  const options = [];
+dayjs.extend(customParseFormat);
 
-  for (let hour = startHour; hour <= endHour; hour++) {
-    const label = `${hour.toString().padStart(2, '0')}:00`;
-    options.push(label);
-  }
+const format = 'HH:mm';
 
-  return options;
-};
+const MultiTimePicker = ({ value, onChange }) => {
+  const handleChange = (time) => {
+    if (time) {
+      const timeStr = dayjs(time).format(format);
+      if (!value.includes(timeStr)) {
+        onChange([...value, timeStr]);
+      }
+    }
+  };
 
-const TimePicker = ({ value = [], onChange }) => {
-  const timeOptions = generateTimeOptions();
+  const removeTime = (timeStr) => {
+    onChange(value.filter((t) => t !== timeStr));
+  };
 
   return (
-    <Checkbox.Group style={{ width: '100%' }} value={value} onChange={onChange}>
-      <Row>
-        {timeOptions.map((time) => (
-          <Col span={8} key={time}>
-            <Checkbox value={time} style={{ color: 'white' }}>
-              {time}
-            </Checkbox>
-          </Col>
+    <div className="space-y-2">
+      <TimePicker
+        format={format}
+        onChange={handleChange}
+        popupClassName="custom-timepicker-popup"
+      />
+
+      <div className="flex flex-wrap gap-2">
+        {value.map((t, idx) => (
+          <span
+            key={idx}
+            className="flex items-center gap-2 px-3 py-1 bg-red-600 text-white rounded-full text-sm"
+          >
+            {t}
+            <button onClick={() => removeTime(t)} className="hover:text-gray-200 text-xs">✕</button>
+          </span>
         ))}
-      </Row>
-    </Checkbox.Group>
+      </div>
+    </div>
   );
 };
 
-export default TimePicker;
+export default MultiTimePicker;

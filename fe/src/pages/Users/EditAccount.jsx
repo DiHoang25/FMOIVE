@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UserDashboardLayout from '../../components/UserDashboardlayout';
 import avatar from '../../assets/avatar.png';
-import { Modal } from 'antd';
 
 const EditAccount = () => {
   const navigate = useNavigate();
-  const [success, setSuccess] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [formData, setFormData] = useState({
     fullname: '',
     username: '',
@@ -17,7 +16,6 @@ const EditAccount = () => {
   });
   const [errors, setErrors] = useState({});
 
-  // Hàm lấy dữ liệu người dùng từ backend
   const fetchUserData = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -49,15 +47,14 @@ const EditAccount = () => {
     }
   };
 
-  // Load dữ liệu người dùng khi component vừa mở
   useEffect(() => {
     fetchUserData();
   }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setErrors(prev => ({ ...prev, [name]: '' }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
   const validate = () => {
@@ -88,9 +85,8 @@ const EditAccount = () => {
       });
       const data = await res.json();
       if (res.ok) {
-        // Sau khi cập nhật thành công, load lại dữ liệu và hiển thị popup
-        await fetchUserData(); // load dữ liệu mới
-        setSuccess(true);
+        await fetchUserData();
+        setShowSuccessModal(true);
       } else {
         console.error('Update failed:', data.message);
       }
@@ -99,13 +95,17 @@ const EditAccount = () => {
     }
   };
 
+  const handleSuccessConfirm = () => {
+    setShowSuccessModal(false);
+    navigate('/viewaccount');
+  };
+
   return (
     <UserDashboardLayout>
       <div className="bg-[#0a0f1c] text-white p-8 rounded-md">
         <h1 className="text-3xl font-bold mb-8 text-center text-red-600">Edit Account Information</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Phần Change Avatar */}
           <div className="bg-[#121826] p-4 rounded-lg shadow-md flex flex-col items-center">
             <h2 className="font-bold text-2xl mb-4 mt-10 text-red-600">Change Avatar</h2>
             <img src={avatar} alt="avatar" className="w-28 h-28 rounded-full border-4 mb-4" />
@@ -113,11 +113,9 @@ const EditAccount = () => {
             <button className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded font-semibold">Save</button>
           </div>
 
-          {/* Thông tin tài khoản */}
           <div className="md:col-span-2 bg-[#121826] p-6 rounded-lg shadow-md">
             <h2 className="font-bold text-lg mb-4">Information Account</h2>
             <div className="space-y-4">
-              {/* Hàng tên và username */}
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <input
@@ -139,7 +137,6 @@ const EditAccount = () => {
                 </div>
               </div>
 
-              {/* Email */}
               <div>
                 <input
                   name="email"
@@ -151,7 +148,6 @@ const EditAccount = () => {
                 {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
               </div>
 
-              {/* Số điện thoại */}
               <div>
                 <input
                   name="phone"
@@ -163,7 +159,6 @@ const EditAccount = () => {
                 {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
               </div>
 
-              {/* Ngày sinh, giới tính */}
               <div className="grid md:grid-cols-2 gap-4">
                 <input
                   name="date_of_birth"
@@ -184,36 +179,47 @@ const EditAccount = () => {
                 </select>
               </div>
 
-              {/* Buttons */}
               <div className="flex justify-center items-center gap-4 mt-6">
-                <button onClick={() => navigate('/viewaccount')} className="px-5 py-2 border border-red-500 text-red-500 rounded hover:bg-red-100">Cancel</button>
-                <button onClick={handleSave} className="px-5 py-2 bg-red-500 text-white rounded hover:bg-red-600">Save</button>
+                <button
+                  onClick={() => navigate('/viewaccount')}
+                  className="px-5 py-2 border border-red-500 text-red-500 rounded hover:bg-red-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="px-5 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                >
+                  Save
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Popup xác nhận thành công */}
-      <Modal
-        open={success}
-        onCancel={() => setSuccess(false)}
-        footer={null}
-        centered
-        width={350}
-      >
-        <div className="text-center p-6">
-          <div className="text-green-500 text-5xl mb-4">✔️</div>
-          <h3 className="text-xl font-bold text-gray-800 mb-2">Success</h3>
-          <p className="text-sm text-gray-600">Your account has been updated successfully.</p>
-          <button
-            onClick={() => setSuccess(false)}
-            className="mt-4 bg-red-600 text-white px-4 py-2 rounded w-full"
-          >
-            Close
-          </button>
+      {/* Custom Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <div className="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+            <div className="text-center">
+              <div className="mb-4 flex justify-center">
+                <svg className="w-16 h-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-4">Success</h3>
+              <p className="text-gray-300 mb-6">Your account has been updated successfully.</p>
+              <button
+                onClick={handleSuccessConfirm}
+                className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-200"
+              >
+                OK
+              </button>
+            </div>
+          </div>
         </div>
-      </Modal>
+      )}
     </UserDashboardLayout>
   );
 };
