@@ -27,7 +27,7 @@ const NotificationBar = () => {
     <div
       className="static top-0 left-0 right-0 z-50 shadow-lg px-0"
       style={{
-        backgroundImage: `url(${ bgImage })`,
+        backgroundImage: `url(${bgImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         height: '60px',
@@ -41,10 +41,17 @@ const NotificationBar = () => {
 
 
         {/* User section */}
+        {/* User section */}
         <div className="flex items-center space-x-4">
-          <img src={userIcon} alt="User Icon" className="h-10 w-10 object-contain" />
           {username ? (
             <>
+              <div
+                onClick={() => navigate('/viewaccount')}
+                className="cursor-pointer hover:scale-105 transition-transform duration-200"
+                title="View Account"
+              >
+                <img src={userIcon} alt="User Icon" className="h-10 w-10 object-contain" />
+              </div>
               <span className="text-white font-semibold">Hello {username}</span>
               <button
                 onClick={handleLogout}

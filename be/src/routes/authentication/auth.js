@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken'); // Import jsonwebtoken để tạo và xác minh token
 const authMiddleware = require('../../middleware/authMiddleware'); // Import middleware xác thực JWT
+const adminMiddleware = require('../../middleware/adminMiddleware'); // Middleware kiểm tra quyền quản trị viên
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer'); 
 const dotenv = require('dotenv'); 
@@ -27,7 +28,7 @@ const transporter = nodemailer.createTransport({
 // @access  Public
 router.post('/register', async (req, res) => {
     // Lấy username, fullname, password, role, email, gender, id_card, phone, address, is_actived, is_deleted từ req.body
-    const { userId, username, fullname, password, role, email, gender, id_card, phone, address, is_actived, is_deleted } = req.body;
+    const { userId, username, fullname, password, role, email, gender,date_of_birth , id_card, phone, address, is_actived, is_deleted } = req.body;
 
     try {
         // Kiểm tra xem người dùng đã tồn tại chưa bằng username
@@ -38,7 +39,7 @@ router.post('/register', async (req, res) => {
 
         // Tạo người dùng mới với các trường được truyền vào
         // Mật khẩu sẽ được mã hóa tự động thông qua middleware 'pre-save' trong User model
-        const newUser = new User({ userId, username, fullname, password, role: 'customer', email, gender, id_card, phone, address, is_deleted, is_actived });
+        const newUser = new User({ userId, username, fullname, password, role: 'customer', email, gender,date_of_birth ,id_card, phone, address, is_deleted, is_actived });
 
         await newUser.save(); // Lưu người dùng mới vào database
 
@@ -352,6 +353,45 @@ router.post('/reset-password', async (req, res) => {
         }
         console.error('Lỗi khi đặt lại mật khẩu:', error.message);
         res.status(500).send('Lỗi máy chủ.');
+    }
+});
+
+// @route   PATCH /api/user-management/:userId/status
+// @desc    Sửa trạng thái is_actived của người dùng (true/false)
+// @access  Private (Chỉ Admin)
+router.patch('/:userId/status', authMiddleware, adminMiddleware, async (req, res) => {
+    const { status } = req.body; // status sẽ là chuỗi 'true' hoặc 'false'
+
+    // Chuyển đổi giá trị status từ chuỗi sang boolean
+    let newIsActivedStatus;
+    if (status === 'true') {
+        newIsActivedStatus = true;
+    } else if (status === 'false') {
+        newIsActivedStatus = false;
+    } else {
+        return res.status(400).json({ message: 'Trạng thái không hợp lệ.' });
+    }
+
+    try {
+        // Tìm người dùng bằng userId (đã được thêm vào User model)
+        const user = await User.findOne({ userId: req.params.userId });
+
+        if (!user) {
+            return res.status(404).json({ message: 'Không tìm thấy người dùng để cập nhật trạng thái.' });
+        }
+
+        // Cập nhật trạng thái is_actived
+        user.is_actived = newIsActivedStatus;
+        await user.save();
+
+        res.status(200).json({
+            message: `Trạng thái hoạt động của người dùng đã được cập nhật thành "${newIsActivedStatus}".`,
+            user: user // Trả về thông tin người dùng đã cập nhật
+        });
+
+    } catch (error) {
+        console.error('Lỗi khi cập nhật trạng thái hoạt động của người dùng:', error.message);
+        res.status(500).send('Lỗi máy chủ khi cập nhật trạng thái người dùng.');
     }
 });
 

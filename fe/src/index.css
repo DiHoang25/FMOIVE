@@ -29,3 +29,25 @@ code {
   color: white;
 }
 
+.ant-select-item-option-content {
+  color: white !important;
+}
+
+/* Ghi đè màu chữ khi option được chọn hoặc hover */
+.ant-select-item-option-selected,
+.ant-select-item-option-active {
+  background-color: #374151 !important; /* dark bg */
+  color: white !important;
+}
+/* index.css */
+.ant-select-selector {
+  color: white !important;
+  background-color: #374151 !important; /* Nếu muốn cũng có thể chỉnh màu nền */
+  border: none !important; /* Nếu bạn không muốn viền */
+}
+
+.ant-select-arrow {
+  color: white !important;
+}
+
+

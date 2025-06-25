@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const promotionSchema = new mongoose.Schema({
+  promotionId: {
+    type: String,
+    unique: true,
+    required: true
+  },
   title: {
     type: String,
     required: [true, 'Tiêu đề khuyến mãi là bắt buộc'],
@@ -31,6 +36,17 @@ const promotionSchema = new mongoose.Schema({
     }, { _id: false }),
     required: true
   },
+  promotion_code: {
+    type: String,
+    trim: true,
+    maxlength: [50, 'Mã khuyến mãi không được vượt quá 50 ký tự']
+  },
+  discount: {
+    type: Number,
+    min: [0, 'Giảm giá không được nhỏ hơn 0%'],
+    max: [100, 'Giảm giá không được lớn hơn 100%']
+  },
+  
   start_date: {
     type: Date,
     required: [true, 'Ngày bắt đầu là bắt buộc']
@@ -51,6 +67,22 @@ const promotionSchema = new mongoose.Schema({
 }, {
   timestamps: true,
   collection: 'promotion'
+});
+
+promotionSchema.pre('save', async function (next) {
+  if (this.isNew) {
+    try {
+      const counter = await Counter.findOneAndUpdate(
+        { _id: 'movieId' },
+        { $inc: { seq: 1 } },
+        { new: true, upsert: true }
+      );
+
+      this.userId = 'PROMO' + String(counter.seq).padStart(9, '0');
+    } catch (error) {
+      return next(error); // Chuyển lỗi nếu không thể tạo Id
+    }
+  }
 });
 
 module.exports = mongoose.model('Promotion', promotionSchema);

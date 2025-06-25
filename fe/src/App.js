@@ -96,7 +96,7 @@ function AppContent() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/employee/members-list" element={<ViewMembersList />} />
           <Route path="/employee/employee-profile" element={<EmployeeProfile />} />
-          <Route path="/moviedetails" element={<MovieDetails />} />
+          <Route path="/moviedetails/:id" element={<MovieDetails />} />
           <Route path="/movienews" element={<MovieNews />} />
           <Route path="/moviesearch" element={<MovieSearch />} />
 
@@ -118,17 +118,20 @@ function AppContent() {
           <Route path="/admin/add-movie" element={<AddMovie />} />
           <Route path="/admin/movie-list" element={<MovieList />} />
           <Route path="/admin/view-members" element={<ViewMembers />} />
+          <Route path="/admin/view-employees" element={<ViewEmployees />} />
           <Route path="/admin/admin-profile" element={<AdminProfile />} />
           <Route path='/admin/promotions' element={<Promotions />} />
           <Route path='/admin/booking-list' element={<BookingList />} />
           <Route path="/admin/cinema-rooms" element={<CinemaRooms />} />
           <Route path="/admin/room-detail/:roomId" element={<CinemaRoomDetail />} />
-          <Route path="/admin/movie-list/edit-movie/:movie._id" element={<EditMovie />} />
+          <Route path="/admin/movie-list/edit-movie/:id" element={<EditMovie />} />
           <Route path='/admin/cinema-rooms/add-new-cinema-room' element={<AddCinemaRoom />} />
           <Route path='/admin/add-promotion' element={<AddPromotion />} />
-          <Route path='/admin/promotions/edit-promotion/:promotionId' element={<EditPromotion />} />
-          <Route path="/admin/view-employees" element={<ViewEmployees />} />
-
+          <Route path='/admin/promotions/edit-promotion/:id' element={<EditPromotion />} />
+          <Route path='contact' element={<ContactPage />} />
+          <Route path="/changepassword" element={<ChangePassword />} />
+          
+         
 
         { /* Booking Routes */}
           <Route path="/showtimes" element={<ShowtimePage />} />

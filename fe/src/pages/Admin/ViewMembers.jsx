@@ -6,7 +6,8 @@ import axios from 'axios'; // Import axios for API calls
 
 // Define your backend base URL here
 // IMPORTANT: Replace 5000 with the actual port your backend is running on
-const API_BASE_URL = 'http://localhost:5000/api/admin'; // Or whatever your backend URL and port are
+const API_BASE_URL = 'http://localhost:5000/api/admin'; // Base URL for admin-specific customer fetches/actions
+const AUTH_API_BASE_URL = 'http://localhost:5000/api/auth'; // New base URL for auth-related actions (like status updates)
 
 const ViewMembers = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -97,8 +98,9 @@ const ViewMembers = () => {
             return;
           }
 
+          // Use AUTH_API_BASE_URL for status updates to be consistent with employee status changes
           await axios.patch(
-            `${API_BASE_URL}/customers/${member.id}/status`, // Use member.id which is userId
+            `${AUTH_API_BASE_URL}/${member.id}/status`, // Use member.id which is userId
             { status: checked.toString() }, // Backend expects status as string 'true' or 'false'
             {
               headers: {
