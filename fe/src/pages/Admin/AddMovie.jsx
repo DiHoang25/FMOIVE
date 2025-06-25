@@ -5,7 +5,7 @@ import DropDown from '../../components/DropDown';
 import MultiTimePicker from '../../components/TimePicker';
 import GenresDropDown from '../../components/GernesPicker';
 import { useNavigate } from 'react-router-dom';
-import { Modal } from 'antd';
+import { Modal, message } from 'antd';
 
 const AddMovie = () => {
     const [formData, setFormData] = useState({
@@ -18,7 +18,9 @@ const AddMovie = () => {
         director: '',
         runningTime: '',
         moviePoster: '',
+        moviePosterPreview: '',
         movieBanner: '',
+        movieBannerPreview: '',
         movieDescription: '',
         status: 'coming_soon',
         genres: [],
@@ -30,6 +32,7 @@ const AddMovie = () => {
         cinemaRoom: [],
         showTimes: []
     });
+
 
     const navigate = useNavigate();
     const [success, setSuccess] = useState(false);
@@ -44,14 +47,14 @@ const AddMovie = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+    
         if (!formData.cinemaRoom || formData.cinemaRoom.length === 0) {
             alert('Vui lòng chọn ít nhất một phòng chiếu!');
             return;
         }
-
+    
         const selectedVersions = Object.keys(formData.version).filter(v => formData.version[v]);
-
+    
         const formDataToSend = new FormData();
         formDataToSend.append('name', formData.movieName);
         formDataToSend.append('trailer_link', formData.trailerLink);
@@ -67,31 +70,37 @@ const AddMovie = () => {
         formDataToSend.append('genres', formData.genres.join(', '));
         formDataToSend.append('cinema_room', formData.cinemaRoom[0]);
         formDataToSend.append('showtimes', formData.showTimes.join(', '));
-
+    
         if (formData.moviePoster) {
             formDataToSend.append('image', formData.moviePoster);
         }
         if (formData.movieBanner) {
             formDataToSend.append('banner', formData.movieBanner);
         }
-
+    
+        // 🔄 Hiển thị loading
+        const hide = message.loading('Adding movie...', 0); // 0 means manual dismiss
+    
         try {
             const response = await fetch('http://localhost:5000/api/movies', {
                 method: 'POST',
                 body: formDataToSend
             });
-
+    
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-
+    
             await response.json();
+            hide(); // ✅ Tắt loading
             setSuccess(true);
         } catch (error) {
+            hide(); // ❌ Tắt loading khi lỗi
             console.error('Error:', error);
-            alert('Error adding movie');
+            message.error('Error adding movie');
         }
     };
+    
 
 
     const resetForm = () => {
@@ -105,7 +114,9 @@ const AddMovie = () => {
             director: '',
             runningTime: '',
             moviePoster: '',
+            moviePosterPreview: '',
             movieBanner: '',
+            movieBannerPreview: '',
             movieDescription: '',
             status: 'coming_soon',
             genres: [],
@@ -120,6 +131,7 @@ const AddMovie = () => {
     };
 
 
+
     return (
         <SidebarLayout>
             <div className="flex-1 flex flex-col overflow-hidden">
@@ -132,7 +144,9 @@ const AddMovie = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-3">
                                 <div>
-                                    <label className="block text-gray-300 mb-1">Movie Name *</label>
+                                    <label className="block text-gray-300 mb-1">
+                                        Movie Name <span className="text-red-500">*</span>
+                                    </label>
                                     <input
                                         type="text"
                                         name="movieName"
@@ -145,7 +159,9 @@ const AddMovie = () => {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-gray-300 mb-1">From Date *</label>
+                                        <label className="block text-gray-300 mb-1">
+                                            From Date <span className="text-red-500">*</span>
+                                        </label>
                                         <DatePicker
                                             name="fromDate"
                                             value={formData.fromDate}
@@ -153,7 +169,9 @@ const AddMovie = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-gray-300 mb-1">To Date *</label>
+                                        <label className="block text-gray-300 mb-1">
+                                            To Date <span className="text-red-500">*</span>
+                                        </label>
                                         <DatePicker
                                             name="toDate"
                                             value={formData.toDate}
@@ -163,7 +181,9 @@ const AddMovie = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-gray-300 mb-1">Actor(s) *</label>
+                                    <label className="block text-gray-300 mb-1">
+                                        Actor(s) <span className="text-red-500">*</span>
+                                    </label>
                                     <input
                                         type="text"
                                         name="actors"
@@ -175,7 +195,9 @@ const AddMovie = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-gray-300 mb-1">Production Company *</label>
+                                    <label className="block text-gray-300 mb-1">
+                                        Production Company <span className="text-red-500">*</span>
+                                    </label>
                                     <input
                                         type="text"
                                         name="productionCompany"
@@ -187,7 +209,9 @@ const AddMovie = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-gray-300 mb-1">Director *</label>
+                                    <label className="block text-gray-300 mb-1">
+                                        Director <span className="text-red-500">*</span>
+                                    </label>
                                     <input
                                         type="text"
                                         name="director"
@@ -200,7 +224,9 @@ const AddMovie = () => {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-gray-300 mb-1">Running Time (minutes) *</label>
+                                        <label className="block text-gray-300 mb-1">
+                                            Running Time (minutes) <span className="text-red-500">*</span>
+                                        </label>
                                         <input
                                             type="number"
                                             name="runningTime"
@@ -212,7 +238,9 @@ const AddMovie = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-gray-300 mb-1">Version *</label>
+                                        <label className="block text-gray-300 mb-1">
+                                            Version <span className="text-red-500">*</span>
+                                        </label>
                                         <div className="flex space-x-3 mt-2">
                                             {['2D', '3D', 'IMAX'].map((ver) => (
                                                 <button
@@ -234,7 +262,9 @@ const AddMovie = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-gray-300 mb-1">Cinema Rooms *</label>
+                                        <label className="block text-gray-300 mb-1">
+                                            Cinema Rooms <span className="text-red-500">*</span>
+                                        </label>
                                         <DropDown
                                             value={formData.cinemaRoom}
                                             onChange={(val) => setFormData({ ...formData, cinemaRoom: val })}
@@ -242,7 +272,9 @@ const AddMovie = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-gray-300 mb-1">Show Times *</label>
+                                        <label className="block text-gray-300 mb-1">
+                                            Show Times <span className="text-red-500">*</span>
+                                        </label>
                                         <MultiTimePicker
                                             value={formData.showTimes}
                                             onChange={(val) => setFormData({ ...formData, showTimes: val })}
@@ -253,7 +285,9 @@ const AddMovie = () => {
 
                             <div className="space-y-3">
                                 <div>
-                                    <label className="block text-gray-300 mb-1">Trailer Link *</label>
+                                    <label className="block text-gray-300 mb-1">
+                                        Trailer Link <span className="text-red-500">*</span>
+                                    </label>
                                     <input
                                         type="url"
                                         name="trailerLink"
@@ -265,7 +299,9 @@ const AddMovie = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-gray-300 mb-1">Genres *</label>
+                                    <label className="block text-gray-300 mb-1">
+                                        Genres <span className="text-red-500">*</span>
+                                    </label>
                                     <GenresDropDown
                                         value={formData.genres}
                                         onChange={(val) => setFormData({ ...formData, genres: val })}
@@ -273,7 +309,9 @@ const AddMovie = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-gray-300 mb-1">Movie Poster *</label>
+                                    <label className="block text-gray-300 mb-1">
+                                        Movie Poster <span className="text-red-500">*</span>
+                                    </label>
                                     <input
                                         type="file"
                                         name="moviePoster"
@@ -282,20 +320,37 @@ const AddMovie = () => {
                                         id="poster-upload"
                                         onChange={(e) => {
                                             if (e.target.files && e.target.files[0]) {
-                                                setFormData({ ...formData, moviePoster: e.target.files[0] });
+                                                const file = e.target.files[0];
+                                                setFormData({
+                                                    ...formData,
+                                                    moviePoster: file,
+                                                    moviePosterPreview: URL.createObjectURL(file)
+                                                });
                                             }
                                         }}
                                         required
                                     />
-                                    <label htmlFor="poster-upload" className="w-full h-32 border-2 border-dashed border-gray-600 flex items-center justify-center cursor-pointer rounded">
-                                        <div className="text-center text-gray-400">
-                                            <p>Click to upload poster</p>
-                                        </div>
+                                    <label htmlFor="poster-upload" className="block cursor-pointer">
+                                        {formData.moviePosterPreview ? (
+                                            <img
+                                                src={formData.moviePosterPreview}
+                                                alt="Poster Preview"
+                                                className="w-full h-32 object-contain rounded border-2 border-dashed border-gray-600"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-32 border-2 border-dashed border-gray-600 flex items-center justify-center rounded text-gray-400">
+                                                Click to upload poster
+                                            </div>
+                                        )}
                                     </label>
                                 </div>
 
+
+
                                 <div>
-                                    <label className="block text-gray-300 mb-1">Banner Image *</label>
+                                    <label className="block text-gray-300 mb-1">
+                                        Banner Image <span className="text-red-500">*</span>
+                                    </label>
                                     <input
                                         type="file"
                                         name="movieBanner"
@@ -304,20 +359,36 @@ const AddMovie = () => {
                                         id="banner-upload"
                                         onChange={(e) => {
                                             if (e.target.files && e.target.files[0]) {
-                                                setFormData({ ...formData, movieBanner: e.target.files[0] });
+                                                const file = e.target.files[0];
+                                                setFormData({
+                                                    ...formData,
+                                                    movieBanner: file,
+                                                    movieBannerPreview: URL.createObjectURL(file)
+                                                });
                                             }
                                         }}
                                         required
                                     />
-                                    <label htmlFor="banner-upload" className="w-full h-32 border-2 border-dashed border-gray-600 flex items-center justify-center cursor-pointer rounded">
-                                        <div className="text-center text-gray-400">
-                                            <p>Click to upload banner</p>
-                                        </div>
+                                    <label htmlFor="banner-upload" className="block cursor-pointer">
+                                        {formData.movieBannerPreview ? (
+                                            <img
+                                                src={formData.movieBannerPreview}
+                                                alt="Banner Preview"
+                                                className="w-full h-32 object-contain rounded border-2 border-dashed border-gray-600"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-32 border-2 border-dashed border-gray-600 flex items-center justify-center rounded text-gray-400">
+                                                Click to upload banner
+                                            </div>
+                                        )}
                                     </label>
                                 </div>
 
+
                                 <div>
-                                    <label className="block text-gray-300 mb-1">Movie Description *</label>
+                                    <label className="block text-gray-300 mb-1">
+                                        Movie Description <span className="text-red-500">*</span>
+                                    </label>
                                     <textarea
                                         name="movieDescription"
                                         value={formData.movieDescription}
@@ -371,7 +442,7 @@ const AddMovie = () => {
                         <button
                             onClick={() => {
                                 setSuccess(false);
-                                navigate('/admin');
+                                navigate('/admin/movie-list');
                             }}
                             className="flex-1 bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded"
                         >
