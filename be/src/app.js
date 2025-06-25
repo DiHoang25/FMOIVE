@@ -7,6 +7,8 @@ require('dotenv').config();
 const authRoutes = require('./routes/authentication/auth'); 
 const profileRoutes = require('./routes/userFeature/profileRoutes');
 const featureRoutes = require('./routes/userFeature/profileRoutes'); // Import các tuyến người dùng
+const customerManagementRoutes = require('./routes/admin/customerManagementRoutes');
+const employeeManagementRoutes = require('./routes/admin/employeeManagementRoutes');
 const uploadRoutes = require('./routes/movie/uploadRoute');
 const movieRoutes = require('./routes/movie/movieRoutes');
 const homepageRoutes = require('./routes/movie/homepageRoutes');
@@ -31,6 +33,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/user', profileRoutes);
 app.use('/api/feature', featureRoutes);
+app.use('/api/admin/customers', customerManagementRoutes);
+app.use('/api/admin/employees', employeeManagementRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/home', homepageRoutes);

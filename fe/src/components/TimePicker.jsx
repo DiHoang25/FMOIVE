@@ -1,54 +1,44 @@
 import React from 'react';
-import { TimePicker, Space, Button } from 'antd';
+import { TimePicker } from 'antd';
 import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import 'dayjs/locale/en';
+
+dayjs.extend(customParseFormat);
 
 const format = 'HH:mm';
 
-const MultiTimePicker = ({ value = [], onChange }) => {
-  const [selectedTime, setSelectedTime] = React.useState(null);
-
-  const handleAddTime = () => {
-    if (!selectedTime) return;
-    const formatted = selectedTime.format(format);
-    if (!value.includes(formatted)) {
-      onChange([...value, formatted]);
+const MultiTimePicker = ({ value, onChange }) => {
+  const handleChange = (time) => {
+    if (time) {
+      const timeStr = dayjs(time).format(format);
+      if (!value.includes(timeStr)) {
+        onChange([...value, timeStr]);
+      }
     }
-    setSelectedTime(null);
   };
 
-  const handleRemoveTime = (timeToRemove) => {
-    onChange(value.filter((time) => time !== timeToRemove));
+  const removeTime = (timeStr) => {
+    onChange(value.filter((t) => t !== timeStr));
   };
 
   return (
-    <div>
-      <Space>
-        <TimePicker
-          format={format}
-          value={selectedTime}
-          onChange={(val) => setSelectedTime(val)}
-        />
-        <Button
-          onClick={handleAddTime}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          Add Time
-        </Button>
-      </Space>
-      <div className="flex flex-wrap gap-2 mt-3">
-        {value.map((time) => (
-          <div
-            key={time}
-            className="bg-red-600 text-white px-3 py-1 rounded-full text-sm flex items-center"
+    <div className="space-y-2">
+      <TimePicker
+        format={format}
+        onChange={handleChange}
+        popupClassName="custom-timepicker-popup"
+      />
+
+      <div className="flex flex-wrap gap-2">
+        {value.map((t, idx) => (
+          <span
+            key={idx}
+            className="flex items-center gap-2 px-3 py-1 bg-red-600 text-white rounded-full text-sm"
           >
-            {time}
-            <button
-              className="ml-2 text-white hover:text-gray-300"
-              onClick={() => handleRemoveTime(time)}
-            >
-              ✕
-            </button>
-          </div>
+            {t}
+            <button onClick={() => removeTime(t)} className="hover:text-gray-200 text-xs">✕</button>
+          </span>
         ))}
       </div>
     </div>
