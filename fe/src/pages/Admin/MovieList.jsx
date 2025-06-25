@@ -73,9 +73,9 @@ const MovieList = () => {
           const response = await fetch(`http://localhost:5000/api/movies/${movie._id}`, {
             method: 'DELETE'
           });
-          
+
           if (!response.ok) throw new Error('Failed to delete movie');
-          
+
           const updated = movies.filter(m => m._id !== movie._id);
           setMovies(updated);
           message.success(`"${movie.name}" has been deleted.`);
@@ -189,9 +189,9 @@ const MovieList = () => {
                   <td colSpan="8" className="text-center py-4 text-gray-400">No movies found.</td>
                 </tr>
               ) : (
-                filteredMovies.map(movie => (
+                filteredMovies.map((movie, index) => (
                   <tr key={movie._id} className="hover:bg-gray-700 transition">
-                    <td className="px-4 py-2">{movie._id}</td>
+                    <td className="px-4 py-2">{index + 1}</td> {/* 🔄 Thay vì movie._id */}
                     <td className="px-4 py-2">{movie.name}</td>
                     <td className="px-4 py-2">{movie.genres}</td>
                     <td className="px-4 py-2">{movie.running_time} min</td>
@@ -218,6 +218,7 @@ const MovieList = () => {
                 ))
               )}
             </tbody>
+
           </table>
         </div>
 

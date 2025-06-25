@@ -8,7 +8,7 @@ dayjs.extend(customParseFormat);
 
 const format = 'HH:mm';
 
-const MultiTimePicker = ({ value, onChange }) => {
+const MultiTimePicker = ({ value = [], onChange }) => {
   const handleChange = (time) => {
     if (time) {
       const timeStr = dayjs(time).format(format);
