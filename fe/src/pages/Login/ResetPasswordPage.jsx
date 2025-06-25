@@ -225,10 +225,8 @@ function ResetPasswordPage() {
                   className="text-xs text-gray-400 hover:text-gray-300"
                 >
                 
-                </button># Ở thư mục D:\OJT
-rm -rf .git# Ở thư mục D:\OJT
-rm -rf .git# Ở thư mục D:\OJT
-rm -rf .git
+                </button>
+
         </div>
             </form>
       </div>
