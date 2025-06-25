@@ -24,6 +24,14 @@ const roomSchema = new mongoose.Schema({
         required: [true, 'Loại phòng là bắt buộc'],
         enum: ['2D', '3D', 'imax'], // Ví dụ: chỉ cho phép các loại phòng này
     },
+    is_deleted: { // Thêm trường is_deleted
+        type: Boolean,
+        default: false
+    },
+    is_deleted: { // Thêm trường is_deleted
+        type: Boolean,
+        default: false
+    },
     }, {
     timestamps: true, // Tự động thêm createdAt và updatedAt
     collection: 'room' // chỉnh sửa collection trong MongoDB ở đây
