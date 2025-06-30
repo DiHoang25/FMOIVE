@@ -1,99 +1,71 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Input, message } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
 import Pagination from '../../components/PaginationHomepage';
-import { SearchOutlined } from '@ant-design/icons'; // Import icon kính lúp
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  fetchAllMovies,
+  searchMovies,
+  setSearchTerm,
+  setCurrentPage
+} from '../../redux/movieSearchSlice';
 
 const MovieSearch = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [movies, setMovies] = useState([]);
-  const [filteredMovies, setFilteredMovies] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(0);
+  const dispatch = useDispatch();
+  const {
+    movies,
+    filteredMovies,
+    loading,
+    error,
+    searchTerm,
+    currentPage
+  } = useSelector(state => state.movieSearch);
   const moviesPerPage = 10;
 
-  // useEffect để lấy tất cả phim từ API
+  // Khi component mount, lấy danh sách phim từ API
   useEffect(() => {
-    const fetchMovies = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        // Sử dụng API /movies
-        const url = `http://localhost:5000/api/movies`;
-        console.log('Fetching from URL:', url);
+    dispatch(fetchAllMovies())
+      .unwrap()
+      .catch(error => {
+        message.error(`Không thể tải danh sách phim: ${error}`);
+      });
+  }, [dispatch]);
 
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-          'Content-Type': 'application/json',
-        }
-        });
-
-        console.log('Response status:', response.status);
-
-        if (!response.ok) {
-          const contentType = response.headers.get('content-type');
-          console.log('Content-Type:', contentType);
-
-          if (contentType && contentType.includes('text/html')) {
-            throw new Error('Nhận được phản hồi HTML thay vì JSON. Kiểm tra đường dẫn API và cấu hình CORS.');
-        }
-          const errorData = await response.json();
-          throw new Error(errorData.message || `Lỗi HTTP! Status: ${response.status}`);
-        }
-
-        const moviesData = await response.json();
-        console.log('API response data:', moviesData);
-        setMovies(moviesData || []);
-        setFilteredMovies(moviesData || []); // Khởi tạo ban đầu với tất cả phim
-      } catch (err) {
-        console.error('Error fetching movies:', err);
-        setError(err);
-        message.error(`Không thể tải danh sách phim: ${err.message}`);
-        setMovies([]);
-        setFilteredMovies([]);
-      } finally {
-        setLoading(false);
-      }
-};
-
-    fetchMovies();
-  }, []); // Chỉ chạy một lần khi component được mount
-
-  // useEffect để lọc phim dựa trên searchTerm (chạy mỗi khi searchTerm thay đổi)
-  useEffect(() => {
-    if (!searchTerm.trim()) {
-      // Nếu searchTerm trống, hiển thị tất cả phim
-      setFilteredMovies(movies);
-      setCurrentPage(0); // Reset về trang đầu tiên
-      return;
-    }
-
-    // Lọc phim CHỈ dựa trên tên phim
-    const searchRegex = new RegExp(searchTerm, 'i');
-    const filtered = movies.filter(movie =>
-      searchRegex.test(movie.name)
-      // Đã loại bỏ việc tìm kiếm theo đạo diễn và diễn viên
-    );
-
-    setFilteredMovies(filtered);
-    setCurrentPage(0); // Reset về trang đầu tiên khi kết quả tìm kiếm thay đổi
-  }, [searchTerm, movies]);
-
-  // Xử lý thay đổi trong ô input - chạy ngay khi nhập
+  // Xử lý thay đổi trong ô input tìm kiếm
   const handleInputChange = (e) => {
-    setSearchTerm(e.target.value);
+    const value = e.target.value;
+    dispatch(setSearchTerm(value));
+
+    // Nếu cần tìm kiếm realtime từ server, bỏ comment phần dưới
+    // if (value.trim()) {
+    //   dispatch(searchMovies({ search: value }));
+    // } else {
+    //   dispatch(fetchAllMovies());
+    // }
   };
 
+  // Xử lý tìm kiếm khi nhấn Enter
+  const handleSearch = (e) => {
+    if (e.key === 'Enter' && searchTerm.trim()) {
+      dispatch(searchMovies({ search: searchTerm }))
+        .unwrap()
+        .catch(error => {
+          message.error(`Tìm kiếm thất bại: ${error}`);
+        });
+    }
+  };
+
+  // Tính toán phim hiển thị trên trang hiện tại
   const indexOfLastMovie = (currentPage + 1) * moviesPerPage;
   const indexOfFirstMovie = currentPage * moviesPerPage;
   const currentMovies = filteredMovies.slice(indexOfFirstMovie, indexOfLastMovie);
   const totalPages = Math.ceil(filteredMovies.length / moviesPerPage);
 
+  // Xử lý thay đổi trang
   const handlePageChange = (page) => {
-    setCurrentPage(page);
-};
+    dispatch(setCurrentPage(page));
+  };
 
   if (loading) {
     return (
@@ -111,10 +83,10 @@ const MovieSearch = () => {
       <div className="bg-black text-white min-h-screen p-6">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold text-center mb-8 text-white">Movie Search</h1>
-          <p className="text-center text-red-500">Lỗi: {error.message}</p>
+          <p className="text-center text-red-500">Lỗi: {error}</p>
           <div className="text-center mt-4">
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => dispatch(fetchAllMovies())}
               className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded"
             >
               Thử lại
@@ -137,9 +109,15 @@ const MovieSearch = () => {
               placeholder="Tìm kiếm phim theo tên..."
               value={searchTerm}
               onChange={handleInputChange}
+              onKeyPress={handleSearch}
               className="rounded-md p-2 h-12 pl-10"
               style={{ backgroundColor: '#1a1a2e', color: 'white', borderColor: '#333' }}
-              suffix={<SearchOutlined className="text-gray-400 text-lg" />}
+              suffix={
+                <SearchOutlined
+                  className="text-gray-400 text-lg cursor-pointer"
+                  onClick={() => dispatch(searchMovies({ search: searchTerm }))}
+                />
+              }
             />
           </div>
         </div>

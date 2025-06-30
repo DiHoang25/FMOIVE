@@ -62,6 +62,7 @@ import AddCinemaRoom from './pages/Admin/AddCinemaRoom';
 import AddPromotion from './pages/Admin/AddPromotion';
 import EditPromotion from './pages/Admin/EditPromotion';
 import { AuthProvider } from './contexts/AuthContext';
+import NotFoundPage from './pages/NotFound/NotFoundPage';
 import ViewEmployees from './pages/Admin/ViewEmployee';
 import AddEmployee from './pages/Admin/AddEmployee';
 
@@ -166,6 +167,9 @@ function AppContent() {
           <Route path="/employee/counter-payment-success" element={<RequireRole allowedRoles={['employee']}><PaymentSuccess /></RequireRole>} />
           <Route path="/employee/counter-booking-list" element={<RequireRole allowedRoles={['employee']}><CounterBookingList /></RequireRole>} />
           <Route path="/employee/counter-get-ticket" element={<RequireRole allowedRoles={['employee']}><CounterGetTicket /></RequireRole>} />
+
+          {/* Not Found Page - Phải là route cuối cùng */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
         {!hideNavbarFooter && <Footer />}
       </div>
@@ -184,3 +188,4 @@ function App() {
 }
 
 export default App;
+
