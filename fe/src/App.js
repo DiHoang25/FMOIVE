@@ -118,7 +118,8 @@ function AppContent() {
           <Route path="/delivery-policy" element={<DeliveryPolicy />} />
           <Route path="/information-security" element={<InformationSecurity />} />
           <Route path="/returns-refunds" element={<InspectionReturns />} />
-
+          <Route path="/moviesearch" element={<MovieSearch />} />
+          
           {/* Customer */}
           <Route path="/Users" element={<RequireRole allowedRoles={['customer']}><UsersDashboard /></RequireRole>} />
           <Route path="/viewbookedticket" element={<RequireRole allowedRoles={['customer']}><ViewBookedTickets /></RequireRole>} />
