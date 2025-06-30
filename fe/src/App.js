@@ -96,9 +96,21 @@ function AppContent() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/new-password" element={<NewPasswordPage />} />
-          <Route path="/moviedetails/:id" element={<MovieDetails />} />
-          <Route path="/movienews" element={<MovieNews />} />
-          <Route path="/moviesearch" element={<MovieSearch />} />
+          <Route path="/viewbookedticket" element={<ViewBookedTickets />} />
+          <Route path="/viewscorehistory" element={<ViewScoreHistory />} />
+          <Route path='/admin/promotions' element={<Promotions />} />
+          <Route path="/viewaccount" element={<ViewAccount />} />
+          <Route path="/editaccount" element={<EditAccount />} />
+          {/* <Route path="/moviedetailssearch" element={<MovieDetailsSearch />} />
+          <Route path="/movienewsssearch" element={<MovieNewsSearch />} /> */}
+          <Route path='/admin/booking-list' element={<BookingList />} />
+          <Route path="/customer-benefits" element={<CustomerBenefits />} />
+          <Route path="/admin/cinema-rooms" element={<CinemaRooms />} />
+          <Route path="/admin/room-detail/:roomId" element={<CinemaRoomDetail />} />
+          <Route path="/admin/movie-list/edit-movie/:movie._id" element={<EditMovie />} />
+          <Route path='/admin/cinema-rooms/add-new-cinema-room' element={<AddCinemaRoom />} />
+          <Route path='/admin/add-promotion' element={<AddPromotion />} />
+          <Route path='/admin/promotions/edit-promotion/:id' element={<EditPromotion />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/promotions" element={<PromotionsPage />} />
           <Route path="/terms" element={<GeneralTerms />} />

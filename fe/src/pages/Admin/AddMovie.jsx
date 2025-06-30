@@ -7,6 +7,9 @@ import GenresDropDown from '../../components/GernesPicker';
 import { useNavigate } from 'react-router-dom';
 import { Modal, message } from 'antd';
 import dayjs from 'dayjs';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+dayjs.extend(isSameOrBefore);
+
 
 
 const AddMovie = () => {
@@ -57,6 +60,10 @@ const AddMovie = () => {
 
         const selectedVersions = Object.keys(formData.version).filter(v => formData.version[v]);
 
+        const today = dayjs().startOf('day');
+        const movieStart = dayjs(formData.fromDate).startOf('day');
+        const updatedStatus = movieStart.isSameOrBefore(today) ? 'now_showing' : 'coming_soon';
+
         const formDataToSend = new FormData();
         formDataToSend.append('name', formData.movieName);
         formDataToSend.append('trailer_link', formData.trailerLink);
@@ -67,7 +74,7 @@ const AddMovie = () => {
         formDataToSend.append('director', formData.director);
         formDataToSend.append('running_time', formData.runningTime);
         formDataToSend.append('description', formData.movieDescription);
-        formDataToSend.append('status', formData.status);
+        formDataToSend.append('status', updatedStatus);
         formDataToSend.append('version', selectedVersions.join(', '));
         formDataToSend.append('genres', formData.genres.join(', '));
         formDataToSend.append('cinema_room', formData.cinemaRoom[0]);
@@ -80,7 +87,7 @@ const AddMovie = () => {
             formDataToSend.append('banner', formData.movieBanner);
         }
 
-        const hide = message.loading('Adding movie...', 0); // 0 means manual dismiss
+        const hide = message.loading('Adding movie...', 0);
 
         try {
             const response = await fetch('http://localhost:5000/api/movies', {
@@ -93,14 +100,15 @@ const AddMovie = () => {
             }
 
             await response.json();
-            hide(); 
+            hide();
             setSuccess(true);
         } catch (error) {
-            hide(); 
+            hide();
             console.error('Error:', error);
             message.error('Error adding movie');
         }
     };
+
 
     const resetForm = () => {
         setFormData({

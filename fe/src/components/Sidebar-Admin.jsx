@@ -15,6 +15,7 @@ import { SlPresent } from "react-icons/sl";
 import { Button, Layout, Menu, theme } from 'antd';
 import { RxAvatar } from "react-icons/rx";
 import { LogoutOutlined } from '@ant-design/icons';
+import AdminNotification from './Admin-Notification';
 
 const { Header, Sider, Content } = Layout;
 
@@ -121,6 +122,7 @@ const SidebarLayout = ({ children }) => {
                         <h1 className="text-xl text-white absolute left-1/2 transform -translate-x-1/2">
                             ADMIN
                         </h1>
+                        <AdminNotification />
                     </div>
                 </Header>
 
