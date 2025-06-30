@@ -7,6 +7,7 @@ import SidebarLayout from '../../components/Sidebar-Admin';
 import dayjs from 'dayjs';
 
 
+
 const MovieList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [movies, setMovies] = useState([]);

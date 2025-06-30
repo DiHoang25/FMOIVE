@@ -108,7 +108,7 @@ const AddCinemaRoom = () => {
                     className={inputClass}
                     formatter={(value) => value?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
                     parser={(value) => value.replace(/\./g, '')}
-                    addonAfter="₫"
+                    addonAfter="VND"
                     style={{ width: '100%' }}
                   />
                 </Form.Item>
@@ -124,7 +124,7 @@ const AddCinemaRoom = () => {
                     className={inputClass}
                     formatter={(value) => value?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
                     parser={(value) => value.replace(/\./g, '')}
-                    addonAfter="₫"
+                    addonAfter="VND"
                     style={{ width: '100%' }}
                   />
                 </Form.Item>
