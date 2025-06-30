@@ -264,22 +264,7 @@ function AddEmployeePage() {
                         </div>
 
                         {/* Role Selection */}
-                        <div>
-                            <label htmlFor="role" className="block text-sm font-medium text-gray-300 mb-1">Employee Role</label>
-                            <Select
-                                defaultValue="employee" // Set default value
-                                style={{ width: '100%', color: 'white' }} // Set color for the selected text
-                                className="bg-gray-700 rounded"
-                                dropdownStyle={{ backgroundColor: '#1f2937', color: 'white' }} // Set color for dropdown background and options
-                                optionLabelProp="label"
-                                onChange={(value) => setValue('role', value)} // Update react-hook-form state
-                                bordered={false} // Remove Ant Design's default border
-                            >
-                                <Option value="employee" label="Employee" style={{ color: 'white' }}>Employee</Option>
-                                <Option value="admin" label="Admin" style={{ color: 'white' }}>Admin</Option>
-                            </Select>
-                            {errors.role && <p className="text-red-500 text-sm mt-1">{errors.role.message}</p>}
-                        </div>
+                       
 
                         {serverError && <p className="text-red-500 text-sm mt-2 text-center">{serverError}</p>}
 

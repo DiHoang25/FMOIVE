@@ -2,7 +2,11 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 import MovieCard from '../../components/MovieCard';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
+
+// Redux imports
+import { useDispatch } from 'react-redux';
+import { setMovieAndDateTime } from '../../redux/bookingSlice'; // Keeping your specified path
 
 
 function getWeekDates(startDate) {
@@ -28,9 +32,10 @@ function formatDateForNavigation(date) {
     return date.toLocaleDateString('en-US', options);
 }
 
-
 function ShowtimePage() {
-    const navigate = useNavigate(); // Initialize useNavigate
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+
     const [startDate, setStartDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(formatDateLabel(new Date()));
     const [movies, setMovies] = useState([]);
@@ -39,17 +44,15 @@ function ShowtimePage() {
 
     const handlePrevWeek = () => {
         const newStart = new Date(startDate);
-        newStart.setDate(startDate.getDate() - 6); // Go back 6 days
+        newStart.setDate(startDate.getDate() - 6);
         setStartDate(newStart);
-        // Also update selectedDate to the first day of the new week
         setSelectedDate(formatDateLabel(newStart));
     };
 
     const handleNextWeek = () => {
         const newStart = new Date(startDate);
-        newStart.setDate(startDate.getDate() + 6); // Go forward 6 days
+        newStart.setDate(startDate.getDate() + 6);
         setStartDate(newStart);
-        // Also update selectedDate to the first day of the new week
         setSelectedDate(formatDateLabel(newStart));
     };
 
@@ -57,10 +60,9 @@ function ShowtimePage() {
         axios.get('http://localhost:5000/api/movies')
             .then(response => {
                 const todayParts = selectedDate.split('/');
-                // Create a date object for the selected day in the *current year*
                 const currentYear = new Date().getFullYear();
                 const selectedDayDate = new Date(currentYear, parseInt(todayParts[1]) - 1, parseInt(todayParts[0]));
-                selectedDayDate.setHours(0, 0, 0, 0); // Normalize to start of day
+                selectedDayDate.setHours(0, 0, 0, 0);
 
                 const filtered = response.data.filter(movie => {
                     if (movie.is_deleted) return false;
@@ -69,7 +71,6 @@ function ShowtimePage() {
                     start.setHours(0, 0, 0, 0);
                     end.setHours(0, 0, 0, 0);
 
-                    // Check if selectedDayDate is within the movie's active date range
                     return selectedDayDate >= start && selectedDayDate <= end;
                 });
 
@@ -80,25 +81,49 @@ function ShowtimePage() {
             });
     }, [selectedDate]);
 
-    // This function will be passed to MovieCard for its handleShowtimeClick
-    const handleMovieCardShowtimeClick = (movieDetails, timeClicked) => {
-        // Construct the full date string for navigation
+    const handleMovieCardShowtimeClick = (movieDetailsFromCard, timeClicked) => {
         const todayParts = selectedDate.split('/');
-        const currentYear = new Date().getFullYear(); // Assuming current year
+        const currentYear = new Date().getFullYear();
         const fullDateObj = new Date(currentYear, parseInt(todayParts[1]) - 1, parseInt(todayParts[0]));
-        const formattedDate = formatDateForNavigation(fullDateObj); // e.g., "Monday, May 26, 2025"
+        const formattedDate = formatDateForNavigation(fullDateObj);
 
-        navigate('/select-seats', {
-            state: {
-                name: movieDetails.name,
-                image_url: movieDetails.image_url,
-                version: movieDetails.version || '2D', // Default if not provided by API
-                running_time: movieDetails.running_time,
-                time: `${formattedDate}, ${timeClicked}`, // Combine full date and time
-                cinema_room: movieDetails.cinema_room, // Assuming cinema_room is per movie from API
-                // If specific showtimes have different rooms, you'll need to adapt API response
-            },
-        });
+        // Logic to extract cinema_room (if present in API response)
+        // This assumes cinema_room might be a top-level property of the movie
+        // OR it might be part of a showtime object if you change your API structure.
+        // For now, it will be undefined if your API doesn't provide it, leading to N/A.
+        const cinemaRoom = movieDetailsFromCard.cinema_room; 
+
+        // Safely parse genres: If it's an array with a single comma-separated string, split it.
+        // If it's already an array of strings, it remains.
+        const parsedGenres = Array.isArray(movieDetailsFromCard.genres) 
+            ? movieDetailsFromCard.genres.flatMap(genre => 
+                typeof genre === 'string' ? genre.split(',').map(s => s.trim()) : []
+              )
+            : [];
+
+        // Dispatch comprehensive movie details to Redux store
+        dispatch(setMovieAndDateTime({
+            movieDetails: { 
+                name: movieDetailsFromCard.name,
+                image_url: movieDetailsFromCard.image_url,
+                version: movieDetailsFromCard.version || '2D',
+                running_time: movieDetailsFromCard.running_time,
+                
+                // Pass the extracted cinema_room
+                cinema_room: cinemaRoom, 
+                
+                // Ensure genres is an array of individual strings
+                genres: parsedGenres, 
+                
+                // Rating and other fields
+                rating: movieDetailsFromCard.rating, // Assuming rating is available
+                
+                // The 'time' field in Redux will store the full date and selected time
+                time: `${formattedDate}, ${timeClicked}`, 
+            }
+        }));
+
+        navigate('/select-seats');
     };
 
 
@@ -120,7 +145,7 @@ function ShowtimePage() {
                             onClick={() => setSelectedDate(label)}
                             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ease-in-out ${
                                 isSelected ? 'bg-red-600 text-white' : 'bg-gray-800 hover:bg-gray-700'
-                            }`} // Changed selected date to red
+                            }`}
                         >
                             {label}
                         </button>
@@ -139,9 +164,9 @@ function ShowtimePage() {
                             title={movie.name}
                             poster={movie.image_url}
                             info={`${movie.version || '2D'} • ${movie.running_time} min • ${movie.type || 'Movie'}`}
-                            showtimes={movie.showtimes} // showtimes as an array of time strings (e.g., ["10:00", "14:30"])
-                            movie={movie} // Pass the full movie object
-                            onShowtimeClick={handleMovieCardShowtimeClick} // Pass the new handler
+                            showtimes={movie.showtimes}
+                            movie={movie} // Pass the full movie object so handleMovieCardShowtimeClick can access all its properties
+                            onShowtimeClick={handleMovieCardShowtimeClick}
                         />
                     ))
                 ) : (

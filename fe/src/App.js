@@ -3,6 +3,9 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import RequireRole from './components/RequireRole';
 
+import { Provider } from 'react-redux';
+import { store } from './redux/store'; // Adjust the path to your store file
+
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import UsersDashboard from './pages/Users/UsersDashboard';
 import EmployeeDashboard from './pages/Employee/EmployeeDashboard';
@@ -65,6 +68,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import NotFoundPage from './pages/NotFound/NotFoundPage';
 import ViewEmployees from './pages/Admin/ViewEmployee';
 import AddEmployee from './pages/Admin/AddEmployee';
+
 
 function AppContent() {
   const location = useLocation();
@@ -176,14 +180,15 @@ function AppContent() {
     </>
   );
 }
-
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-    </BrowserRouter>
+    <Provider store={store}> {/* Wrap your entire application with the Redux Provider */}
+      <BrowserRouter>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </BrowserRouter>
+    </Provider>
   );
 }
 
