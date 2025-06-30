@@ -86,19 +86,23 @@ function AppContent() {
         {!hideNavbarFooter && <Navbar />}
         <ScrollToTop />
         <Routes>
-          {/* Public Routes */}
+           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/new-password" element={<NewPasswordPage />} />
-          <Route path="/viewbookedticket" element={<ViewBookedTickets />} />
-          <Route path="/viewscorehistory" element={<ViewScoreHistory />} />
-          <Route path='/admin/promotions' element={<Promotions />} />
-          <Route path="/viewaccount" element={<ViewAccount />} />
-          <Route path="/editaccount" element={<EditAccount />} />
+          <Route path="/moviedetails/:id" element={<MovieDetails />} />
+          <Route path="/movienews" element={<MovieNews />} />
           <Route path="/moviesearch" element={<MovieSearch />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/promotions" element={<PromotionsPage />} />
+          <Route path="/terms" element={<GeneralTerms />} />
+          <Route path="/payment-policy" element={<PaymentPolicy />} />
+          <Route path="/delivery-policy" element={<DeliveryPolicy />} />
+          <Route path="/information-security" element={<InformationSecurity />} />
+          <Route path="/returns-refunds" element={<InspectionReturns />} />
 
 
           {/* <Route path="/moviedetailssearch" element={<MovieDetailsSearch />} />
