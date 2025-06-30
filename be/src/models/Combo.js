@@ -53,7 +53,7 @@ const comboSchema = new mongoose.Schema({
     },
     imageUrl: {
         type: String,
-        default: ''
+        trim: true
     },
     isActive: { // Trạng thái kích hoạt (admin bật/tắt)
         type: Boolean,
