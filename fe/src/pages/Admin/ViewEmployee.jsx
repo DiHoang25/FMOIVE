@@ -4,9 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import SidebarLayout from '../../components/Sidebar-Admin';
 import { Switch, Modal, message, Select, Tag, Button } from 'antd';
 import {
-    PlusOutlined,   
+    PlusOutlined,
     ExclamationCircleFilled
 } from '@ant-design/icons';
+import Pagination from '../../components/PaginationHomepage';
 
 const { Option } = Select;
 const { confirm } = Modal;
@@ -18,9 +19,10 @@ const AUTH_API_BASE_URL = 'http://localhost:5000/api/auth'; // Base URL for auth
 const ViewEmployees = () => {
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [token, setToken] = useState('');
+    // Declare token state here
+    const [token, setToken] = useState(''); 
     const [searchTerm, setSearchTerm] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(0); 
     const navigate = useNavigate();
 
     const employeesPerPage = 5;
@@ -28,6 +30,7 @@ const ViewEmployees = () => {
     useEffect(() => {
         const storedToken = localStorage.getItem('token');
         if (storedToken) {
+            // Use setToken to update the state
             setToken(storedToken);
         } else {
             message.error('No authentication token found. Please log in.');
@@ -41,6 +44,11 @@ const ViewEmployees = () => {
             fetchEmployees();
         }
     }, [token]);
+
+    // Add this useEffect to reset currentPage to 0 when searchTerm changes
+    useEffect(() => {
+        setCurrentPage(0); 
+    }, [searchTerm]);
 
     const fetchEmployees = async () => {
         setLoading(true);
@@ -57,7 +65,7 @@ const ViewEmployees = () => {
                 key: emp.userId
             }));
             setEmployees(fetchedEmployees);
-            message.success('Fetched employees successfully!');
+
         } catch (error) {
             console.error('Error fetching employees:', error);
             message.error(error.response?.data?.message || 'Failed to fetch employees. Please try again.');
@@ -163,16 +171,22 @@ const ViewEmployees = () => {
         navigate('/admin/add-employee');
     };
 
-    const filteredEmployees = employees.filter(employee =>
-        employee.id.toString().includes(searchTerm) ||
-        employee.fullname.trim().toLowerCase().includes(searchTerm.toLowerCase().trim()) ||
-        employee.email.trim().toLowerCase().includes(searchTerm.toLowerCase().trim()) ||
-        employee.address.trim().toLowerCase().includes(searchTerm.toLowerCase().trim()) ||
-        employee.username.trim().toLowerCase().includes(searchTerm.toLowerCase().trim())
-    );
+    // Corrected filteredEmployees logic to handle potential undefined properties
+    const filteredEmployees = employees.filter(employee => {
+        const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
+
+        const idMatches = employee.id?.toString().includes(lowerCaseSearchTerm) || false;
+        const fullnameMatches = (employee.fullname?.trim().toLowerCase().includes(lowerCaseSearchTerm)) || false;
+        const emailMatches = (employee.email?.trim().toLowerCase().includes(lowerCaseSearchTerm)) || false;
+        const addressMatches = (employee.address?.trim().toLowerCase().includes(lowerCaseSearchTerm)) || false;
+        const usernameMatches = (employee.username?.trim().toLowerCase().includes(lowerCaseSearchTerm)) || false;
+
+        return idMatches || fullnameMatches || emailMatches || addressMatches || usernameMatches;
+    });
+
 
     const totalPages = Math.ceil(filteredEmployees.length / employeesPerPage);
-    const currentEmployees = filteredEmployees.slice((currentPage - 1) * employeesPerPage, currentPage * employeesPerPage);
+    const currentEmployees = filteredEmployees.slice(currentPage * employeesPerPage, (currentPage + 1) * employeesPerPage);
 
     // Columns: ID, Username, Full Name, Email, Phone, Address, Role, Active (8 columns)
     const numberOfColumns = 8;
@@ -257,7 +271,7 @@ const ViewEmployees = () => {
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Full Name</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Email</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Phone</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Address</th>
+                                              
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Role</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Active</th>
                                             </tr>
@@ -268,21 +282,23 @@ const ViewEmployees = () => {
                                                     <td colSpan={numberOfColumns} className="px-6 py-4 text-sm text-gray-300 text-center">No employees found.</td>
                                                 </tr>
                                             ) : (
-                                                currentEmployees.map(employee => (
+                                                currentEmployees.map((employee, index) => (
                                                     <tr key={employee.key} className="hover:bg-gray-700 transition-colors duration-200">
-                                                        <td className="px-6 py-4 text-sm text-gray-300">{employee.id}</td>
+                                                        {/* Display sequential ID, adjusted for 0-indexed currentPage */}
+                                                        <td className="px-6 py-4 text-sm text-gray-300">
+                                                            {currentPage * employeesPerPage + index + 1}
+                                                        </td>
                                                         <td className="px-6 py-4 text-sm text-gray-300">{employee.username}</td>
                                                         <td className="px-6 py-4 text-sm text-gray-300">{employee.fullname}</td>
                                                         <td className="px-6 py-4 text-sm text-gray-300">{employee.email}</td>
                                                         <td className="px-6 py-4 text-sm text-gray-300">{employee.phone}</td>
-                                                        <td className="px-6 py-4 text-sm text-gray-300">{employee.address}</td>
+                                                        
                                                         <td className="px-6 py-4 text-sm text-gray-300">
                                                             <Select
                                                                 value={employee.role}
                                                                 onChange={(value) => handleUpdateRole(employee.id, employee.fullname, value)}
                                                                 style={{ width: 120, color: 'white' }}
                                                                 className="bg-gray-700 rounded"
-                                                                // Added dropdownClassName for custom styling
                                                                 dropdownClassName="ant-select-dropdown-dark-theme-override"
                                                                 optionLabelProp="label"
                                                                 bordered={false}
@@ -310,33 +326,12 @@ const ViewEmployees = () => {
                                     </table>
                                 </div>
 
-                                <div className="flex justify-center items-center space-x-2 mt-4">
-                                    <button
-                                        className="p-2 rounded-md text-red-500 hover:bg-zinc-800"
-                                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                        disabled={currentPage === 1}
-                                    >
-                                        Previous
-                                    </button>
-                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                        <button
-                                            key={page}
-                                            className={`w-8 h-8 rounded-md flex items-center justify-center ${
-                                                currentPage === page ? 'bg-red-600 text-white' : 'text-gray-400 hover:bg-zinc-800'
-                                            }`}
-                                            onClick={() => setCurrentPage(page)}
-                                        >
-                                            {page}
-                                        </button>
-                                    ))}
-                                    <button
-                                        className="p-2 rounded-md text-red-500 hover:bg-zinc-800"
-                                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                        disabled={currentPage === totalPages}
-                                    >
-                                        Next
-                                    </button>
-                                </div>
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    onPageChange={setCurrentPage}
+                                />
+                                
                             </>
                         )}
                     </div>

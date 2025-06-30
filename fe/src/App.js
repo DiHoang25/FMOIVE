@@ -3,6 +3,9 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import RequireRole from './components/RequireRole';
 
+import { Provider } from 'react-redux';
+import { store } from './redux/store'; // Adjust the path to your store file
+
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import UsersDashboard from './pages/Users/UsersDashboard';
 import EmployeeDashboard from './pages/Employee/EmployeeDashboard';
@@ -64,6 +67,7 @@ import EditPromotion from './pages/Admin/EditPromotion';
 import { AuthProvider } from './contexts/AuthContext';
 import ViewEmployees from './pages/Admin/ViewEmployee';
 import AddEmployee from './pages/Admin/AddEmployee';
+import EditEmployeePage from './pages/Admin/EditEmployeePage';
 
 function AppContent() {
   const location = useLocation();
@@ -153,20 +157,24 @@ function AppContent() {
           <Route path="/employee/counter-payment-success" element={<RequireRole allowedRoles={['employee']}><PaymentSuccess /></RequireRole>} />
           <Route path="/employee/counter-booking-list" element={<RequireRole allowedRoles={['employee']}><CounterBookingList /></RequireRole>} />
           <Route path="/employee/counter-get-ticket" element={<RequireRole allowedRoles={['employee']}><CounterGetTicket /></RequireRole>} />
+          <Route path="/employee/edit-employee" element={<RequireRole allowedRoles={['employee']}><EditEmployeePage /></RequireRole>} />
+
+          {/* Fallback Route */}
         </Routes>
         {!hideNavbarFooter && <Footer />}
       </div>
     </>
   );
 }
-
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-    </BrowserRouter>
+    <Provider store={store}> {/* Wrap your entire application with the Redux Provider */}
+      <BrowserRouter>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </BrowserRouter>
+    </Provider>
   );
 }
 
