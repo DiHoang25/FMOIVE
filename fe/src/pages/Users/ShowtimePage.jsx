@@ -2,13 +2,13 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 import MovieCard from '../../components/MovieCard';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 
 function getWeekDates(startDate) {
     const dates = [];
     const start = new Date(startDate);
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 6; i++) { // Get 6 days including the start date
         const next = new Date(start);
         next.setDate(start.getDate() + i);
         dates.push(next);
@@ -18,10 +18,11 @@ function getWeekDates(startDate) {
 
 function formatDateLabel(date) {
     const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString();
+    const month = (date.getMonth() + 1).toString(); // 0-indexed
     return `${day}/${month}`;
 }
 
+// Helper to get full date string for passing to next page
 function formatDateForNavigation(date) {
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     return date.toLocaleDateString('en-US', options);
@@ -29,41 +30,37 @@ function formatDateForNavigation(date) {
 
 
 function ShowtimePage() {
-    const navigate = useNavigate();
+    const navigate = useNavigate(); // Initialize useNavigate
     const [startDate, setStartDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(formatDateLabel(new Date()));
     const [movies, setMovies] = useState([]);
-
-    // --- Pagination States ---
-    const [currentPage, setCurrentPage] = useState(1);
-    const moviesPerPage = 5; // Display 5 movies per page
-    // --- End Pagination States ---
 
     const weekDates = getWeekDates(startDate);
 
     const handlePrevWeek = () => {
         const newStart = new Date(startDate);
-        newStart.setDate(startDate.getDate() - 6);
+        newStart.setDate(startDate.getDate() - 6); // Go back 6 days
         setStartDate(newStart);
+        // Also update selectedDate to the first day of the new week
         setSelectedDate(formatDateLabel(newStart));
-        setCurrentPage(1); // Reset to first page when changing week
     };
 
     const handleNextWeek = () => {
         const newStart = new Date(startDate);
-        newStart.setDate(startDate.getDate() + 6);
+        newStart.setDate(startDate.getDate() + 6); // Go forward 6 days
         setStartDate(newStart);
+        // Also update selectedDate to the first day of the new week
         setSelectedDate(formatDateLabel(newStart));
-        setCurrentPage(1); // Reset to first page when changing week
     };
 
     useEffect(() => {
         axios.get('http://localhost:5000/api/movies')
             .then(response => {
                 const todayParts = selectedDate.split('/');
+                // Create a date object for the selected day in the *current year*
                 const currentYear = new Date().getFullYear();
                 const selectedDayDate = new Date(currentYear, parseInt(todayParts[1]) - 1, parseInt(todayParts[0]));
-                selectedDayDate.setHours(0, 0, 0, 0);
+                selectedDayDate.setHours(0, 0, 0, 0); // Normalize to start of day
 
                 const filtered = response.data.filter(movie => {
                     if (movie.is_deleted) return false;
@@ -72,56 +69,38 @@ function ShowtimePage() {
                     start.setHours(0, 0, 0, 0);
                     end.setHours(0, 0, 0, 0);
 
+                    // Check if selectedDayDate is within the movie's active date range
                     return selectedDayDate >= start && selectedDayDate <= end;
                 });
 
                 setMovies(filtered);
-                setCurrentPage(1); // Reset to first page when movies data changes
             })
             .catch(error => {
                 console.error('❌ Error fetching movies:', error);
             });
     }, [selectedDate]);
 
+    // This function will be passed to MovieCard for its handleShowtimeClick
     const handleMovieCardShowtimeClick = (movieDetails, timeClicked) => {
+        // Construct the full date string for navigation
         const todayParts = selectedDate.split('/');
-        const currentYear = new Date().getFullYear();
+        const currentYear = new Date().getFullYear(); // Assuming current year
         const fullDateObj = new Date(currentYear, parseInt(todayParts[1]) - 1, parseInt(todayParts[0]));
-        const formattedDate = formatDateForNavigation(fullDateObj);
+        const formattedDate = formatDateForNavigation(fullDateObj); // e.g., "Monday, May 26, 2025"
 
         navigate('/select-seats', {
             state: {
                 name: movieDetails.name,
                 image_url: movieDetails.image_url,
-                version: movieDetails.version || '2D',
+                version: movieDetails.version || '2D', // Default if not provided by API
                 running_time: movieDetails.running_time,
-                time: `${formattedDate}, ${timeClicked}`,
-                cinema_room: movieDetails.cinema_room,
+                time: `${formattedDate}, ${timeClicked}`, // Combine full date and time
+                cinema_room: movieDetails.cinema_room, // Assuming cinema_room is per movie from API
+                // If specific showtimes have different rooms, you'll need to adapt API response
             },
         });
     };
 
-    // --- Pagination Logic ---
-    const indexOfLastMovie = currentPage * moviesPerPage;
-    const indexOfFirstMovie = indexOfLastMovie - moviesPerPage;
-    const currentMovies = movies.slice(indexOfFirstMovie, indexOfLastMovie);
-
-    const totalPages = Math.ceil(movies.length / moviesPerPage);
-
-    const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-    const handleNextPage = () => {
-        if (currentPage < totalPages) {
-            setCurrentPage(currentPage + 1);
-        }
-    };
-
-    const handlePrevPage = () => {
-        if (currentPage > 1) {
-            setCurrentPage(currentPage - 1);
-        }
-    };
-    // --- End Pagination Logic ---
 
     return (
         <div className="bg-black min-h-screen text-white px-6 py-10">
@@ -141,7 +120,7 @@ function ShowtimePage() {
                             onClick={() => setSelectedDate(label)}
                             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ease-in-out ${
                                 isSelected ? 'bg-red-600 text-white' : 'bg-gray-800 hover:bg-gray-700'
-                            }`}
+                            }`} // Changed selected date to red
                         >
                             {label}
                         </button>
@@ -153,53 +132,22 @@ function ShowtimePage() {
             </div>
 
             <div className="grid grid-cols-1 gap-6">
-                {currentMovies.length > 0 ? ( // Use currentMovies for rendering
-                    currentMovies.map((movie, index) => (
+                {movies.length > 0 ? (
+                    movies.map((movie, index) => (
                         <MovieCard
-                            key={movie.id || index} // Use unique movie.id if available for better keying
+                            key={index}
                             title={movie.name}
                             poster={movie.image_url}
                             info={`${movie.version || '2D'} • ${movie.running_time} min • ${movie.type || 'Movie'}`}
-                            showtimes={movie.showtimes}
-                            movie={movie}
-                            onShowtimeClick={handleMovieCardShowtimeClick}
+                            showtimes={movie.showtimes} // showtimes as an array of time strings (e.g., ["10:00", "14:30"])
+                            movie={movie} // Pass the full movie object
+                            onShowtimeClick={handleMovieCardShowtimeClick} // Pass the new handler
                         />
                     ))
                 ) : (
                     <p className="text-center text-gray-400">No movies available for this day.</p>
                 )}
             </div>
-
-            {/* Pagination Controls */}
-            {totalPages > 1 && ( // Only show pagination if there's more than 1 page
-                <div className="flex justify-center items-center gap-2 mt-10">
-                    <button
-                        onClick={handlePrevPage}
-                        disabled={currentPage === 1}
-                        className="p-2 rounded-full hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        <ChevronLeftIcon className="h-5 w-5" />
-                    </button>
-                    {Array.from({ length: totalPages }, (_, i) => (
-                        <button
-                            key={i + 1}
-                            onClick={() => paginate(i + 1)}
-                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ease-in-out ${
-                                currentPage === i + 1 ? 'bg-red-600 text-white' : 'bg-gray-800 hover:bg-gray-700'
-                            }`}
-                        >
-                            {i + 1}
-                        </button>
-                    ))}
-                    <button
-                        onClick={handleNextPage}
-                        disabled={currentPage === totalPages}
-                        className="p-2 rounded-full hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        <ChevronRightIcon className="h-5 w-5" />
-                    </button>
-                </div>
-            )}
         </div>
     );
 }

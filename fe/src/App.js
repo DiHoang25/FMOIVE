@@ -62,6 +62,8 @@ import AddCinemaRoom from './pages/Admin/AddCinemaRoom';
 import AddPromotion from './pages/Admin/AddPromotion';
 import EditPromotion from './pages/Admin/EditPromotion';
 import { AuthProvider } from './contexts/AuthContext';
+import ViewEmployees from './pages/Admin/ViewEmployee';
+import AddEmployee from './pages/Admin/AddEmployee';
 
 function AppContent() {
   const location = useLocation();
@@ -104,7 +106,7 @@ function AppContent() {
           <Route path="/customer-benefits" element={<CustomerBenefits />} />
           <Route path="/admin/cinema-rooms" element={<CinemaRooms />} />
           <Route path="/admin/room-detail/:roomId" element={<CinemaRoomDetail />} />
-          <Route path="/admin/movie-list/edit-movie/:id" element={<EditMovie />} />
+          <Route path="/admin/movie-list/edit-movie/:movie._id" element={<EditMovie />} />
           <Route path='/admin/cinema-rooms/add-new-cinema-room' element={<AddCinemaRoom />} />
           <Route path='/admin/add-promotion' element={<AddPromotion />} />
           <Route path='/admin/promotions/edit-promotion/:id' element={<EditPromotion />} />
@@ -120,7 +122,7 @@ function AppContent() {
           <Route path="/Users" element={<RequireRole allowedRoles={['customer']}><UsersDashboard /></RequireRole>} />
           <Route path="/viewbookedticket" element={<RequireRole allowedRoles={['customer']}><ViewBookedTickets /></RequireRole>} />
           <Route path="/viewscorehistory" element={<RequireRole allowedRoles={['customer']}><ViewScoreHistory /></RequireRole>} />
-          <Route path="/viewaccount" element={<RequireRole allowedRoles={['customer']}><ViewAccount /></RequireRole>} />
+<Route path="/viewaccount" element={<RequireRole allowedRoles={['customer']}><ViewAccount /></RequireRole>} />
           <Route path="/editaccount" element={<RequireRole allowedRoles={['customer']}><EditAccount /></RequireRole>} />
           <Route path="/changepassword" element={<RequireRole allowedRoles={['customer']}><ChangePassword /></RequireRole>} />
           <Route path="/customer-benefits" element={<RequireRole allowedRoles={['customer']}><CustomerBenefits /></RequireRole>} />
@@ -137,10 +139,12 @@ function AppContent() {
           {/* Admin */}
           <Route path="/admin" element={<RequireRole allowedRoles={['admin']}><AdminDashboard /></RequireRole>} />
           <Route path="/admin/view-members" element={<RequireRole allowedRoles={['admin']}><ViewMembers /></RequireRole>} />
+          <Route path="/admin/view-employees" element={<RequireRole allowedRoles={['admin']}><ViewEmployees /></RequireRole>} />
           <Route path="/admin/admin-profile" element={<RequireRole allowedRoles={['admin']}><AdminProfile /></RequireRole>} />
+          <Route path="/admin/add-employee" element={<RequireRole allowedRoles={['admin']}><AddEmployee/></RequireRole>} />
           <Route path="/admin/add-movie" element={<RequireRole allowedRoles={['admin']}><AddMovie /></RequireRole>} />
           <Route path="/admin/movie-list" element={<RequireRole allowedRoles={['admin']}><MovieList /></RequireRole>} />
-          <Route path="/admin/movie-list/edit-movie/:movie._id" element={<RequireRole allowedRoles={['admin']}><EditMovie /></RequireRole>} />
+          <Route path="/admin/movie-list/edit-movie/:id" element={<RequireRole allowedRoles={['admin']}><EditMovie /></RequireRole>} />
           <Route path="/admin/booking-list" element={<RequireRole allowedRoles={['admin']}><BookingList /></RequireRole>} />
           <Route path="/admin/promotions" element={<RequireRole allowedRoles={['admin']}><Promotions /></RequireRole>} />
           <Route path="/admin/add-promotion" element={<RequireRole allowedRoles={['admin']}><AddPromotion /></RequireRole>} />
@@ -151,7 +155,7 @@ function AppContent() {
 
           {/* Employee */}
           <Route path="/employee" element={<RequireRole allowedRoles={['employee']}><EmployeeDashboard /></RequireRole>} />
-          <Route path="/employee/employee-profile" element={<RequireRole allowedRoles={['employee']}><EmployeeProfile /></RequireRole>} />
+<Route path="/employee/employee-profile" element={<RequireRole allowedRoles={['employee']}><EmployeeProfile /></RequireRole>} />
           <Route path="/employee/members-list" element={<RequireRole allowedRoles={['employee']}><ViewMembersList /></RequireRole>} />
           <Route path="/employee/counter-showtimes" element={<RequireRole allowedRoles={['employee']}><CounterShowtimesPage /></RequireRole>} />
           <Route path="/employee/counter-seat" element={<RequireRole allowedRoles={['employee']}><CounterSeatSelectionPage /></RequireRole>} />
@@ -171,9 +175,9 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
-    <AuthProvider>
+      <AuthProvider>
       <AppContent />
-      </AuthProvider>
+    </AuthProvider>
     </BrowserRouter>
   );
 }
