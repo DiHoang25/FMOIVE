@@ -62,6 +62,7 @@ import AddCinemaRoom from './pages/Admin/AddCinemaRoom';
 import AddPromotion from './pages/Admin/AddPromotion';
 import EditPromotion from './pages/Admin/EditPromotion';
 import { AuthProvider } from './contexts/AuthContext';
+import NotFoundPage from './pages/NotFound/NotFoundPage';
 
 function AppContent() {
   const location = useLocation();
@@ -149,6 +150,9 @@ function AppContent() {
           <Route path="/employee/counter-payment-success" element={<RequireRole allowedRoles={['employee']}><PaymentSuccess /></RequireRole>} />
           <Route path="/employee/counter-booking-list" element={<RequireRole allowedRoles={['employee']}><CounterBookingList /></RequireRole>} />
           <Route path="/employee/counter-get-ticket" element={<RequireRole allowedRoles={['employee']}><CounterGetTicket /></RequireRole>} />
+
+          {/* 404 Not Found - Must be the last route */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
         {!hideNavbarFooter && <Footer />}
       </div>
@@ -167,3 +171,4 @@ function App() {
 }
 
 export default App;
+
