@@ -4,16 +4,18 @@ require('dotenv').config();
 
 
 // Import các tuyến (routes) từ thư mục routes
-const authRoutes = require('./routes/authentication/auth'); 
-const profileRoutes = require('./routes/userFeature/profileRoutes');
+const authRoutes = require('./routes/authentication/auth');     // Import các tuyến xác thực người dùng
+const profileRoutes = require('./routes/userFeature/profileRoutes');    // Import các tuyến quản lý hồ sơ người dùng
 const featureRoutes = require('./routes/userFeature/userFeatureRoutes'); // Import các tuyến người dùng
-const customerManagementRoutes = require('./routes/admin/customerRoutes');
-const employeeManagementRoutes = require('./routes/admin/employeeRoutes');
-const uploadRoutes = require('./routes/movie/uploadRoute');
-const movieRoutes = require('./routes/movie/movieRoutes');
-const homepageRoutes = require('./routes/movie/homepageRoutes');
-const promotionRoutes = require('./routes/promotions/promotionsRoutes');
+const customerManagementRoutes = require('./routes/admin/customerRoutes');  // Import các tuyến quản lý khách hàng
+const employeeManagementRoutes = require('./routes/admin/employeeRoutes');  // Import các tuyến quản lý nhân viên
+const uploadRoutes = require('./routes/movie/uploadRoute');   // quản lý upload ảnh
+const movieRoutes = require('./routes/movie/movieRoutes');  // quản lý phim
+const homepageRoutes = require('./routes/movie/homepageRoutes'); // quản lý trang chủ
+const promotionRoutes = require('./routes/promotions/promotionsRoutes'); // quản lý khuyến mãi
 const roomManagermentRoutes = require('./routes/theather/room'); // Import tuyến quản lý phòng
+const productRoutes = require('./routes/product/productRoutes'); // Import tuyến quản lý sản phẩm
+const comboRoutes = require('./routes/product/comboRoutes'); // Import tuyến quản lý combo
 // Khởi tạo ứng dụng Express
 
 const app = express();
@@ -45,6 +47,9 @@ app.use('/api/home', homepageRoutes);
 app.use('/api/promotions', promotionRoutes);
 // tuyến quản lý phòng
 app.use('/api/theater/rooms', roomManagermentRoutes);
+// tuyến quản lý sản phẩm
+app.use('/api/product', productRoutes);
+app.use('/api/combo', comboRoutes);
 
 
 

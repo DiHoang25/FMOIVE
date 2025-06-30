@@ -2,9 +2,13 @@
 import { configureStore } from '@reduxjs/toolkit';
 import bookingReducer from './bookingSlice'; 
 
+
+
+import movieSearchReducer from './movieSearchSlice';
+
 export const store = configureStore({
   reducer: {
-    booking: bookingReducer, // Our booking slice will manage the booking state
-    // Add other slices here as your app grows (e.g., userAuth: userAuthReducer)
+    movieSearch: movieSearchReducer,
+    booking: bookingReducer, 
   },
 });

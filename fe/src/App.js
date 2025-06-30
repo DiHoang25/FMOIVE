@@ -65,9 +65,10 @@ import AddCinemaRoom from './pages/Admin/AddCinemaRoom';
 import AddPromotion from './pages/Admin/AddPromotion';
 import EditPromotion from './pages/Admin/EditPromotion';
 import { AuthProvider } from './contexts/AuthContext';
+import NotFoundPage from './pages/NotFound/NotFoundPage';
 import ViewEmployees from './pages/Admin/ViewEmployee';
 import AddEmployee from './pages/Admin/AddEmployee';
-import EditEmployeePage from './pages/Admin/EditEmployeePage';
+
 
 function AppContent() {
   const location = useLocation();
@@ -99,9 +100,21 @@ function AppContent() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/new-password" element={<NewPasswordPage />} />
-          <Route path="/moviedetails/:id" element={<MovieDetails />} />
-          <Route path="/movienews" element={<MovieNews />} />
-          <Route path="/moviesearch" element={<MovieSearch />} />
+          <Route path="/viewbookedticket" element={<ViewBookedTickets />} />
+          <Route path="/viewscorehistory" element={<ViewScoreHistory />} />
+          <Route path='/admin/promotions' element={<Promotions />} />
+          <Route path="/viewaccount" element={<ViewAccount />} />
+          <Route path="/editaccount" element={<EditAccount />} />
+          {/* <Route path="/moviedetailssearch" element={<MovieDetailsSearch />} />
+          <Route path="/movienewsssearch" element={<MovieNewsSearch />} /> */}
+          <Route path='/admin/booking-list' element={<BookingList />} />
+          <Route path="/customer-benefits" element={<CustomerBenefits />} />
+          <Route path="/admin/cinema-rooms" element={<CinemaRooms />} />
+          <Route path="/admin/room-detail/:roomId" element={<CinemaRoomDetail />} />
+          <Route path="/admin/movie-list/edit-movie/:movie._id" element={<EditMovie />} />
+          <Route path='/admin/cinema-rooms/add-new-cinema-room' element={<AddCinemaRoom />} />
+          <Route path='/admin/add-promotion' element={<AddPromotion />} />
+          <Route path='/admin/promotions/edit-promotion/:id' element={<EditPromotion />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/promotions" element={<PromotionsPage />} />
           <Route path="/terms" element={<GeneralTerms />} />
@@ -157,9 +170,9 @@ function AppContent() {
           <Route path="/employee/counter-payment-success" element={<RequireRole allowedRoles={['employee']}><PaymentSuccess /></RequireRole>} />
           <Route path="/employee/counter-booking-list" element={<RequireRole allowedRoles={['employee']}><CounterBookingList /></RequireRole>} />
           <Route path="/employee/counter-get-ticket" element={<RequireRole allowedRoles={['employee']}><CounterGetTicket /></RequireRole>} />
-          <Route path="/employee/edit-employee" element={<RequireRole allowedRoles={['employee']}><EditEmployeePage /></RequireRole>} />
 
-          {/* Fallback Route */}
+          {/* Not Found Page - Phải là route cuối cùng */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
         {!hideNavbarFooter && <Footer />}
       </div>
@@ -179,3 +192,4 @@ function App() {
 }
 
 export default App;
+

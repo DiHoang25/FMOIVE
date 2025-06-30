@@ -4,13 +4,15 @@ import bgImage from '../assets/bg.jpg';
 import logo from '../assets/logo.png';
 import avatar from '../assets/avatar.png';
 import { useAuth } from '../contexts/AuthContext';
+import { message } from 'antd'; 
 
 const NotificationBar = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth(); // ✅ lấy user & logout từ context
+  const { user, logout } = useAuth(); 
 
   const handleLogout = () => {
-    logout(); // ✅ gọi hàm context logout
+    logout(); 
+    message.success(`Đăng xuất thành công!`, 3);
     navigate('/login');
   };
 
@@ -63,3 +65,4 @@ const NotificationBar = () => {
 };
 
 export default NotificationBar;
+

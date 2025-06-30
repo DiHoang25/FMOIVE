@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Counter = require('./Counter'); // Import mô hình Counter để sử dụng bộ đếm số tuần tự
 
+
 const movieSchema = new mongoose.Schema({
   movieId: {
     type: String,
@@ -126,7 +127,7 @@ const movieSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['now_showing', 'coming_soon'],
+    enum: ['now_showing', 'coming_soon', 'ended'],
     required: true
   },
   is_hot: {

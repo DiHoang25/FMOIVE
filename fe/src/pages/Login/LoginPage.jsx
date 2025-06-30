@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../../contexts/AuthContext';
+import { message } from 'antd'; 
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login } = useAuth(); // ✅ Đặt hook trong component
+  const { login } = useAuth(); // 
 
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [errors, setErrors] = useState({ username: '', password: '', general: '' });
@@ -53,13 +54,16 @@ const LoginPage = () => {
         return;
       }
 
-      // ✅ Lưu token và gọi login từ AuthContext
+      
       localStorage.setItem('token', data.token);
       login(data.token);
 
-      // ✅ Giải mã token để điều hướng theo vai trò
+      //  Giải mã token để điều hướng theo vai trò
       const decoded = jwtDecode(data.token);
       const role = decoded.user.role;
+
+      // Hiển thị thông báo đăng nhập thành công
+      message.success(`Đăng nhập thành công! Chào mừng ${decoded.user.username}`, 3);
 
       if (role === 'admin') {
         navigate('/admin');
@@ -145,3 +149,4 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
