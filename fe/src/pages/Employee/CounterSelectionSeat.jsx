@@ -1,12 +1,34 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react"; // Import useEffect
+import { useNavigate, useLocation } from "react-router-dom"; // Import useLocation
 
 const SeatSelection = () => {
-  const seatRows = "ABCDEFGH".split("");
-  const seatColsPerSide = 6; // Two columns of 6 (total 12 seats with a gap in the middle)
-  const [selectedSeats, setSelectedSeats] = useState([]);
-  const occupiedSeats = ["B4", "C4", "C5"];
   const navigate = useNavigate();
+  const { state } = useLocation(); // Get state from previous navigation
+
+  // Destructure data passed from CounterShowtimesPage
+  const {
+    movieDetails = {}, // Full movie object
+    selectedShowtimeTime = '',
+    fullShowtimeDate = '',
+    // movieTitle, // No longer directly needed as we use movieDetails
+    // movieImage, // No longer directly needed as we use movieDetails
+    // selectedMovieId, // No longer directly needed
+    // selectedShowtimeDetails // No longer directly needed
+  } = state || {}; // Provide default empty object if state is null
+
+  const seatRows = "ABCDEFGH".split("");
+  const seatColsPerSide = 6;
+  const [selectedSeats, setSelectedSeats] = useState([]);
+  const [occupiedSeats, setOccupiedSeats] = useState(["B4", "C4", "C5"]); // You might fetch these dynamically later
+
+  // Optional: Display movie info for context
+  const movieDisplay = {
+    title: movieDetails.name || 'Unknown Movie',
+    poster: movieDetails.image_url || 'path/to/default/poster.png', // Fallback image
+    time: fullShowtimeDate,
+    hour: selectedShowtimeTime,
+    screen: movieDetails.cinema_room || 'Screen N/A',
+  };
 
   const toggleSeat = (seatId) => {
     if (occupiedSeats.includes(seatId)) return;
@@ -24,15 +46,34 @@ const SeatSelection = () => {
     return ["A", "B"].includes(row) ? "bg-white" : "bg-yellow-400";
   };
 
-  const calculateTotal = () =>
+  const calculateTotalTicketPrice = () =>
     selectedSeats.reduce((total, seat) => {
       const row = seat[0];
-      const price = ["A", "B"].includes(row) ? 15 : 20;
+      const price = ["A", "B"].includes(row) ? 15 : 20; // Example pricing
       return total + price;
     }, 0);
 
+  const SERVICE_FEE = 2.50; // Define a service fee
+
   const handleContinue = () => {
-    navigate("/employee/counter-combo");
+    if (selectedSeats.length === 0) {
+      alert("Please select at least one seat to continue.");
+      return;
+    }
+
+    const ticketPrice = calculateTotalTicketPrice();
+
+    navigate("/employee/counter-combo", {
+      state: {
+        movieDetails, // Pass the full movie details object
+        selectedShowtimeTime,
+        fullShowtimeDate,
+        selectedSeats,
+        ticketPrice: ticketPrice, // Pass the calculated ticket price
+        serviceFee: SERVICE_FEE, // Pass a default service fee
+        userInformation: state?.userInformation || {}, // Pass through user info if it exists
+      },
+    });
     console.log("Selected Seats:", selectedSeats);
   };
 
@@ -41,8 +82,8 @@ const SeatSelection = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="min-h-screen bg-black text-white py-6">
+      <div className="max-w-4xl mx-auto px-4">
         <div className="mb-4">
           <button
             onClick={handleBack}
@@ -50,6 +91,14 @@ const SeatSelection = () => {
           >
             ← Back
           </button>
+        </div>
+
+        {/* Movie Info (for context on this page) */}
+        <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold">{movieDisplay.title}</h2>
+            <p className="text-gray-400 text-sm">
+                {movieDisplay.time} • {movieDisplay.hour} • {movieDisplay.screen}
+            </p>
         </div>
 
         <h2 className="text-center text-2xl font-bold mb-2">SELECT YOUR SEATS</h2>
@@ -70,6 +119,7 @@ const SeatSelection = () => {
                       key={seatId}
                       onClick={() => toggleSeat(seatId)}
                       className={`w-8 h-8 rounded text-[10px] flex items-center justify-center ${getSeatClass(row, i + 1)}`}
+                      disabled={occupiedSeats.includes(seatId)} // Disable occupied seats
                     >
                       <span
                         className={`font-semibold ${
@@ -102,6 +152,7 @@ const SeatSelection = () => {
                         row,
                         i + 1 + seatColsPerSide
                       )}`}
+                      disabled={occupiedSeats.includes(seatId)} // Disable occupied seats
                     >
                       <span
                         className={`font-semibold ${
@@ -141,7 +192,7 @@ const SeatSelection = () => {
         {/* Total and Continue */}
         <div className="mt-6 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="bg-gray-700 text-white px-6 py-2 rounded text-sm">
-            PRICE: {calculateTotal()} $
+            PRICE: {calculateTotalTicketPrice().toFixed(2)} $
           </div>
           <button
             className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded font-semibold disabled:opacity-50"

@@ -7,7 +7,14 @@ const Movie = require('../../models/Movie');
 const constants = require('constants');
 
 const upload = multer({ dest: './src/uploads/' });
+const dayjs = require('dayjs');
 
+const calculateStatus = (start, end) => {
+  const today = dayjs();
+  if (today.isBefore(dayjs(start))) return 'coming_soon';
+  if (today.isAfter(dayjs(end))) return 'ended';
+  return 'now_showing';
+};
 /**
  * @swagger
  * /api/movies:
@@ -65,7 +72,7 @@ const upload = multer({ dest: './src/uploads/' });
  *                 type: string
  *               status:
  *                 type: string
- *                 enum: [now_showing, coming_soon]
+ *                 enum: [now_showing, coming_soon, ended]
  *               is_hot:
  *                 type: boolean
  *               image:
@@ -116,12 +123,16 @@ router.post('/', upload.fields([
       body.showtimes = body.showtimes.split(',').map(s => s.trim());
     }
 
+    const status = calculateStatus(body.start_date, body.end_date);
+
     const newMovie = new Movie({
       ...body,
       image_url: imageUpload.secure_url,
       banner_url: bannerUrl,
-      is_deleted: false
+      is_deleted: false,
+      status
     });
+
 
     const saved = await newMovie.save();
     console.log('✅ Phim đã lưu:', saved);
@@ -282,10 +293,15 @@ router.put('/:id', upload.fields([
       fs.unlinkSync(bannerFile.path);
     }
 
+    if (updateData.start_date && updateData.end_date) {
+      updateData.status = calculateStatus(updateData.start_date, updateData.end_date);
+    }
+
     const updatedMovie = await Movie.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true
     });
+
 
     if (!updatedMovie) {
       return res.status(404).json({ error: 'Không tìm thấy phim để cập nhật' });

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Room = require('../../models/room'); // Import mô hình Room
+const Room = require('../../models/Room'); // Import mô hình Room
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../../middleware/authMiddleware'); // Import middleware xác thực JWT
@@ -10,16 +10,18 @@ const adminMiddleware = require('../../middleware/adminMiddleware'); // Import m
 // @access  Private (Chỉ dành cho quản trị viên)
 
 router.post('/new_room', authMiddleware, adminMiddleware, async (req, res) => {
-    const { roomId, roomName, quantity, roomType, is_deleted } = req.body;
+    const { roomId, roomName, rows, columns, quantity, roomType, is_deleted } = req.body;
     try {
         // Kiểm tra các trường bắt buộc
-        if (!roomName || !quantity || !roomType) {
+        if (!roomName || !rows || !columns || !roomType) {
             return res.status(400).json({ message: 'Vui lòng cung cấp đầy đủ tên phòng, số lượng ghế và loại phòng.' });
         }
         // Tạo một phòng mới
         const newRoom = new Room({
             roomId,
             roomName,
+            rows,
+            columns,
             quantity,
             roomType,
             is_deleted

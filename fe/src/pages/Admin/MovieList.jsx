@@ -1,11 +1,11 @@
-// ... import giữ nguyên
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaEye, FaEdit, FaTrash, FaSpinner } from 'react-icons/fa';
-import { Switch, Modal, message } from 'antd';
+import { Switch, Modal, message, Tag } from 'antd';
 import Pagination from '../../components/PaginationHomepage';
 import SidebarLayout from '../../components/Sidebar-Admin';
 import dayjs from 'dayjs';
+
 
 const MovieList = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,35 +36,19 @@ const MovieList = () => {
     setCurrentPage(0);
   }, [searchTerm, movies]);
 
-  const totalMovies = movies.length;
-  const nowShowing = movies.filter(movie => movie.status === 'Now showing').length;
-  const upcomingMovies = movies.filter(movie => movie.status === 'Comming Soon').length;
-  const todaysShowtimes = movies.reduce((total, movie) => total + (movie.showtime || 0), 0);
-
-  const toggleStatus = (movie) => {
-    const newStatus = movie.status === 'Now showing' ? 'Comming Soon' : 'Now showing';
-    Modal.confirm({
-      title: 'Confirm Status Change',
-      content: `Are you sure you want to change status of "${movie.name}" to "${newStatus}"?`,
-      okText: 'Confirm',
-      cancelText: 'Cancel',
-      okType: 'primary',
-      okButtonProps: {
-        style: {
-          backgroundColor: '#1677ff',
-          color: 'white',
-          borderColor: '#1677ff',
-        },
-      },
-      onOk: () => {
-        const updated = movies.map(m =>
-          m._id === movie._id ? { ...m, status: newStatus } : m
-        );
-        setMovies(updated);
-        message.success(`Status of "${movie.name}" changed to "${newStatus}"`);
-      },
-    });
+  const getCalculatedStatus = (movie) => {
+    const today = dayjs();
+    const start = dayjs(movie.start_date);
+    const end = dayjs(movie.end_date);
+    if (today.isBefore(start)) return 'coming_soon';
+    if (today.isAfter(end)) return 'ended';
+    return 'now_showing';
   };
+
+  const totalMovies = movies.length;
+  const nowShowing = movies.filter(movie => getCalculatedStatus(movie) === 'now_showing').length;
+  const upcomingMovies = movies.filter(movie => getCalculatedStatus(movie) === 'coming_soon').length;
+  const todaysShowtimes = movies.reduce((total, movie) => total + (movie.showtime || 0), 0);
 
   const confirmDelete = async (movie) => {
     Modal.confirm({
@@ -97,10 +81,9 @@ const MovieList = () => {
 
   const handleSearch = (e) => setSearchTerm(e.target.value);
 
-  const filteredMovies = movies.filter(movie => {
-    const nameMatch = movie.name?.trim().toLowerCase().includes(searchTerm.toLowerCase().trim());
-    return nameMatch;
-  });
+  const filteredMovies = movies.filter(movie =>
+    movie.name?.trim().toLowerCase().includes(searchTerm.toLowerCase().trim())
+  );
 
   const totalPages = Math.ceil(filteredMovies.length / itemsPerPage);
 
@@ -114,11 +97,19 @@ const MovieList = () => {
     currentPage * itemsPerPage,
     (currentPage + 1) * itemsPerPage
   );
-  
 
   const handlePageChange = page => {
-    if (page < 0 || page >= Math.ceil(filteredMovies.length / itemsPerPage)) return;
+    if (page < 0 || page >= totalPages) return;
     setCurrentPage(page);
+  };
+
+  const formatStatusLabel = (status) => {
+    switch (status) {
+      case 'now_showing': return 'Now Showing';
+      case 'coming_soon': return 'Coming Soon';
+      case 'ended': return 'Ended';
+      default: return 'Unknown';
+    }
   };
 
   return (
@@ -140,7 +131,7 @@ const MovieList = () => {
             <h2 className="text-xl font-bold">{nowShowing}</h2>
           </div>
           <div className="bg-yellow-600 rounded-lg p-4 text-center shadow">
-            <p className="text-sm text-gray-100">Comming Soon</p>
+            <p className="text-sm text-gray-100">Coming Soon</p>
             <h2 className="text-xl font-bold">{upcomingMovies}</h2>
           </div>
           <div className="bg-blue-600 rounded-lg p-4 text-center shadow">
@@ -186,39 +177,36 @@ const MovieList = () => {
                   <td colSpan="6" className="text-center py-4 text-gray-400">No movies found.</td>
                 </tr>
               ) : (
-                paginatedMovies.map((movie, index) => (
-                  <tr key={movie._id} className="hover:bg-gray-700 transition">
-                    <td className="px-4 py-2">{(currentPage  * itemsPerPage + index + 1)}</td>
-                    <td className="px-4 py-2">{movie.name}</td>
-                    <td className="px-4 py-2">{movie.genres}</td>
-                    <td className="px-4 py-2">{movie.running_time} min</td>
-                    <td className="px-4 py-2">
-                      <Switch
-                        checked={movie.status === 'Now showing'}
-                        onChange={() => toggleStatus(movie)}
-                        checkedChildren="Now Showing"
-                        unCheckedChildren="Comming Soon"
-                        style={{
-                          backgroundColor: movie.status === 'Now showing' ? '#22c55e' : '#ef4444',
-                        }}
-                      />
-                    </td>
-                    <td className="px-4 py-2 text-center">
-                      <div className="flex justify-center gap-4">
-                        <button onClick={() => showMovieDetails(movie)} className="text-blue-400 hover:text-blue-600 text-xl"><FaEye /></button>
-                        <button onClick={() => window.location.href = '/admin/movie-list/edit-movie/' + movie._id} className="text-yellow-400 hover:text-yellow-600 text-xl"><FaEdit /></button>
-                        <button onClick={() => confirmDelete(movie)} className="text-red-400 hover:text-red-600 text-xl"><FaTrash /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                paginatedMovies.map((movie, index) => {
+                  const status = getCalculatedStatus(movie);
+                  return (
+                    <tr key={movie._id} className="hover:bg-gray-700 transition">
+                      <td className="px-4 py-2">{(currentPage * itemsPerPage + index + 1)}</td>
+                      <td className="px-4 py-2">{movie.name}</td>
+                      <td className="px-4 py-2">{movie.genres}</td>
+                      <td className="px-4 py-2">{movie.running_time} min</td>
+                      <td className="px-4 py-2">
+                        {status === 'now_showing' && <Tag color="green">Now Showing</Tag>}
+                        {status === 'coming_soon' && <Tag color="orange">Coming Soon</Tag>}
+                        {status === 'ended' && <Tag color="red">Ended</Tag>}
+                      </td>
+                      <td className="px-4 py-2 text-center">
+                        <div className="flex justify-center gap-4">
+                          <button onClick={() => showMovieDetails(movie)} className="text-blue-400 hover:text-blue-600 text-xl"><FaEye /></button>
+                          <button onClick={() => window.location.href = '/admin/movie-list/edit-movie/' + movie._id} className="text-yellow-400 hover:text-yellow-600 text-xl"><FaEdit /></button>
+                          <button onClick={() => confirmDelete(movie)} className="text-red-400 hover:text-red-600 text-xl"><FaTrash /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
           {totalPages > 0 && (
             <div className="py-4">
               <Pagination
-                currentPage={currentPage }
+                currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={handlePageChange}
               />
@@ -226,6 +214,7 @@ const MovieList = () => {
           )}
         </div>
 
+        {/* Movie detail modal giữ nguyên như trước */}
         <Modal
           title="Movie Details"
           open={modalVisible}

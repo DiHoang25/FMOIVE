@@ -4,7 +4,6 @@ const promotionSchema = new mongoose.Schema({
   promotionId: {
     type: String,
     unique: true,
-    required: true
   },
   title: {
     type: String,
