@@ -145,6 +145,42 @@ router.delete('/:userId/delete', authMiddleware, adminMiddleware, async (req, re
     }
 });
 
+router.patch('/:userId/role', authMiddleware, adminMiddleware, async (req, res) => {
+    const { newRole } = req.body;
+
+    // Kiểm tra tính hợp lệ của vai trò mới
+    const allowedRoles = ['admin','employee'];
+    if (!allowedRoles.includes(newRole)) {
+        return res.status(400).json({ message: 'Vai trò không hợp lệ.' });
+    }
+
+    try {
+        // Tìm người dùng bằng userId
+        const user = await User.findOne({ userId: req.params.userId });
+
+        if (!user) {
+            return res.status(404).json({ message: 'Không tìm thấy người dùng để cập nhật vai trò.' });
+        }
+
+        // Cập nhật vai trò
+        user.role = newRole;
+        await user.save();
+
+        res.status(200).json({
+            message: `Vai trò của người dùng "${user.username}" đã được cập nhật thành "${newRole}".`,
+            user: user // Trả về thông tin người dùng đã cập nhật (không bao gồm mật khẩu)
+        });
+
+    } catch (error) {
+        console.error('Lỗi khi cập nhật vai trò người dùng:', error.message);
+        res.status(500).send('Lỗi máy chủ khi cập nhật vai trò người dùng.');
+    }
+});
+
+
+// @route   PATCH /api/user-management/:userId/delete
+// @desc    Xóa mềm người dùng (is_deleted = true)
+// @access  Private (Chỉ Admin)
 
 // @route   DELETE /api/user-management/users/:userId
 // @desc    Xóa VĨNH VIỄN người dùng khỏi hệ thống (hard delete)

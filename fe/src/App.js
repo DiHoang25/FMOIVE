@@ -63,6 +63,8 @@ import AddPromotion from './pages/Admin/AddPromotion';
 import EditPromotion from './pages/Admin/EditPromotion';
 import { AuthProvider } from './contexts/AuthContext';
 import NotFoundPage from './pages/NotFound/NotFoundPage';
+import ViewEmployees from './pages/Admin/ViewEmployee';
+import AddEmployee from './pages/Admin/AddEmployee';
 
 function AppContent() {
   const location = useLocation();
@@ -126,10 +128,12 @@ function AppContent() {
           {/* Admin */}
           <Route path="/admin" element={<RequireRole allowedRoles={['admin']}><AdminDashboard /></RequireRole>} />
           <Route path="/admin/view-members" element={<RequireRole allowedRoles={['admin']}><ViewMembers /></RequireRole>} />
+          <Route path="/admin/view-employees" element={<RequireRole allowedRoles={['admin']}><ViewEmployees /></RequireRole>} />
           <Route path="/admin/admin-profile" element={<RequireRole allowedRoles={['admin']}><AdminProfile /></RequireRole>} />
+          <Route path="/admin/add-employee" element={<RequireRole allowedRoles={['admin']}><AddEmployee/></RequireRole>} />
           <Route path="/admin/add-movie" element={<RequireRole allowedRoles={['admin']}><AddMovie /></RequireRole>} />
           <Route path="/admin/movie-list" element={<RequireRole allowedRoles={['admin']}><MovieList /></RequireRole>} />
-          <Route path="/admin/movie-list/edit-movie/:movie._id" element={<RequireRole allowedRoles={['admin']}><EditMovie /></RequireRole>} />
+          <Route path="/admin/movie-list/edit-movie/:id" element={<RequireRole allowedRoles={['admin']}><EditMovie /></RequireRole>} />
           <Route path="/admin/booking-list" element={<RequireRole allowedRoles={['admin']}><BookingList /></RequireRole>} />
           <Route path="/admin/promotions" element={<RequireRole allowedRoles={['admin']}><Promotions /></RequireRole>} />
           <Route path="/admin/add-promotion" element={<RequireRole allowedRoles={['admin']}><AddPromotion /></RequireRole>} />
@@ -151,7 +155,7 @@ function AppContent() {
           <Route path="/employee/counter-booking-list" element={<RequireRole allowedRoles={['employee']}><CounterBookingList /></RequireRole>} />
           <Route path="/employee/counter-get-ticket" element={<RequireRole allowedRoles={['employee']}><CounterGetTicket /></RequireRole>} />
 
-          {/* 404 Not Found - Must be the last route */}
+          {/* Not Found Page - Phải là route cuối cùng */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
         {!hideNavbarFooter && <Footer />}
@@ -163,9 +167,9 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
-    <AuthProvider>
+      <AuthProvider>
       <AppContent />
-      </AuthProvider>
+    </AuthProvider>
     </BrowserRouter>
   );
 }
