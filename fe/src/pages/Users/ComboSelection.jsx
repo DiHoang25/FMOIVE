@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // useLocation is no longer strictly needed for data, but can be useful for debugging or other hooks
 import { Minus, Plus } from 'lucide-react';
+
+// Redux imports
+import { useSelector, useDispatch } from 'react-redux';
+import { setSelectedCombos } from '../../redux/bookingSlice'; // Keeping your specified path: '../../redux/bookingSlice'
 
 // Make sure these paths are correct relative to where ComboSelection.jsx is located
 import darkknight from '../../assets/darkknight.jpg';
@@ -11,21 +15,25 @@ import big2 from '../../assets/Combo2big.png';
 
 const ComboSelection = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const dispatch = useDispatch(); // Initialize useDispatch
 
-  // Destructure movie details, selectedSeats, and totalSeatPrice from location.state
-  const { movie: movieDetails, selectedSeats, totalSeatPrice } = location.state || {};
+  // --- REDUX INTEGRATION FOR MOVIE DETAILS, SELECTED SEATS, AND TOTAL SEAT PRICE ---
+  // These are now fetched directly from the Redux store
+  const { movieDetails, selectedSeats, totalSeatPrice } = useSelector((state) => state.booking);
 
-  // Fallback for movie details if page is accessed directly (for development/testing)
+  // Fallback for movie details if page is accessed directly or Redux state is not yet populated
   const movie = movieDetails || {
     name: 'Movie Title N/A',
-    image_url: darkknight,
+    image_url: darkknight, // Using local asset as fallback
     version: 'N/A',
     running_time: 'N/A',
     time: 'N/A',
     cinema_room: 'N/A',
+    genres: [], // Added for display consistent with previous discussions
   };
 
+  // --- FIXED COMBO DATA ---
+  // This data remains fixed as per your current backend status
   const combos = [
     { id: 1, name: 'Combo 2 big', price: 20, image: big1 },
     { id: 2, name: 'Combo 2 big Extra', price: 30, image: big2e },
@@ -49,14 +57,29 @@ const ComboSelection = () => {
 
   const totalComboPrice = combos.reduce((sum, combo) => sum + combo.price * quantities[combo.id], 0);
 
-  // Optional: Redirect if essential data is missing
+  // Optional: Redirect if essential data is missing (now checking Redux state)
   useEffect(() => {
     if (!movieDetails || !selectedSeats || totalSeatPrice === undefined) {
-      console.warn("Missing essential booking details. Redirecting or using default.");
+      console.warn("Missing essential booking details in Redux. Consider redirecting to a previous step.");
       // navigate('/'); // Uncomment to redirect to home or an error page
     }
   }, [movieDetails, selectedSeats, totalSeatPrice, navigate]);
 
+  const handleContinue = () => {
+    const selectedCombosWithQuantity = combos.filter(combo => quantities[combo.id] > 0).map(combo => ({
+      ...combo,
+      quantity: quantities[combo.id]
+    }));
+
+    // Dispatch selected combos and their total price to Redux
+    dispatch(setSelectedCombos({
+      combos: selectedCombosWithQuantity,
+      totalPrice: totalComboPrice,
+    }));
+
+    // Navigate to confirm booking page without passing state via navigate
+    navigate('/confirm-booking');
+  };
 
   return (
     <div className="min-h-screen bg-black text-white py-10 px-4">
@@ -81,13 +104,16 @@ const ComboSelection = () => {
           <div className="text-sm flex flex-col justify-between">
             <div>
               <h2 className="text-3xl font-semibold">{movie.name}</h2>
-              <p className="text-gray-400 text-xl">{movie.version} • {movie.running_time} min</p>
+              {/* Displaying version, running_time, and genres */}
+              <p className="text-gray-400 text-xl">
+                {movie.version || 'N/A'} • {movie.running_time} min • {movie.genres && movie.genres.length > 0 ? movie.genres.join(', ') : 'N/A'}
+              </p>
             </div>
             <div className="mt-2">
-              <p className="text-gray-200 text-2xl">Today, {movie.time}</p>
-              <p className="text-gray-200 text-2xl">{movie.cinema_room}</p>
+              <p className="text-gray-200 text-2xl">{movie.time}</p>
+              <p className="text-gray-200 text-2xl">{movie.cinema_room || 'N/A'}</p> {/* Display cinema_room */}
               <p className="text-gray-200 text-2xl">Seats: {selectedSeats ? selectedSeats.join(', ') : 'N/A'}</p> {/* Display selected seats */}
-              <p className="text-gray-200 text-2xl">Seat Price: {totalSeatPrice !== undefined ? totalSeatPrice : 'N/A'}$</p> {/* Display seat price */}
+              <p className="text-gray-200 text-2xl">Seat Price: {totalSeatPrice !== undefined ? totalSeatPrice.toFixed(2) : 'N/A'}$</p> {/* Display seat price */}
             </div>
           </div>
         </div>
@@ -129,23 +155,11 @@ const ComboSelection = () => {
         {/* Total and Continue */}
         <div className="flex justify-between items-center mt-6">
           <div className="bg-gray-700 text-white px-6 py-2 rounded text-sm">
-            COMBO PRICE: {totalComboPrice} $
+            COMBO PRICE: {totalComboPrice.toFixed(2)} $ {/* Added toFixed(2) for consistency */}
           </div>
-            <button
+          <button
             className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded font-semibold"
-            onClick={() => navigate('/confirm-booking', {
-                state: {
-                    movie: movieDetails,        // The movie details object
-                    selectedSeats: selectedSeats, // The array of selected seat IDs (e.g., ['A1', 'B2'])
-                    totalSeatPrice: totalSeatPrice, // The calculated total price for seats
-                    selectedCombos: combos.filter(combo => quantities[combo.id] > 0).map(combo => ({
-                        ...combo,
-                        quantity: quantities[combo.id]
-                    })),
-                    totalComboPrice: totalComboPrice, // The calculated total price for combos
-                    // You might also pass the user info from a context or a login flow later
-                }
-            })}
+            onClick={handleContinue} // This now dispatches to Redux and navigates
           >
             CONTINUE
           </button>
