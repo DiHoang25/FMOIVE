@@ -52,12 +52,9 @@ const SidebarLayout = ({ children }) => {
               key: "/employee/counter-showtimes",
               icon: <IoTicketOutline />,
               label: <Link to="/employee/counter-showtimes">Movie & Showtime</Link>,
-            },
-           
-            
-            
+            },          
             {
-              key: "/employee/booking-list",
+              key: "/employee/counter-booking-list",
               icon: <AiOutlineBook />,
               label: <Link to="/employee/counter-booking-list">Booking List</Link>,
             },

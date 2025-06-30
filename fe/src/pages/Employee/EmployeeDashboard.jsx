@@ -34,8 +34,8 @@ function EmployeeDashboard() {
           <div className="bg-gray-800 p-4 rounded-md mb-6">
             <h2 className="text-xl text-gray-300 mb-4">Quick Actions</h2>
             <div className="grid grid-cols-1 gap-4">
-              <Link to="/employee/members-list" className="bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-md text-center">
-                View Members
+              <Link to="/employee/add-combo" className="bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-md text-center">
+                Add Combo Popcorn & Drinks
               </Link>
             </div>
           </div>

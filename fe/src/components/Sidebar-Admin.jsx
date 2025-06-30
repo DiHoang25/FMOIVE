@@ -1,7 +1,7 @@
 // Sidebar-Admin.jsx
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate} from 'react-router-dom';
 import {
     MenuFoldOutlined,
     MenuUnfoldOutlined,
@@ -16,6 +16,7 @@ import { Button, Layout, Menu, theme } from 'antd';
 import { RxAvatar } from "react-icons/rx";
 import { LogoutOutlined } from '@ant-design/icons';
 import AdminNotification from './Admin-Notification';
+import { useAuth } from '../contexts/AuthContext';
 
 const { Header, Sider, Content } = Layout;
 
@@ -24,10 +25,12 @@ const SidebarLayout = ({ children }) => {
     const location = useLocation();
     const [collapsed, setCollapsed] = useState(false);
     const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken();
+    const navigate = useNavigate();
+    const { user, logout } = useAuth(); // ✅ lấy user & logout từ context
 
     const handleLogout = () => {
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+        logout(); // ✅ gọi hàm context logout
+        navigate('/login');
     };
 
     return (
