@@ -74,6 +74,9 @@ import MovieNewsDetails from './pages/Movie/MovieNewsDetails';
 import AddMovieNews from './pages/Admin/AddMovieNews';
 import MovieNewsList from './pages/Admin/MovieNewsList'
 import EditMovieNews from './pages/Admin/EditMovieNews';
+import AddProduct from './pages/Employee/AddProduct';
+import ViewProduct from './pages/Employee/ViewProduct';
+import EditProduct from './pages/Employee/EditProduct';
 
 
 function AppContent() {
@@ -183,6 +186,9 @@ function AppContent() {
           <Route path="/employee/add-combo" element={<RequireRole allowedRoles={['employee']}><AddCombo /></RequireRole>} />
           <Route path="/employee/view-combo" element={<RequireRole allowedRoles={['employee']}><ViewCombo /></RequireRole>} />
           <Route path="/employee/view-combo/edit-combo/:id" element={<RequireRole allowedRoles={['employee']}><EditCombo /></RequireRole>} />
+          <Route path="/employee/add-product" element={<RequireRole allowedRoles={['employee']}><AddProduct /></RequireRole>} />
+          <Route path="/employee/view-product" element={<RequireRole allowedRoles={['employee']}><ViewProduct /></RequireRole>} />
+          <Route path="/employee/view-product/edit-product/:id" element={<RequireRole allowedRoles={['employee']}><EditProduct /></RequireRole>} />
 
           {/* Not Found Page - Phải là route cuối cùng */}
           <Route path="*" element={<NotFoundPage />} />
