@@ -65,7 +65,7 @@ const roomSchema = new mongoose.Schema({
   roomType: {
     type: String,
     required: [true, 'Loại phòng là bắt buộc'],
-    enum: ['2D', '3D', 'imax']
+    enum: ['2D', '3D', 'IMAX']
   },
   is_deleted: {
     type: Boolean,

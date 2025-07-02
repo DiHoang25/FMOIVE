@@ -263,7 +263,7 @@ const ViewCombo = () => {
                 </div>
                 <div className="col-span-2">
                   <p className="text-gray-400">Image:</p>
-                  <img src={selectedCombo.imageUrl} alt="Combo" className="w-full rounded-md shadow" />
+                  <img src={selectedCombo.image_url} alt="Combo" className="w-full rounded-md shadow" />
                 </div>
               </div>
             </div>

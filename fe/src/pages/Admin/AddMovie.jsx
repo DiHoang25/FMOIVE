@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SidebarLayout from '../../components/Sidebar-Admin';
 import DatePicker from '../../components/DatePicker';
 import DropDown from '../../components/DropDown';
@@ -10,6 +10,7 @@ import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import axios from 'axios';
 dayjs.extend(isSameOrBefore);
+
 
 const AddMovie = () => {
     const [formData, setFormData] = useState({
@@ -40,6 +41,10 @@ const AddMovie = () => {
 
     const navigate = useNavigate();
     const [success, setSuccess] = useState(false);
+    const [roomOptions, setRoomOptions] = useState([]);
+    const selectedVersions = Object.keys(formData.version).filter(v => formData.version[v]);
+    const filteredRooms = roomOptions.filter(room => selectedVersions.includes(room.roomType));
+
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -76,7 +81,7 @@ const AddMovie = () => {
         formDataToSend.append('status', updatedStatus);
         formDataToSend.append('version', selectedVersions.join(', '));
         formDataToSend.append('genres', formData.genres.join(', '));
-        formDataToSend.append('cinema_room', formData.cinemaRoom[0]);
+        formDataToSend.append('cinema_room', formData.cinemaRoom[0]?.value); // chỉ lấy ID
         formDataToSend.append('showtimes', formData.showTimes.join(', '));
 
         if (formData.moviePoster) {
@@ -98,6 +103,28 @@ const AddMovie = () => {
             message.error('Error adding movie');
         }
     };
+
+
+    useEffect(() => {
+        const fetchRooms = async () => {
+            const token = localStorage.getItem('token');
+            const res = await fetch('http://localhost:5000/api/theater/rooms', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            const data = await res.json();
+            if (data.rooms) {
+                const options = data.rooms.map(room => ({
+                    value: room.roomId,
+                    label: room.roomName,
+                    roomType: room.roomType
+                }));
+                setRoomOptions(options);
+            }
+        };
+        fetchRooms();
+    }, []);
 
 
     const resetForm = () => {
@@ -245,19 +272,29 @@ const AddMovie = () => {
                                                 <button
                                                     key={ver}
                                                     type="button"
-                                                    onClick={() => setFormData({
-                                                        ...formData,
-                                                        version: {
+                                                    onClick={() => {
+                                                        const newVersion = !formData.version[ver];
+                                                        const updatedVersion = {
                                                             ...formData.version,
-                                                            [ver]: !formData.version[ver]
-                                                        }
-                                                    })}
-                                                    className={`px-4 py-2 rounded-lg border transition ${formData.version[ver] ? 'bg-red-600 text-white border-red-700' : 'bg-slate-700 text-gray-300 border-slate-600 hover:bg-slate-600'}`}
+                                                            [ver]: newVersion
+                                                        };
+
+                                                        setFormData({
+                                                            ...formData,
+                                                            version: updatedVersion,
+                                                            cinemaRoom: [] // ✅ Reset phòng đã chọn khi thay version
+                                                        });
+                                                    }}
+                                                    className={`px-4 py-2 rounded-lg border transition ${formData.version[ver]
+                                                        ? 'bg-red-600 text-white border-red-700'
+                                                        : 'bg-slate-700 text-gray-300 border-slate-600 hover:bg-slate-600'
+                                                        }`}
                                                 >
                                                     {ver}
                                                 </button>
                                             ))}
                                         </div>
+
                                     </div>
 
                                     <div>
@@ -265,9 +302,19 @@ const AddMovie = () => {
                                             Cinema Rooms <span className="text-red-500">*</span>
                                         </label>
                                         <DropDown
-                                            value={formData.cinemaRoom}
-                                            onChange={(val) => setFormData({ ...formData, cinemaRoom: val })}
+                                            value={formData.cinemaRoom[0]}
+                                            onChange={(selectedRoom) => {
+                                                setFormData({
+                                                    ...formData,
+                                                    cinemaRoom: [selectedRoom],
+                                                });
+                                            }}
+                                            options={filteredRooms}
+                                            disabled={selectedVersions.length === 0}
                                         />
+
+
+
                                     </div>
 
                                     <div>

@@ -57,32 +57,40 @@ const AddCombo = () => {
         });
     };
 
-    const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const payload = {
-        comboName: formData.name,
-        description: formData.description,
-        price: formData.price,
-        items: comboItems.map(item => ({
+    if (!formData.image) {
+        message.error('Vui lòng chọn ảnh cho combo.');
+        return;
+    }
+
+    const form = new FormData();
+    form.append('comboName', formData.name);
+    form.append('description', formData.description);
+    form.append('price', formData.price);
+    form.append('startDate', formData.fromDate?.toISOString());
+    form.append('endDate', formData.toDate?.toISOString());
+    form.append('isActive', true);
+    form.append('image', formData.image);
+
+    form.append('items', JSON.stringify(
+        comboItems.map(item => ({
             productName: productOptions.find(p => p.id === item.productId)?.name,
             quantity: item.quantity
-        })),
-        startDate: formData.fromDate?.toISOString(),
-        endDate: formData.toDate?.toISOString(),
-        imageUrl: formData.imagePreview,
-        isActive: true
-    };
+        }))
+    ));
 
     const hide = message.loading('Adding combo...', 0);
 
     try {
-        const response = await axios.post('http://localhost:5000/api/combo/new_combo', payload, {
+        const response = await axios.post('http://localhost:5000/api/combo/new_combo', form, {
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'multipart/form-data',
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
         });
+
         hide();
         message.success('Combo added successfully!');
         navigate('/employee/view-combo');
@@ -92,7 +100,6 @@ const AddCombo = () => {
         message.error('Error adding combo');
     }
 };
-
 
     return (
         <SidebarLayout>

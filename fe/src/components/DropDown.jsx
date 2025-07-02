@@ -1,25 +1,24 @@
 import React from 'react';
-import { Select, Space } from 'antd';
+import { Select } from 'antd';
 
-const DropDown = ({ value = [], onChange }) => {
+const DropDown = ({ value = null, onChange, options = [], disabled = false }) => {
+  const handleChange = (selectedValue) => {
+    const selectedRoom = options.find(room => room.value === selectedValue);
+    onChange?.(selectedRoom);
+  };
+
   return (
-    <Space wrap>
-      <Select
-        mode="multiple"
-        allowClear
-        placeholder="Select Cinema Rooms"
-        value={value}
-        style={{ width: 200 }}
-        onChange={onChange}
-        options={[
-          { value: 'Room 1', label: 'Room 1' },
-          { value: 'Room 2', label: 'Room 2' },
-          { value: 'Room 3', label: 'Room 3' },
-          { value: 'Room 4', label: 'Room 4' },
-          { value: 'Room 5', label: 'Room 5' },
-        ]}
-      />
-    </Space>
+    <Select
+      placeholder="Select Cinema Room"
+      value={value?.value}
+      style={{ width: 250 }}
+      onChange={handleChange}
+      options={options.map(opt => ({
+        value: opt.value,
+        label: opt.label
+      }))}
+      disabled={disabled} // 👈 thêm dòng này
+    />
   );
 };
 

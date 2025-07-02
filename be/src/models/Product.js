@@ -37,8 +37,8 @@ const productSchema = new mongoose.Schema({
     imageUrl: {
         type: String,
         //required: [true, 'URL hình ảnh là bắt buộc'],
-        trim: true,
-        // validate: {
+        trim: true
+        // , validate: {
         //     validator: function (v) {
         //         return /^(http|https):\/\/[^ "]+$/.test(v); // Kiểm tra định dạng URL
         //     },

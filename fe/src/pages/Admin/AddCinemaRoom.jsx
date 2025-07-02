@@ -90,7 +90,7 @@ const AddCinemaRoom = () => {
                 options={[
                   { label: '2D', value: '2D' },
                   { label: '3D', value: '3D' },
-                  { label: 'IMAX', value: 'imax' },
+                  { label: 'IMAX', value: 'IMAX' },
                 ]}
                 placeholder="Select room type"
               />
@@ -108,7 +108,7 @@ const AddCinemaRoom = () => {
                     className={inputClass}
                     formatter={(value) => value?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
                     parser={(value) => value.replace(/\./g, '')}
-                    addonAfter="₫"
+                    addonAfter="VND"
                     style={{ width: '100%' }}
                   />
                 </Form.Item>
@@ -124,7 +124,7 @@ const AddCinemaRoom = () => {
                     className={inputClass}
                     formatter={(value) => value?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
                     parser={(value) => value.replace(/\./g, '')}
-                    addonAfter="₫"
+                    addonAfter="VND"
                     style={{ width: '100%' }}
                   />
                 </Form.Item>

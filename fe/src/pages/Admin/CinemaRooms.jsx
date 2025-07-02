@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import SidebarLayout from '../../components/Sidebar-Admin';
+import { FaEdit } from 'react-icons/fa';
 
 const CinemaRooms = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -85,21 +86,25 @@ const CinemaRooms = () => {
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-gray-700 text-gray-300 text-sm">
+              <tbody className="divide-y divide-gray-700 text-white text-base font-medium">
                 {filteredRooms.map((room, index) => (
   <tr key={room.roomId} className="hover:bg-gray-700 transition">
-    <td className="px-4 py-2">{index + 1}</td>
-    <td className="px-4 py-2">{room.roomId}</td>
-    <td className="px-4 py-2">{room.roomName}</td>
-    <td className="px-4 py-2">{room.roomType}</td> {/* 👈 Thêm dòng này */}
-    <td className="px-4 py-2">{room.quantity}</td>
-    <td className="px-4 py-2">
-      <Link
-        to={`/admin/room/${room.roomId}`}
-        className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded shadow"
-      >
-        Seat Detail
-      </Link>
+    <td className="px-4 py-2 font-semibold">{index + 1}</td>
+    <td className="px-4 py-2 font-semibold">{room.roomId}</td>
+    <td className="px-4 py-2 font-semibold">{room.roomName}</td>
+    <td className="px-4 py-2 font-semibold">{room.roomType}</td> {/* 👈 Thêm dòng này */}
+    <td className="px-4 py-2 font-semibold">{room.quantity}</td>
+    <td className="px-4 py-2 font-semibold">
+      <td className="px-4 py-2">
+  <Link
+    to={`/admin/room/${room.roomId}`}
+    className="bg-blue-600 hover:bg-blue-700 text-white text-sm p-2 rounded shadow flex items-center justify-center"
+    title="Edit seats"
+  >
+    <FaEdit className="w-4 h-4" />
+  </Link>
+</td>
+
     </td>
   </tr>
 ))}

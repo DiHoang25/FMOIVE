@@ -59,11 +59,11 @@ const EditCombo = () => {
 
                 const combo = response.data.combo;
                 setFormData({
-                    name: combo.comboName,
-                    description: combo.description,
-                    price: combo.price,
+                    name: combo.comboName || '' ,
+                    description: combo.description || '',
+                    price: combo.price || '',
                     image: '',
-                    imagePreview: combo.imageUrl,
+                    imagePreview: combo.image_url,
                     fromDate: dayjs(combo.startDate),
                     toDate: dayjs(combo.endDate),
                     category: ''
@@ -97,27 +97,31 @@ const EditCombo = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const payload = {
-            comboName: formData.name,
-            description: formData.description,
-            price: formData.price,
-            items: comboItems.map(item => ({
+        const formDataToSend = new FormData();
+        formDataToSend.append('comboName', formData.name);
+        formDataToSend.append('description', formData.description);
+        formDataToSend.append('price', formData.price);
+        comboItems.forEach(item => {
+            formDataToSend.append('items[]', JSON.stringify({
                 productName: productOptions.find(p => p.id === item.productId)?.name,
                 quantity: item.quantity
-            })),
-            startDate: formData.fromDate?.toISOString(),
-            endDate: formData.toDate?.toISOString(),
-            imageUrl: formData.imagePreview,
-            isActive: true
-        };
+            }));
+        });
+        formDataToSend.append('startDate', formData.fromDate?.toISOString());
+        formDataToSend.append('endDate', formData.toDate?.toISOString());
+        formDataToSend.append('isActive', 'true');
+
+        if (formData.image) {
+            formDataToSend.append('image', formData.image);
+        }
 
         const hide = message.loading('Updating combo...', 0);
 
         try {
-            await axios.put(`http://localhost:5000/api/combo/${id}`, payload, {
+            await axios.put(`http://localhost:5000/api/combo/${id}/update`, formDataToSend, {
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'multipart/form-data'
                 }
             });
             hide();
@@ -126,7 +130,7 @@ const EditCombo = () => {
         } catch (error) {
             hide();
             console.error('Error:', error);
-            message.error('Error updating combo');
+            message.error(error.response?.data?.message || 'Error updating combo');
         }
     };
 

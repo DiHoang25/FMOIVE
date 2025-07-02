@@ -1,22 +1,26 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
+const cloudinary = require('../../config/cloudinary'); // Thêm Cloudinary config
 const authMiddleware = require('../../middleware/authMiddleware');
 const employeeMiddleware = require('../../middleware/employeeMiddleware');
 const Combo = require('../../models/Combo');
 const Product = require('../../models/Product');
 
-// Helper function để kiểm tra và lấy thông tin sản phẩm
+// Multer config
+const upload = multer({ dest: './src/uploads/' });
+
+// Helper function để kiểm tra sản phẩm
 const validateComboItems = async (items) => {
     if (!Array.isArray(items) || items.length === 0) {
         return { valid: false, message: 'Danh sách sản phẩm trong combo không hợp lệ.' };
     }
 
     const productNamesInCombo = items.map(item => item.productName);
-
-    // --- CHANGE HERE: Use 'productName' instead of 'name' for the query ---
     const productsInDb = await Product.find({ productName: { $in: productNamesInCombo }, is_deleted: false });
-
-    const productMap = new Map(productsInDb.map(p => [p.productName, p])); // Use productName as key for the map
+    const productMap = new Map(productsInDb.map(p => [p.productName, p]));
 
     for (const item of items) {
         if (!item.productName || typeof item.quantity !== 'number' || item.quantity <= 0) {
@@ -24,12 +28,10 @@ const validateComboItems = async (items) => {
         }
 
         const productDetail = productMap.get(item.productName);
-
         if (!productDetail) {
             return { valid: false, message: `Sản phẩm "${item.productName}" không tồn tại hoặc đã bị xóa.` };
         }
 
-        // --- Ensure 'combo' is in the Product category enum ---
         if (productDetail.category === 'combo') {
             return { valid: false, message: `Không thể thêm sản phẩm có loại 'combo' ("${item.productName}") vào combo khác.` };
         }
@@ -37,21 +39,20 @@ const validateComboItems = async (items) => {
     return { valid: true, productsInDb };
 };
 
-
-
-// @route   POST /api/combos/new
-// @desc    Thêm một combo mới
-// @access  Private (Chỉ dành cho ở đợ)
-router.post('/new_combo', authMiddleware, employeeMiddleware, async (req, res) => {
-    const { comboName, description, price, items, startDate, endDate, imageUrl, isActive } = req.body;
-
+// @route POST /api/combos/new_combo
+// @desc  Tạo combo mới có upload ảnh
+router.post('/new_combo', authMiddleware, employeeMiddleware, upload.single('image'), async (req, res) => {
     try {
-        if (!comboName || !price || !items || !startDate || !endDate) {
-            return res.status(400).json({ message: 'Vui lòng cung cấp đầy đủ tên, giá, danh sách sản phẩm, ngày bắt đầu và ngày kết thúc.' });
+        const { comboName, description, price, items, startDate, endDate, isActive } = req.body;
+        const file = req.file;
+
+        if (!comboName || !price || !items || !startDate || !endDate || !file) {
+            return res.status(400).json({ message: 'Vui lòng cung cấp đầy đủ thông tin và ảnh combo.' });
         }
 
-        // Sử dụng helper function để kiểm tra items
-        const validationResult = await validateComboItems(items);
+        const parsedItems = typeof items === 'string' ? JSON.parse(items) : items;
+
+        const validationResult = await validateComboItems(parsedItems);
         if (!validationResult.valid) {
             return res.status(400).json({ message: validationResult.message });
         }
@@ -67,16 +68,22 @@ router.post('/new_combo', authMiddleware, employeeMiddleware, async (req, res) =
             return res.status(400).json({ message: 'Ngày bắt đầu và ngày kết thúc không hợp lệ hoặc ngày bắt đầu phải trước ngày kết thúc.' });
         }
 
+        const uploadResult = await cloudinary.uploader.upload(file.path, {
+            folder: 'combos'
+        });
+
+        fs.unlinkSync(file.path);
+
         const newCombo = new Combo({
             comboName,
             description,
             price,
-            items: items.map(item => ({ productName: item.productName, quantity: item.quantity })),
+            items: parsedItems.map(item => ({ productName: item.productName, quantity: item.quantity })),
             startDate: start,
             endDate: end,
-            imageUrl,
+            image_url: uploadResult.secure_url,
             isActive: typeof isActive === 'boolean' ? isActive : true,
-            category: 'combo' // Mặc định category là 'combo'
+            category: 'combo'
         });
 
         await newCombo.save();
@@ -87,12 +94,10 @@ router.post('/new_combo', authMiddleware, employeeMiddleware, async (req, res) =
         });
     } catch (error) {
         console.error('Lỗi khi tạo combo:', error.message);
-        if (error.code === 11000 && error.keyPattern && error.keyPattern.name) {
-            return res.status(409).json({ message: 'Tên combo đã tồn tại.' });
-        }
         res.status(500).send('Lỗi máy chủ khi tạo combo.');
     }
 });
+
 
 // @route   GET /api/combos
 // @desc    Lấy danh sách tất cả combo
@@ -201,7 +206,7 @@ router.get('/:comboID', async (req, res) => {
 // @route   PUT /api/combos/:id
 // @desc    Cập nhật thông tin combo
 // @access  Private (Chỉ dành cho con ở lao động không lương trong rạp này)
-router.put('/:comboID', authMiddleware, employeeMiddleware, async (req, res) => {
+router.put('/:comboID/update', authMiddleware, employeeMiddleware, async (req, res) => {
     const { comboName, description, price, items, startDate, endDate, imageUrl, isActive } = req.body;
     const comboId = req.params.comboID;
 
@@ -212,12 +217,12 @@ router.put('/:comboID', authMiddleware, employeeMiddleware, async (req, res) => 
         }
 
         // Kiểm tra tên trùng lặp nếu tên được thay đổi
-        if (comboName && comboName !== combo.comboName) {
-            const existingCombo = await Combo.findOne({ comboName });
-            if (existingCombo) {
-                return res.status(409).json({ message: 'Tên combo đã tồn tại. Vui lòng chọn tên khác.' });
-            }
-        }
+        // if (comboName && comboName !== combo.comboName) {
+        //     const existingCombo = await Combo.findOne({ comboName });
+        //     if (existingCombo) {
+        //         return res.status(409).json({ message: 'Tên combo đã tồn tại. Vui lòng chọn tên khác.' });
+        //     }
+        // }
 
         // Sử dụng helper function để kiểm tra items nếu có cập nhật
         if (items) {
