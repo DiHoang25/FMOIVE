@@ -1,7 +1,7 @@
 const Cosmic = require('cosmicjs');
 require('dotenv').config();
 
-const cosmic = Cosmic(); // KHÔNG dùng new Cosmic()
+const cosmic = Cosmic(); 
 
 const bucket = cosmic.bucket({
 slug: process.env.COSMIC_BUCKET_SLUG,

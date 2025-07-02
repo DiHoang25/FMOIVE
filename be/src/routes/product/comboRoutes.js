@@ -201,12 +201,12 @@ router.get('/:comboID', async (req, res) => {
 // @route   PUT /api/combos/:id
 // @desc    Cập nhật thông tin combo
 // @access  Private (Chỉ dành cho con ở lao động không lương trong rạp này)
-router.put('/:comboID', authMiddleware, employeeMiddleware, async (req, res) => {
+router.put('/:comboID/update', authMiddleware, employeeMiddleware, async (req, res) => {
     const { comboName, description, price, items, startDate, endDate, imageUrl, isActive } = req.body;
     const comboId = req.params.comboID;
 
     try {
-        const combo = await Combo.findById(comboId);
+        const combo = await Combo.findOne({ comboID: comboId, isDeleted: false });
         if (!combo || combo.isDeleted) {
             return res.status(404).json({ message: 'Combo không tồn tại hoặc đã bị xóa.' });
         }

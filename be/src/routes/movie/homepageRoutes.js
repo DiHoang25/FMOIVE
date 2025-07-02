@@ -74,15 +74,25 @@ router.get('/', async (req, res) => {
       .filter(Boolean)
       .slice(0, 5);
 
-      const news = newsRes.map(item => ({
-        title: item.title,
-        image_url: item.image_url,
-        author: item.author || 'Admin',
-date: item.date || item.createdAt.toISOString().split('T')[0],
-        short_description: item.short_description,
-        slug: item.slug
-      }));
-      
+    const news = [
+      {
+        title: "Final Part of Avengers's Universe",
+        image_url: 'https://res.cloudinary.com/demo/image/upload/v123/avengers.jpg',
+        author: 'admin',
+        date: '2025-05-13',
+        short_description: "Avengers End Game is the last part of Marvel's Infinity Saga...",
+        slug: 'final-avengers'
+      },
+      {
+        title: "Spider-Man Returns",
+        image_url: 'https://res.cloudinary.com/demo/image/upload/v123/spiderman.jpg',
+        author: 'admin',
+        date: '2025-06-01',
+        short_description: "Tom Holland returns in the newest Spider-Man adventure...",
+        slug: 'spiderman-returns'
+      }
+    ];
+
     res.status(200).json({
       banners,
       nowShowing,
