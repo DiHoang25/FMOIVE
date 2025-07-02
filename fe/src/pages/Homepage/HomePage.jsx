@@ -63,7 +63,7 @@ const HomePage = () => {
         });
       }, 3000);
     }
-  
+
     if (comingSoonMovies.length > itemsPerPage) {
       comingSoonInterval = setInterval(() => {
         setComingSoonIndex((prev) => {
@@ -76,7 +76,7 @@ const HomePage = () => {
     return () => {
       clearInterval(bannerInterval);
       if (nowShowingInterval) clearInterval(nowShowingInterval);
-    if (comingSoonInterval) clearInterval(comingSoonInterval);
+      if (comingSoonInterval) clearInterval(comingSoonInterval);
     };
   }, [banners.length, nowShowingMovies.length, comingSoonMovies.length]);
 
@@ -95,13 +95,13 @@ const HomePage = () => {
     const visibleCount = itemsPerPage;
     const totalMovies = movies.length;
     const containerWidth = itemWidth * visibleCount;
-  
+
     // Tính max index sao cho không tạo khoảng trống
     const maxIndex = Math.max(totalMovies - visibleCount, 0);
-  
+
     // Giới hạn index thủ công (tránh vượt)
     const clampedIndex = Math.min(index, maxIndex);
-  
+
     return (
       <div className="space-y-4 overflow-hidden">
         {/* Movie List */}
@@ -134,7 +134,7 @@ const HomePage = () => {
             ))}
           </div>
         </div>
-  
+
         {/* Navigation Buttons */}
         <div className="flex justify-center items-center gap-4 mt-2">
           <button
@@ -159,9 +159,9 @@ const HomePage = () => {
       </div>
     );
   };
-  
-  
-  
+
+
+
 
   return (
     <div className="bg-black text-white px-6 py-10 space-y-10">
@@ -204,7 +204,9 @@ const HomePage = () => {
         <h2 className="text-xl font-bold mb-4">Hot movie : <span className="text-red-500">May 2025</span></h2>
         {hotMovies.slice(0, 8).map((movie, idx) => (
           <div key={idx} className="flex items-start gap-4 mb-6 border-b border-gray-700 pb-4">
-            <img src={movie.image_url} alt="Poster" className="w-[200px] h-[340px] object-cover rounded" />
+            <Link to={`/moviedetails/${movie._id}`}>
+              <img src={movie.image_url} alt="Poster" className="w-[200px] h-[340px] object-cover rounded" />
+            </Link>
             <div>
               <h3 className="text-3xl font-bold text-red-500">{movie.name}</h3>
               <div className="flex items-center gap-3 text-sm font-medium mb-1">
@@ -254,6 +256,7 @@ const HomePage = () => {
           ))}
         </div>
       </div>
+
 
       {/* Modal Trailer */}
       <Modal
