@@ -160,7 +160,7 @@ const ConfirmBooking = () => {
                       className="flex justify-between bg-zinc-800 px-4 py-2 rounded"
                     >
                       <span>{combo.name} x{combo.quantity}</span>
-                      <span>${(combo.price * combo.quantity).toFixed(2)}</span>
+                      <span>{(combo.price * combo.quantity).toLocaleString('vi-VN')} VND</span>
                     </li>
                   ))}
                 </ul>
@@ -202,28 +202,25 @@ const ConfirmBooking = () => {
             <div className="bg-zinc-800 rounded p-4 mt-2 text-sm space-y-1">
               <div className="flex justify-between">
                 <span>Tickets ({seats.length} {seats.length === 1 ? 'ticket' : 'tickets'})</span>
-                <span>${calculatedTicketPrice.toFixed(2)}</span>
+                <span>{calculatedTicketPrice.toLocaleString('vi-VN')} VND</span>
               </div>
-              <div className="flex justify-between">
-                <span>Service Fee</span>
-                <span>${calculatedServiceFee.toFixed(2)}</span>
-              </div>
+             
               {combos.length > 0 && ( // Only show combos line if there are combos
                 <div className="flex justify-between">
                   <span>Combos</span>
-                  <span>${calculatedCombosTotal.toFixed(2)}</span>
+                  <span>{calculatedCombosTotal.toLocaleString('vi-VN')} VND</span>
                 </div>
               )}
               {voucherDiscount > 0 && (
                 <div className="flex justify-between text-green-400">
                   <span>Voucher Discount</span>
-                  <span>-${voucherDiscount.toFixed(2)}</span>
+                  <span>-${voucherDiscount.toLocaleString('vi-VN')} VND</span>
                 </div>
               )}
               <hr className="my-2 border-gray-700" />
               <div className="flex justify-between font-bold text-lg">
                 <span>Total</span>
-                <span>${grandTotalAfterDiscount.toFixed(2)}</span>
+                <span>{grandTotalAfterDiscount.toLocaleString('vi-VN')} VND</span>
               </div>
             </div>
 

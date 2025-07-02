@@ -62,21 +62,21 @@ const PaymentPage = () => {
         <div className="bg-zinc-800 rounded p-4 text-sm space-y-2">
           <div className="flex justify-between">
             <span>Movie Tickets ({ticketCount})</span>
-            <span>${(ticketPrice * ticketCount).toFixed(2)}</span>
+            <span>{(ticketPrice * ticketCount).toLocaleString('vi-VN')} VND</span>
           </div>
           <div className="flex justify-between">
             <span>Popcorns & Drink ({popcornCount})</span>
-            <span>${(popcornPrice * popcornCount).toFixed(2)}</span>
+            <span>{(popcornPrice * popcornCount).toLocaleString('vi-VN')} VND</span>
           </div>
           <div className="flex justify-between">
             <span>Service Fee</span>
-            <span>${serviceFee.toFixed(2)}</span>
+            <span>{serviceFee.toLocaleString('vi-VN')} VND</span>
           </div>
           
           <hr className="border-gray-700" />
           <div className="flex justify-between font-bold text-base">
             <span>Total Amount</span>
-            <span>${total.toFixed(2)}</span>
+            <span>{total.toLocaleString('vi-VN')} VND</span>
           </div>
         </div>
 
