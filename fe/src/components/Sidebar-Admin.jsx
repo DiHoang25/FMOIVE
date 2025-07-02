@@ -89,6 +89,11 @@ const SidebarLayout = ({ children }) => {
                             icon: <SlPresent />,
                             label: <Link to="/admin/promotions">Promotions</Link>,
                         },
+                        {
+                            key: '/admin/movienews-list',
+                            icon: <RiInformation2Line />,
+                            label: <Link to="/admin/movienews-list">Movie News</Link>,
+                        },
                     ]}
                 />
 

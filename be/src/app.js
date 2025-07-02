@@ -16,6 +16,8 @@ const promotionRoutes = require('./routes/promotions/promotionsRoutes'); // qu�
 const roomManagermentRoutes = require('./routes/theather/room'); // Import tuyến quản lý phòng
 const productRoutes = require('./routes/product/productRoutes'); // Import tuyến quản lý sản phẩm
 const comboRoutes = require('./routes/product/comboRoutes'); // Import tuyến quản lý combo
+const movieNewsRoutes = require('./routes/movie/newsRoutes');
+
 // Khởi tạo ứng dụng Express
 
 const app = express();
@@ -50,6 +52,7 @@ app.use('/api/theater/rooms', roomManagermentRoutes);
 // tuyến quản lý sản phẩm
 app.use('/api/product', productRoutes);
 app.use('/api/combo', comboRoutes);
+app.use('/api/movie-news', movieNewsRoutes);
 
 
 
