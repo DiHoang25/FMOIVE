@@ -104,6 +104,25 @@ router.get('/', authMiddleware, employeeMiddleware, async (req, res) => {
     }
 });
 
+// @route   GET /api/product
+// @desc    Lấy danh sách 1 sản phẩm
+// @access  Private (Chỉ dành cho nhân viên)
+router.get('/:productId', authMiddleware, employeeMiddleware, async (req, res) => {
+    const { productId } = req.params;
+
+    try {
+        // Lấy danh sách tất cả các sản phẩm
+        const products = await Product.find({ productId }).select('-__v'); // Loại bỏ trường __v để giảm bớt dữ liệu trả về
+
+        res.status(200).json({
+            products
+        });
+    } catch (error) {
+        console.error('Lỗi khi lấy danh sách sản phẩm:', error.message);
+        res.status(500).send('Lỗi máy chủ khi lấy danh sách sản phẩm.');
+    }
+});
+
 // @route   PATCH /api/product/:productId/delete
 // @desc    Xóa một sản phẩm
 // @access  Private (Chỉ dành cho nhân viên)
