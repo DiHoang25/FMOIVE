@@ -59,13 +59,13 @@ const EditCombo = () => {
 
                 const combo = response.data.combo;
                 setFormData({
-                    name: combo.comboName || '' ,
-                    description: combo.description || '',
-                    price: combo.price || '',
+                    name: combo.comboName ,
+                    description: combo.description,
+                    price: combo.price,
                     image: '',
                     imagePreview: combo.image_url,
-                    fromDate: dayjs(combo.startDate),
-                    toDate: dayjs(combo.endDate),
+                    fromDate: combo.startDate ? dayjs(combo.startDate) : null,
+                    toDate: combo.endDate ? dayjs(combo.endDate) : null,
                     category: ''
                 });
 
