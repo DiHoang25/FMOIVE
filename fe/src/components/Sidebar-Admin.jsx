@@ -1,33 +1,36 @@
 // Sidebar-Admin.jsx
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate} from 'react-router-dom';
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   DashboardOutlined
 } from '@ant-design/icons';
 import { FaUserFriends, FaClipboardList, FaRegBuilding } from "react-icons/fa";
-import { GiConfirmed } from "react-icons/gi";
 import { AiOutlineBook } from "react-icons/ai";
-import { RiInformation2Line } from "react-icons/ri";
 import { SlPresent } from "react-icons/sl";
 import { Button, Layout, Menu, theme } from 'antd';
 import { RxAvatar } from "react-icons/rx";
 import { LogoutOutlined } from '@ant-design/icons';
+import AdminNotification from './Admin-Notification';
+import { useAuth } from '../contexts/AuthContext';
+import { RiInformation2Line } from "react-icons/ri";
 
 const { Header, Sider, Content } = Layout;
 
 
 const SidebarLayout = ({ children }) => {
-  const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
-  const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken();
+    const location = useLocation();
+    const [collapsed, setCollapsed] = useState(false);
+    const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken();
+    const navigate = useNavigate();
+    const { user, logout } = useAuth(); 
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    window.location.href = '/login';
-  };
+    const handleLogout = () => {
+        logout(); 
+        navigate('/login');
+    };
 
   return (
     <Layout className="min-h-screen bg-[#0f172a]">
@@ -126,6 +129,7 @@ const SidebarLayout = ({ children }) => {
             <h1 className="text-xl text-white absolute left-1/2 transform -translate-x-1/2">
               ADMIN
             </h1>
+              <AdminNotification/>
           </div>
         </Header>
 

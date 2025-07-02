@@ -1,112 +1,109 @@
 import React, { useState, useEffect } from 'react';
+import UserDashboardLayout from '../../components/UserDashboardlayout';
 import avatar from '../../assets/avatar.png';
 import { useNavigate } from 'react-router-dom';
-import SidebarLayout from '../../components/Sidebar-Admin';
 
 const AdminProfile = () => {
-  const navigate = useNavigate();
-  const [admin, setAdmin] = useState(null);
-  const [error, setError] = useState('');
+    const navigate = useNavigate();
+    const [user, setUser] = useState(null);
+    const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchAdmin = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('Not authenticated.');
-        return;
-      }
+    useEffect(() => {
+        const fetchUser = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setError('Not authenticated.');
+                return;
+            }
 
-      try {
-        const response = await fetch('http://localhost:5000/api/auth/profile', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
 
-        const data = await response.json();
-        if (!response.ok) {
-          setError(data.message || 'Failed to fetch admin data.');
-        } else {
-          setAdmin(data.user);
-        }
-      } catch (err) {
-        console.error('Error fetching admin:', err);
-        setError('Failed to fetch admin data.');
-      }
-    };
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
 
-    fetchAdmin();
-  }, []);
+                const data = await response.json();
+                if (!response.ok) {
+                    setError(data.message || 'Failed to fetch user data.');
+                } else {
+                    setUser(data.user);
+                }
+            } catch (err) {
+                console.error('Error fetching user:', err);
+                setError('Failed to fetch user data.');
+            }
+        };
 
-  if (error) {
+        fetchUser();
+    }, []);
+
+    if (error) {
+        return (
+            <UserDashboardLayout>
+                <div className="text-center text-red-500 mt-10">{error}</div>
+            </UserDashboardLayout>
+        );
+    }
+
+    if (!user) {
+        return (
+            <UserDashboardLayout>
+                <div className="text-center text-white mt-10">Loading...</div>
+            </UserDashboardLayout>
+        );
+    }
+
+    // Format date_of_birth (dd/mm/yyyy)
+    const formatDate = (isoString) => {
+        const date = new Date(isoString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+        };
+        
+        const formattedDOB = user.date_of_birth
+        ? formatDate(user.date_of_birth)
+        : 'Not provided';
+
     return (
-      <SidebarLayout>
-        <div className="text-center text-red-500 mt-10">{error}</div>
-      </SidebarLayout>
+        <UserDashboardLayout>
+            <div className="bg-[#0a0f1c] text-white py-10 px-6 rounded-md min-h-[80vh] flex items-center justify-center">
+                <div className="flex flex-col md:flex-row items-center gap-10 w-full max-w-5xl bg-[#121826] p-8 rounded-xl shadow-lg">
+                    {/* Avatar và Tên */}
+                    <div className="justify-center flex flex-col items-center" style={{ marginLeft: '250px' }}>
+                        <img src={avatar} alt="Avatar" className="w-32 h-32 rounded-full mb-3 border-4" />
+                        <h2 className="text-2xl font-bold mb-2">{user.fullname}</h2>
+                        <button
+                            onClick={() => navigate('/editaccount')}
+                            className="bg-red-600 px-4 py-2 rounded hover:bg-red-700 transition font-semibold"
+                        >
+                            Edit Profile
+                        </button>
+                        <button
+                            onClick={() => navigate('/changepassword')}
+                            className="bg-red-600 mt-4 px-4 py-2 rounded hover:bg-red-700 transition font-semibold"
+                        >
+                            Change Password
+                        </button>
+                    </div>
+
+
+                    {/* Thông tin người dùng */}
+                    <div className="text-left text-base space-y-2">
+                        <h1 className="text-3xl font-bold mb-4 text-red-600">Information Account</h1>
+                        <p><span className="font-semibold text-white">Name:</span> {user.fullname}</p>
+                        <p><span className="font-semibold text-white">Account:</span> {user.username}</p>
+                        <p><span className="font-semibold text-white">Email:</span> {user.email}</p>
+                        <p><span className="font-semibold text-white">DOB:</span> {formattedDOB}</p>
+                        <p><span className="font-semibold text-white">Phone number:</span> {user.phone || 'Not provided'}</p>
+                    </div>
+                </div>
+            </div>
+        </UserDashboardLayout>
     );
-  }
-
-  if (!admin) {
-    return (
-      <SidebarLayout>
-        <div className="text-center text-white mt-10">Loading...</div>
-      </SidebarLayout>
-    );
-  }
-
-  const formatDate = (isoString) => {
-    const date = new Date(isoString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
-
-  const formattedDOB = admin.date_of_birth
-    ? formatDate(admin.date_of_birth)
-    : 'Not provided';
-
-  return (
-    <SidebarLayout>
-      <div className="text-white py-10 px-6 min-h-[80vh] flex items-center justify-center">
-        <div className="flex flex-col md:flex-row items-center gap-10 w-full max-w-5xl bg-[#121826] p-8 rounded-xl shadow-xl">
-          {/* Avatar và Tên */}
-          <div className="flex flex-col items-center md:ml-24">
-            <img
-              src={avatar}
-              alt="Avatar"
-              className="w-32 h-32 rounded-full mb-3 border-4 border-slate-600"
-            />
-            <h2 className="text-2xl font-bold mb-2 text-white">{admin.fullname}</h2>
-            {/* <button
-              onClick={() => navigate('/admin/editprofile')}
-              className="bg-red-600 px-4 py-2 rounded hover:bg-red-700 transition font-semibold"
-            >
-              Edit Profile
-            </button>
-            <button
-              onClick={() => navigate('/admin/changepassword')}
-              className="bg-red-600 mt-4 px-4 py-2 rounded hover:bg-red-700 transition font-semibold"
-            >
-              Change Password
-            </button> */}
-          </div>
-
-          {/* Thông tin người dùng */}
-          <div className="text-left text-base space-y-2">
-            <h1 className="text-3xl font-bold mb-4 text-red-600 border-b border-slate-600 pb-2">
-              Account Information
-            </h1>
-            <p><span className="font-semibold text-slate-300">Name:</span> {admin.fullname}</p>
-            <p><span className="font-semibold text-slate-300">Account:</span> {admin.username}</p>
-            <p><span className="font-semibold text-slate-300">Email:</span> {admin.email}</p>
-            <p><span className="font-semibold text-slate-300">DOB:</span> {formattedDOB}</p>
-            <p><span className="font-semibold text-slate-300">Phone number:</span> {admin.phone || 'Not provided'}</p>
-          </div>
-        </div>
-      </div>
-    </SidebarLayout>
-  );
 };
 
 export default AdminProfile;

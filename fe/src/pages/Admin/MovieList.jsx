@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaEye, FaEdit, FaTrash, FaSpinner } from 'react-icons/fa';
-import { Switch, Modal, message, Tag } from 'antd';
+import { Modal, message, Tag } from 'antd';
 import Pagination from '../../components/PaginationHomepage';
 import SidebarLayout from '../../components/Sidebar-Admin';
 import dayjs from 'dayjs';
+import axios from 'axios';
 
 
 
@@ -20,10 +21,8 @@ const MovieList = () => {
   useEffect(() => {
     const fetchMovies = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/movies');
-        if (!response.ok) throw new Error('Failed to fetch movies');
-        const data = await response.json();
-        setMovies(data);
+        const response = await axios.get('http://localhost:5000/api/movies');
+        setMovies(response.data);
       } catch (error) {
         console.error('Error fetching movies:', error);
       } finally {
@@ -60,10 +59,7 @@ const MovieList = () => {
       okType: 'danger',
       onOk: async () => {
         try {
-          const response = await fetch(`http://localhost:5000/api/movies/${movie._id}`, {
-            method: 'DELETE'
-          });
-          if (!response.ok) throw new Error('Failed to delete movie');
+          const response = await axios.delete(`http://localhost:5000/api/movies/${movie._id}`);
           const updated = movies.filter(m => m._id !== movie._id);
           setMovies(updated);
           message.success(`"${movie.name}" has been deleted.`);
