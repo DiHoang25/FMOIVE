@@ -64,7 +64,7 @@ const EditProduct = () => {
         const hide = message.loading('Updating product...', 0);
 
         try {
-            const response = await axios.put(`http://localhost:5000/api/product/${id}`, formDataToSend, {
+            const response = await axios.put(`http://localhost:5000/api/product/${id}/update`, formDataToSend, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

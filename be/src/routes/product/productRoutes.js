@@ -16,7 +16,7 @@ router.post('/new_product', authMiddleware, employeeMiddleware, upload.single('i
     try {
         const { productName, category, price, stockQuantity, description } = req.body;
 
-        if (!productName || !price ) {
+        if (!productName || !price || !req.file) {
             return res.status(400).json({ message: 'Vui lòng cung cấp đầy đủ tên sản phẩm, giá và ảnh.' });
         }
 
@@ -112,10 +112,10 @@ router.get('/:productId', authMiddleware, employeeMiddleware, async (req, res) =
 
     try {
         // Lấy danh sách tất cả các sản phẩm
-        const products = await Product.find({ productId }).select('-__v'); // Loại bỏ trường __v để giảm bớt dữ liệu trả về
+        const product = await Product.findById(productId).select('-__v'); // Loại bỏ trường __v để giảm bớt dữ liệu trả về
 
         res.status(200).json({
-            products
+            product
         });
     } catch (error) {
         console.error('Lỗi khi lấy danh sách sản phẩm:', error.message);
