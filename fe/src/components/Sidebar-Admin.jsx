@@ -8,9 +8,7 @@ import {
     DashboardOutlined
 } from '@ant-design/icons';
 import { FaUserFriends, FaClipboardList, FaRegBuilding } from "react-icons/fa";
-import { GiConfirmed } from "react-icons/gi";
 import { AiOutlineBook } from "react-icons/ai";
-import { RiInformation2Line } from "react-icons/ri";
 import { SlPresent } from "react-icons/sl";
 import { Button, Layout, Menu, theme } from 'antd';
 import { RxAvatar } from "react-icons/rx";
@@ -26,10 +24,10 @@ const SidebarLayout = ({ children }) => {
     const [collapsed, setCollapsed] = useState(false);
     const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken();
     const navigate = useNavigate();
-    const { user, logout } = useAuth(); // ✅ lấy user & logout từ context
+    const { user, logout } = useAuth(); 
 
     const handleLogout = () => {
-        logout(); // ✅ gọi hàm context logout
+        logout(); 
         navigate('/login');
     };
 

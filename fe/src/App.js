@@ -3,6 +3,9 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import RequireRole from './components/RequireRole';
 
+import { Provider } from 'react-redux';
+import { store } from './redux/store'; // Adjust the path to your store file
+
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import UsersDashboard from './pages/Users/UsersDashboard';
 import EmployeeDashboard from './pages/Employee/EmployeeDashboard';
@@ -66,6 +69,9 @@ import NotFoundPage from './pages/NotFound/NotFoundPage';
 import ViewEmployees from './pages/Admin/ViewEmployee';
 import AddEmployee from './pages/Admin/AddEmployee';
 import AddCombo from './pages/Employee/AddCombo';
+import ViewCombo from './pages/Employee/ViewCombo';
+import EditCombo from './pages/Employee/EditCombo';
+
 
 function AppContent() {
   const location = useLocation();
@@ -90,28 +96,16 @@ function AppContent() {
         {!hideNavbarFooter && <Navbar />}
         <ScrollToTop />
         <Routes>
-          {/* Public Routes */}
+           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/new-password" element={<NewPasswordPage />} />
-          <Route path="/viewbookedticket" element={<ViewBookedTickets />} />
-          <Route path="/viewscorehistory" element={<ViewScoreHistory />} />
-          <Route path='/admin/promotions' element={<Promotions />} />
-          <Route path="/viewaccount" element={<ViewAccount />} />
-          <Route path="/editaccount" element={<EditAccount />} />
-          {/* <Route path="/moviedetailssearch" element={<MovieDetailsSearch />} />
-          <Route path="/movienewsssearch" element={<MovieNewsSearch />} /> */}
-          <Route path='/admin/booking-list' element={<BookingList />} />
-          <Route path="/customer-benefits" element={<CustomerBenefits />} />
-          <Route path="/admin/cinema-rooms" element={<CinemaRooms />} />
-          <Route path="/admin/room-detail/:roomId" element={<CinemaRoomDetail />} />
-          <Route path="/admin/movie-list/edit-movie/:movie._id" element={<EditMovie />} />
-          <Route path='/admin/cinema-rooms/add-new-cinema-room' element={<AddCinemaRoom />} />
-          <Route path='/admin/add-promotion' element={<AddPromotion />} />
-          <Route path='/admin/promotions/edit-promotion/:id' element={<EditPromotion />} />
+          <Route path="/moviedetails/:id" element={<MovieDetails />} />
+          <Route path="/movienews" element={<MovieNews />} />
+          <Route path="/moviesearch" element={<MovieSearch />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/promotions" element={<PromotionsPage />} />
           <Route path="/terms" element={<GeneralTerms />} />
@@ -120,6 +114,20 @@ function AppContent() {
           <Route path="/information-security" element={<InformationSecurity />} />
           <Route path="/returns-refunds" element={<InspectionReturns />} />
 
+
+          {/* <Route path="/moviedetailssearch" element={<MovieDetailsSearch />} />
+          <Route path="/movienewsssearch" element={<MovieNewsSearch />} /> */}
+          
+          <Route path="/customer-benefits" element={<CustomerBenefits />} />         
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/promotions" element={<PromotionsPage />} />
+          <Route path="/terms" element={<GeneralTerms />} />
+          <Route path="/payment-policy" element={<PaymentPolicy />} />
+          <Route path="/delivery-policy" element={<DeliveryPolicy />} />
+          <Route path="/information-security" element={<InformationSecurity />} />
+          <Route path="/returns-refunds" element={<InspectionReturns />} />
+          <Route path="/moviesearch" element={<MovieSearch />} />
+          
           {/* Customer */}
           <Route path="/Users" element={<RequireRole allowedRoles={['customer']}><UsersDashboard /></RequireRole>} />
           <Route path="/viewbookedticket" element={<RequireRole allowedRoles={['customer']}><ViewBookedTickets /></RequireRole>} />
@@ -152,7 +160,7 @@ function AppContent() {
           <Route path="/admin/add-promotion" element={<RequireRole allowedRoles={['admin']}><AddPromotion /></RequireRole>} />
           <Route path="/admin/promotions/edit-promotion/:id" element={<RequireRole allowedRoles={['admin']}><EditPromotion /></RequireRole>} />
           <Route path="/admin/cinema-rooms" element={<RequireRole allowedRoles={['admin']}><CinemaRooms /></RequireRole>} />
-          <Route path="/admin/room-detail/:roomId" element={<RequireRole allowedRoles={['admin']}><CinemaRoomDetail /></RequireRole>} />
+          <Route path="/admin/room/:roomId" element={<RequireRole allowedRoles={['admin']}><CinemaRoomDetail /></RequireRole>} />
           <Route path="/admin/cinema-rooms/add-new-cinema-room" element={<RequireRole allowedRoles={['admin']}><AddCinemaRoom /></RequireRole>} />
 
           {/* Employee */}
@@ -168,6 +176,8 @@ function AppContent() {
           <Route path="/employee/counter-booking-list" element={<RequireRole allowedRoles={['employee']}><CounterBookingList /></RequireRole>} />
           <Route path="/employee/counter-get-ticket" element={<RequireRole allowedRoles={['employee']}><CounterGetTicket /></RequireRole>} />
           <Route path="/employee/add-combo" element={<RequireRole allowedRoles={['employee']}><AddCombo /></RequireRole>} />
+          <Route path="/employee/view-combo" element={<RequireRole allowedRoles={['employee']}><ViewCombo /></RequireRole>} />
+          <Route path="/employee/view-combo/edit-combo/:id" element={<RequireRole allowedRoles={['employee']}><EditCombo /></RequireRole>} />
 
           {/* Not Found Page - Phải là route cuối cùng */}
           <Route path="*" element={<NotFoundPage />} />
@@ -177,14 +187,15 @@ function AppContent() {
     </>
   );
 }
-
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </BrowserRouter>
+    <Provider store={store}> {/* Wrap your entire application with the Redux Provider */}
+      <BrowserRouter>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </BrowserRouter>
+    </Provider>
   );
 }
 

@@ -3,12 +3,13 @@ import SidebarLayout from '../../components/Sidebar-Employee';
 import DatePicker from '../../components/DatePicker';
 import { Select, message, Form } from 'antd';
 import dayjs from 'dayjs';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { InputNumber } from 'antd';
 import axios from 'axios';
 
-const AddCombo = () => {
+const EditCombo = () => {
     const navigate = useNavigate();
+    const { id } = useParams();
     const [form] = Form.useForm();
     const [formData, setFormData] = useState({
         name: '',
@@ -22,7 +23,9 @@ const AddCombo = () => {
     });
 
     const [productOptions, setProductOptions] = useState([]);
+    const [comboItems, setComboItems] = useState([]);
 
+    // Fetch product list
     useEffect(() => {
         const fetchProducts = async () => {
             try {
@@ -42,123 +45,129 @@ const AddCombo = () => {
                 console.error('Error fetching products:', error);
             }
         };
-
         fetchProducts();
     }, []);
 
-    const [comboItems, setComboItems] = useState([]);
-    const [success, setSuccess] = useState(false);
+    // Fetch combo detail after products loaded
+    useEffect(() => {
+        const fetchComboDetails = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await axios.get(`http://localhost:5000/api/combo/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                const combo = response.data.combo;
+                setFormData({
+                    name: combo.comboName,
+                    description: combo.description,
+                    price: combo.price,
+                    image: '',
+                    imagePreview: combo.imageUrl,
+                    fromDate: dayjs(combo.startDate),
+                    toDate: dayjs(combo.endDate),
+                    category: ''
+                });
+
+                const items = combo.items.map(item => {
+                    const product = productOptions.find(p => p.name === item.productName);
+                    return {
+                        productId: product?.id || '',
+                        quantity: item.quantity
+                    };
+                });
+
+                setComboItems(items);
+            } catch (error) {
+                console.error('Error fetching combo:', error);
+                message.error('Failed to load combo data');
+            }
+        };
+
+        if (productOptions.length > 0) {
+            fetchComboDetails();
+        }
+    }, [id, productOptions]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value
-        });
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async (e) => {
-    e.preventDefault();
+        e.preventDefault();
 
-    const payload = {
-        comboName: formData.name,
-        description: formData.description,
-        price: formData.price,
-        items: comboItems.map(item => ({
-            productName: productOptions.find(p => p.id === item.productId)?.name,
-            quantity: item.quantity
-        })),
-        startDate: formData.fromDate?.toISOString(),
-        endDate: formData.toDate?.toISOString(),
-        imageUrl: formData.imagePreview,
-        isActive: true
+        const payload = {
+            comboName: formData.name,
+            description: formData.description,
+            price: formData.price,
+            items: comboItems.map(item => ({
+                productName: productOptions.find(p => p.id === item.productId)?.name,
+                quantity: item.quantity
+            })),
+            startDate: formData.fromDate?.toISOString(),
+            endDate: formData.toDate?.toISOString(),
+            imageUrl: formData.imagePreview,
+            isActive: true
+        };
+
+        const hide = message.loading('Updating combo...', 0);
+
+        try {
+            await axios.put(`http://localhost:5000/api/combo/${id}`, payload, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            hide();
+            message.success('Combo updated successfully!');
+            navigate('/employee/view-combo');
+        } catch (error) {
+            hide();
+            console.error('Error:', error);
+            message.error('Error updating combo');
+        }
     };
-
-    const hide = message.loading('Adding combo...', 0);
-
-    try {
-        const response = await axios.post('http://localhost:5000/api/combo/new_combo', payload, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
-        hide();
-        message.success('Combo added successfully!');
-        navigate('/employee/view-combo');
-    } catch (error) {
-        hide();
-        console.error('Error:', error);
-        message.error('Error adding combo');
-    }
-};
-
 
     return (
         <SidebarLayout>
             <div className="flex-1 flex flex-col overflow-hidden">
                 <div className="bg-slate-800 rounded-lg p-6 mt-6 max-w-6xl mx-auto shadow-xl">
                     <h1 className="text-2xl text-white font-bold text-center mb-4 pb-2 border-b border-gray-700">
-                        Add New Combo
+                        Edit Combo
                     </h1>
 
                     <form onSubmit={handleSubmit}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-3">
                                 <div>
-                                    <label className="block text-gray-300 mb-1">
-                                        Combo Name <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        value={formData.name}
-                                        onChange={handleInputChange}
-                                        className="w-full p-2 rounded bg-slate-700 text-white"
-                                        required
-                                    />
+                                    <label className="block text-gray-300 mb-1">Combo Name <span className="text-red-500">*</span></label>
+                                    <input type="text" name="name" value={formData.name} onChange={handleInputChange} className="w-full p-2 rounded bg-slate-700 text-white" required />
                                 </div>
 
                                 <div>
-                                    <label className="block text-gray-300 mb-1">
-                                        Description <span className="text-red-500">*</span>
-                                    </label>
-                                    <textarea
-                                        name="description"
-                                        value={formData.description}
-                                        onChange={handleInputChange}
-                                        className="w-full p-2 rounded bg-slate-700 text-white"
-                                        rows="3"
-                                        required
-                                    />
+                                    <label className="block text-gray-300 mb-1">Description <span className="text-red-500">*</span></label>
+                                    <textarea name="description" value={formData.description} onChange={handleInputChange} className="w-full p-2 rounded bg-slate-700 text-white" rows="3" required />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-gray-300 mb-1">
-                                            Price <span className="text-red-500">*</span>
-                                        </label>
-                                        <InputNumber
-                                            name="price"
-                                            value={formData.price}
-                                            onChange={(value) =>
-                                                setFormData({ ...formData, price: value })
-                                            }
-                                            className="w-full"
-                                            min={0}
-                                            formatter={value => `${value}₫`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                                            parser={value => value.replace(/₫\s?|(,*)/g, '')}
-                                        />
-                                    </div>
+                                <div>
+                                    <label className="block text-gray-300 mb-1">Price <span className="text-red-500">*</span></label>
+                                    <InputNumber
+                                        name="price"
+                                        value={formData.price}
+                                        onChange={(value) => setFormData(prev => ({ ...prev, price: value }))}
+                                        className="w-full"
+                                        min={0}
+                                        formatter={value => `${value}₫`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                        parser={value => value.replace(/₫\s?|(,*)/g, '')}
+                                    />
                                 </div>
                             </div>
 
                             <div className="space-y-3">
                                 <div>
-                                    <label className="block text-gray-300 mb-1">
-                                        Combo Items <span className="text-red-500">*</span>
-                                    </label>
-
+                                    <label className="block text-gray-300 mb-1">Combo Items <span className="text-red-500">*</span></label>
                                     <Select
                                         mode="multiple"
                                         placeholder="Choose products"
@@ -209,35 +218,30 @@ const AddCombo = () => {
                                         </div>
                                     )}
                                 </div>
+
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-gray-300 mb-1">
-                                            From Date <span className="text-red-500">*</span>
-                                        </label>
+                                        <label className="block text-gray-300 mb-1">From Date <span className="text-red-500">*</span></label>
                                         <DatePicker
                                             name="fromDate"
                                             value={formData.fromDate}
-                                            onChange={(date) => setFormData({ ...formData, fromDate: date })}
+                                            onChange={(date) => setFormData(prev => ({ ...prev, fromDate: date }))}
                                             disabledDate={(current) => current && current < dayjs().startOf('day')}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-gray-300 mb-1">
-                                            To Date <span className="text-red-500">*</span>
-                                        </label>
+                                        <label className="block text-gray-300 mb-1">To Date <span className="text-red-500">*</span></label>
                                         <DatePicker
                                             name="toDate"
                                             value={formData.toDate}
-                                            onChange={(date) => setFormData({ ...formData, toDate: date })}
+                                            onChange={(date) => setFormData(prev => ({ ...prev, toDate: date }))}
                                             disabledDate={(current) => current && current < dayjs().startOf('day')}
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-gray-300 mb-1">
-                                        Combo Image <span className="text-red-500">*</span>
-                                    </label>
+                                    <label className="block text-gray-300 mb-1">Combo Image <span className="text-red-500">*</span></label>
                                     <input
                                         type="file"
                                         name="image"
@@ -247,14 +251,13 @@ const AddCombo = () => {
                                         onChange={(e) => {
                                             if (e.target.files && e.target.files[0]) {
                                                 const file = e.target.files[0];
-                                                setFormData({
-                                                    ...formData,
+                                                setFormData(prev => ({
+                                                    ...prev,
                                                     image: file,
                                                     imagePreview: URL.createObjectURL(file)
-                                                });
+                                                }));
                                             }
                                         }}
-                                        required
                                     />
                                     <label htmlFor="image-upload" className="block cursor-pointer">
                                         {formData.imagePreview ? (
@@ -274,16 +277,13 @@ const AddCombo = () => {
                         </div>
 
                         <div className="flex justify-center mt-8 space-x-4">
-                            <button
-                                type="submit"
-                                className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-                            >
-                                Add Combo
+                            <button type="submit" className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                                Update Combo
                             </button>
                             <button
                                 type="button"
-                                onClick={() => navigate('/employee')}
-                                className="flex items-center px-4 py-2 bg-slate-700 text-white rounded hover:bg-slate-600 transition"
+                                onClick={() => navigate('/employee/view-combo')}
+                                className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-slate-600 transition"
                             >
                                 Cancel
                             </button>
@@ -295,4 +295,4 @@ const AddCombo = () => {
     );
 };
 
-export default AddCombo;
+export default EditCombo;

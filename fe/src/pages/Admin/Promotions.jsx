@@ -124,7 +124,7 @@ const Promotions = () => {
           </div>
 
           {/* Table */}
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 ">
             {loading ? (
               <div className="text-center text-gray-400">Đang tải...</div>
             ) : (

@@ -7,6 +7,7 @@ import GenresDropDown from '../../components/GernesPicker';
 import TimePicker from '../../components/TimePicker';
 import { Modal, message } from 'antd';
 import dayjs from 'dayjs';
+import axios from 'axios';
 
 
 const EditMovie = () => {
@@ -43,8 +44,8 @@ const EditMovie = () => {
     useEffect(() => {
         const fetchMovie = async () => {
             try {
-                const response = await fetch(`http://localhost:5000/api/movies/${id}`);
-                const data = await response.json();
+                const response = await axios.get(`http://localhost:5000/api/movies/${id}`);
+                const data = response.data;
 
                 setFormData({
                     movieName: data.name || '',
@@ -122,17 +123,9 @@ const EditMovie = () => {
                 formDataToSend.append('banner', formData.movieBanner);
             }
 
-            const response = await fetch(`http://localhost:5000/api/movies/${id}`, {
-                method: 'PUT',
-                body: formDataToSend
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Cập nhật thất bại');
-            }
-
-            const result = await response.json();
+            const response = await axios.put(`http://localhost:5000/api/movies/${id}`, formDataToSend);
+            
+            const result = response.data;
             message.success('Đã cập nhật thông tin phim thành công!');
             navigate('/admin/movie-list');
         } catch (err) {

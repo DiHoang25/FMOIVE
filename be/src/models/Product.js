@@ -26,7 +26,7 @@ const productSchema = new mongoose.Schema({
     category: {
         type: String,
         required: [true, 'Danh mục sản phẩm là bắt buộc'],
-        enum: ['popcorn', 'drink', 'combo', 'snack', 'other'],
+        enum: ['popcorn', 'drink', 'snack', 'other'],
         default: 'other'
     },
     stockQuantity: {

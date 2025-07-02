@@ -8,9 +8,8 @@ import { useNavigate } from 'react-router-dom';
 import { Modal, message } from 'antd';
 import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import axios from 'axios';
 dayjs.extend(isSameOrBefore);
-
-
 
 const AddMovie = () => {
     const [formData, setFormData] = useState({
@@ -90,16 +89,7 @@ const AddMovie = () => {
         const hide = message.loading('Adding movie...', 0);
 
         try {
-            const response = await fetch('http://localhost:5000/api/movies', {
-                method: 'POST',
-                body: formDataToSend
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            await response.json();
+            const response = await axios.post('http://localhost:5000/api/movies', formDataToSend);
             hide();
             setSuccess(true);
         } catch (error) {
