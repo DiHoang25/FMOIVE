@@ -74,6 +74,7 @@ import MovieNewsDetails from './pages/Movie/MovieNewsDetails';
 import AddMovieNews from './pages/Admin/AddMovieNews';
 import MovieNewsList from './pages/Admin/MovieNewsList'
 import EditMovieNews from './pages/Admin/EditMovieNews';
+import PublicRouteGuard from './components/PublicRouteGuard';
 
 
 function AppContent() {
@@ -99,40 +100,26 @@ function AppContent() {
         {!hideNavbarFooter && <Navbar />}
         <ScrollToTop />
         <Routes>
-           {/* Public Routes */}
-          <Route path="/" element={<HomePage />} />
+          {/* Public Routes */}
+          <Route path="/" element={<PublicRouteGuard><HomePage /></PublicRouteGuard>} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/new-password" element={<NewPasswordPage />} />
-          <Route path="/moviedetails/:id" element={<MovieDetails />} />
-          
-          <Route path="/moviesearch" element={<MovieSearch />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/promotions" element={<PromotionsPage />} />
-          <Route path="/terms" element={<GeneralTerms />} />
-          <Route path="/payment-policy" element={<PaymentPolicy />} />
-          <Route path="/delivery-policy" element={<DeliveryPolicy />} />
-          <Route path="/information-security" element={<InformationSecurity />} />
-          <Route path="/returns-refunds" element={<InspectionReturns />} />
-          <Route path="/movienews/:slug" element={<MovieNewsDetails />} />
+          <Route path="/moviedetails/:id" element={<PublicRouteGuard><MovieDetails /></PublicRouteGuard>} />
+          <Route path="/moviesearch" element={<PublicRouteGuard><MovieSearch /></PublicRouteGuard>} />
+          <Route path="/contact" element={<PublicRouteGuard><ContactPage /></PublicRouteGuard>} />
+          <Route path="/promotions" element={<PublicRouteGuard><PromotionsPage /></PublicRouteGuard>} />
+          <Route path="/terms" element={<PublicRouteGuard><GeneralTerms /></PublicRouteGuard>} />
+          <Route path="/payment-policy" element={<PublicRouteGuard><PaymentPolicy /></PublicRouteGuard>} />
+          <Route path="/delivery-policy" element={<PublicRouteGuard><DeliveryPolicy /></PublicRouteGuard>} />
+          <Route path="/information-security" element={<PublicRouteGuard><InformationSecurity /></PublicRouteGuard>} />
+          <Route path="/returns-refunds" element={<PublicRouteGuard><InspectionReturns /></PublicRouteGuard>} />
+          <Route path="/movienews/:slug" element={<PublicRouteGuard><MovieNewsDetails /></PublicRouteGuard>} />
 
-
-         
-          
-          <Route path="/customer-benefits" element={<CustomerBenefits />} />         
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/promotions" element={<PromotionsPage />} />
-          <Route path="/terms" element={<GeneralTerms />} />
-          <Route path="/payment-policy" element={<PaymentPolicy />} />
-          <Route path="/delivery-policy" element={<DeliveryPolicy />} />
-          <Route path="/information-security" element={<InformationSecurity />} />
-          <Route path="/returns-refunds" element={<InspectionReturns />} />
-          <Route path="/moviesearch" element={<MovieSearch />} />
-          
           {/* Customer */}
-          <Route path="/Users" element={<RequireRole allowedRoles={['customer']}><UsersDashboard /></RequireRole>} />
+          {/* <Route path="/Users" element={<RequireRole allowedRoles={['customer']}><UsersDashboard /></RequireRole>} /> */}
           <Route path="/viewbookedticket" element={<RequireRole allowedRoles={['customer']}><ViewBookedTickets /></RequireRole>} />
           <Route path="/viewscorehistory" element={<RequireRole allowedRoles={['customer']}><ViewScoreHistory /></RequireRole>} />
           <Route path="/viewaccount" element={<RequireRole allowedRoles={['customer']}><ViewAccount /></RequireRole>} />
@@ -141,13 +128,14 @@ function AppContent() {
           <Route path="/customer-benefits" element={<RequireRole allowedRoles={['customer']}><CustomerBenefits /></RequireRole>} />
 
           {/* Booking */}
-          <Route path="/showtimes" element={<ShowtimePage />} />
-          <Route path="/select-seats" element={<SeatSelectionPage />} />
-          <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
-          <Route path="/combo-selection" element={<ComboSelection />} />
-          <Route path="/confirm-booking" element={<ConfirmBooking />} />
-          <Route path="/payment" element={<PaymentPage />} />
-          <Route path="/ticket-detail" element={<TicketDetail />} />
+          <Route path="/showtimes" element={<RequireRole allowedRoles={['customer']}><ShowtimePage /></RequireRole>} />
+          <Route path="/select-seats" element={<RequireRole allowedRoles={['customer']}><SeatSelectionPage /></RequireRole>} />
+          <Route path="/booking-confirmation" element={<RequireRole allowedRoles={['customer']}><BookingConfirmationPage /></RequireRole>} />
+          <Route path="/combo-selection" element={<RequireRole allowedRoles={['customer']}><ComboSelection /></RequireRole>} />
+          <Route path="/confirm-booking" element={<RequireRole allowedRoles={['customer']}><ConfirmBooking /></RequireRole>} />
+          <Route path="/payment" element={<RequireRole allowedRoles={['customer']}><PaymentPage /></RequireRole>} />
+          <Route path="/ticket-detail" element={<RequireRole allowedRoles={['customer']}><TicketDetail /></RequireRole>} />
+
 
           {/* Admin */}
           <Route path="/admin" element={<RequireRole allowedRoles={['admin']}><AdminDashboard /></RequireRole>} />
