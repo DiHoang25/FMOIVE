@@ -16,7 +16,7 @@ router.post('/new_product', authMiddleware, employeeMiddleware, upload.single('i
     try {
         const { productName, category, price, stockQuantity, description } = req.body;
 
-        if (!productName || !price || !req.file) {
+        if (!productName || !price ) {
             return res.status(400).json({ message: 'Vui lòng cung cấp đầy đủ tên sản phẩm, giá và ảnh.' });
         }
 
