@@ -16,7 +16,7 @@ const promotionRoutes = require('./routes/promotions/promotionsRoutes'); // qu�
 const roomManagermentRoutes = require('./routes/theather/room'); // Import tuyến quản lý phòng
 const productRoutes = require('./routes/product/productRoutes'); // Import tuyến quản lý sản phẩm
 const comboRoutes = require('./routes/product/comboRoutes'); // Import tuyến quản lý combo
-const movieNewsRoutes = require('./routes/movie/news.route'); // Import tuyến quản lý tin tức
+const movieNewsRoutes = require('./routes/movie/newsRoutes'); // Import tuyến quản lý tin tức
 // Khởi tạo ứng dụng Express
 
 const app = express();
