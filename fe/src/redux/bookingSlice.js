@@ -28,7 +28,8 @@ const bookingSlice = createSlice({
       state.movieDetails = {
         ...action.payload.movieDetails, // Spread existing details
         time: action.payload.time, // Specific selected time and date
-        cinema_room: action.payload.cinema_room, // Specific cinema room (will be N/A if not provided)
+        cinema_room: action.payload.cinema_room, // The user-friendly name (e.g., "ROOM000000016")
+        cinemaRoomId: action.payload.cinemaRoomId, // NEW: The actual _id of the cinema room
         // Ensure genres is always an array of strings
         genres: action.payload.movieDetails.genres || [], // Default to empty array
       };
@@ -69,3 +70,4 @@ export const {
 } = bookingSlice.actions;
 
 export default bookingSlice.reducer;
+  
