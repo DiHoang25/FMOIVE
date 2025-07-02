@@ -16,9 +16,11 @@ const promotionRoutes = require('./routes/promotions/promotionsRoutes'); // qu�
 const roomManagermentRoutes = require('./routes/theather/room'); // Import tuyến quản lý phòng
 const productRoutes = require('./routes/product/productRoutes'); // Import tuyến quản lý sản phẩm
 const comboRoutes = require('./routes/product/comboRoutes'); // Import tuyến quản lý combo
+const movieNewsRoutes = require('./routes/movie/news.route'); // Import tuyến quản lý tin tức
 // Khởi tạo ứng dụng Express
 
 const app = express();
+const path = require('path');
 
 // Swagger setup
 const swaggerUi = require('swagger-ui-express');
@@ -31,6 +33,8 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(cors());
 // Sử dụng express.json() để phân tích cú pháp các yêu cầu JSON từ client
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use('/uploadsforNews', express.static(path.join(__dirname, 'public/uploadsforNews')));
 
 // Định nghĩa các tuyến (routes) API
 //tuyến người dùng
@@ -50,6 +54,8 @@ app.use('/api/theater/rooms', roomManagermentRoutes);
 // tuyến quản lý sản phẩm
 app.use('/api/product', productRoutes);
 app.use('/api/combo', comboRoutes);
+//tuyến quản lý tin tức
+app.use('/api/movie-news', movieNewsRoutes);
 
 
 
