@@ -26,7 +26,7 @@ return (
     </div>
   </div>
 
-  {/* Article 2 */}
+  
   <div className="space-y-4">
     <img
       src={flowPoster2}
@@ -46,7 +46,7 @@ return (
     </div>
   </div>
 
-  {/* Article 3 */}
+ 
   <div className="space-y-4">
     <img
       src={flowPoster3}
@@ -60,7 +60,7 @@ return (
     </div>
   </div>
 
-  {/* Article 4 */}
+ 
   <div className="space-y-4">
     <img
       src={flowPoster4}

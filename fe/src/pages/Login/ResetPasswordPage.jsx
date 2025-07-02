@@ -3,7 +3,6 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import anhnenloginImage from '../../assets/anhnenlogin.jpg';
 
 function ResetPasswordPage() {
-  // Array with 5 input fields
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '']);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -11,7 +10,6 @@ function ResetPasswordPage() {
   const location = useLocation();
   const email = location.state?.email || '';
   
-  // Create refs for the input fields
   const inputRefs = [
     useRef(null),
     useRef(null),
@@ -20,7 +18,6 @@ function ResetPasswordPage() {
     useRef(null),
   ];
 
-  // Redirect to forgot password if no email is provided
   useEffect(() => {
     if (!email) {
       console.log("No email found, redirecting to forgot-password");
@@ -28,47 +25,37 @@ function ResetPasswordPage() {
     }
   }, [email, navigate]);
 
-  // Handle change in the input field
   const handleChange = (index, e) => {
     const value = e.target.value;
     
-    // Only allow numeric input
     if (value && !/^[0-9]$/.test(value)) {
       return;
     }
     
-    // Update the value in the array
     const newVerificationCode = [...verificationCode];
     newVerificationCode[index] = value;
     setVerificationCode(newVerificationCode);
     
-    // Clear error when user inputs
     setError('');
     
-    // Auto-focus to the next field when filled
     if (value && index < 4) {
       inputRefs[index + 1].current.focus();
     }
   };
 
-  // Handle key press in the input field
   const handleKeyDown = (index, e) => {
-    // When Backspace is pressed and current field is empty, focus on previous field
     if (e.key === 'Backspace' && !verificationCode[index] && index > 0) {
       inputRefs[index - 1].current.focus();
     }
   };
 
-  // Handle paste into the input field
   const handlePaste = (e) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text');
     
-    // Only process if pasted data is numeric and has valid length
     if (/^\d+$/.test(pastedData)) {
       const digits = pastedData.slice(0, 5).split('');
       
-      // Fill the corresponding fields
       const newVerificationCode = [...verificationCode];
       digits.forEach((digit, index) => {
         if (index < 5) {
@@ -87,7 +74,6 @@ function ResetPasswordPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Check if all fields are filled
     const isComplete = verificationCode.every(digit => digit !== '');
     
     if (!isComplete) {
@@ -99,7 +85,6 @@ function ResetPasswordPage() {
     setError('');
     
     try {
-      // Convert array to string for API request
       const resetCode = verificationCode.join('');
 
       console.log("Verifying code for email:", email);
@@ -124,13 +109,12 @@ function ResetPasswordPage() {
       
       if (data.resetToken) {
         console.log("Received reset token from API");
-        // Clear any existing token first
+        
         localStorage.removeItem('resetToken');
-        // Save the new token
+        
         localStorage.setItem('resetToken', data.resetToken);
         console.log("Reset token saved to localStorage");
 
-      // Redirect to new password page with email
       navigate('/new-password', { state: { email } });
       } else {
         throw new Error('No reset token received from server');
@@ -143,9 +127,7 @@ function ResetPasswordPage() {
     }
   };
 
-  // For direct testing - remove in production
   const testCodeVerification = async () => {
-    // This is just for testing purposes
     console.log("Testing verification with hardcoded values");
     try {
       const testResponse = await fetch('http://localhost:5000/api/auth/verify-reset-code', {
@@ -217,7 +199,6 @@ function ResetPasswordPage() {
                 </button>
               </div>
 
-              {/* Debug button - remove in production */}
               <div className="mt-2 text-center">
                 <button
                   type="button"
