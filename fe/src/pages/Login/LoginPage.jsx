@@ -58,11 +58,9 @@ const LoginPage = () => {
       localStorage.setItem('token', data.token);
       login(data.token);
 
-      //  Giải mã token để điều hướng theo vai trò
       const decoded = jwtDecode(data.token);
       const role = decoded.user.role;
 
-      // Hiển thị thông báo đăng nhập thành công
       message.success(`Đăng nhập thành công! Chào mừng ${decoded.user.username}`, 3);
 
       if (role === 'admin') {

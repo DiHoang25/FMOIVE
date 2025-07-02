@@ -1,11 +1,11 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
-// Async thunk để tìm kiếm phim từ API
+
 export const searchMovies = createAsyncThunk(
   'movieSearch/searchMovies',
   async (searchParams, { rejectWithValue }) => {
     try {
-      // Xây dựng URL với tham số tìm kiếm
+      
       const { search, date } = searchParams;
       let url = 'http://localhost:5000/api/feature/search?';
       
@@ -19,14 +19,14 @@ export const searchMovies = createAsyncThunk(
       }
       
       const data = await response.json();
-      return data.movies; // API trả về { message, movies }
+      return data.movies; 
     } catch (error) {
       return rejectWithValue(error.message);
     }
   }
 );
 
-// Thunk để lấy tất cả phim
+
 export const fetchAllMovies = createAsyncThunk(
   'movieSearch/fetchAllMovies',
   async (_, { rejectWithValue }) => {
@@ -45,7 +45,7 @@ export const fetchAllMovies = createAsyncThunk(
   }
 );
 
-// Hàm để escape các ký tự đặc biệt trong biểu thức chính quy
+
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
@@ -63,7 +63,7 @@ const movieSearchSlice = createSlice({
   reducers: {
     setSearchTerm: (state, action) => {
       state.searchTerm = action.payload;
-      // Lọc phim theo searchTerm từ danh sách đã có
+      
       if (!state.searchTerm.trim()) {
         state.filteredMovies = state.movies;
       } else {
@@ -74,13 +74,13 @@ const movieSearchSlice = createSlice({
             searchRegex.test(movie.name)
           );
         } catch (error) {
-          // Fallback khi RegExp thất bại - tìm kiếm đơn giản hơn
+          
           state.filteredMovies = state.movies.filter(movie =>
             movie.name.toLowerCase().includes(state.searchTerm.toLowerCase())
           );
         }
       }
-      state.currentPage = 0; // Reset về trang đầu tiên
+      state.currentPage = 0; 
     },
     setCurrentPage: (state, action) => {
       state.currentPage = action.payload;

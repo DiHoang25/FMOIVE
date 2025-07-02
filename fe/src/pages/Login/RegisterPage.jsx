@@ -42,8 +42,6 @@ function RegisterPage() {
           phone: data.phone,
           gender: data.gender,
           date_of_birth: data.dateOfBirth ? new Date(data.dateOfBirth).toISOString() : null,
-          // address: '',
-          // id_card: '',
           role: 'customer',
           is_deleted: false,
           is_actived: true
