@@ -201,7 +201,7 @@ router.get('/:comboID', async (req, res) => {
 // @route   PUT /api/combos/:id
 // @desc    Cập nhật thông tin combo
 // @access  Private (Chỉ dành cho con ở lao động không lương trong rạp này)
-router.put('/:comboID', authMiddleware, employeeMiddleware, async (req, res) => {
+router.put('/:comboID/update', authMiddleware, employeeMiddleware, async (req, res) => {
     const { comboName, description, price, items, startDate, endDate, imageUrl, isActive } = req.body;
     const comboId = req.params.comboID;
 
