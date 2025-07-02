@@ -62,7 +62,7 @@ function AdminDashboard() {
               <Link to="/admin/add-movie" className="bg-green-500 hover:bg-green-600 text-white p-3 rounded-md text-center">
                 Add Movie
               </Link>
-              <Link to="/admin/view-members" className="bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-md text-center">
+              <Link to="/admin/view-members" className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-md text-center">
                 View Accounts
               </Link>            
             </div>

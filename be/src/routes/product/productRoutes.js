@@ -50,7 +50,7 @@ router.post('/new_product', authMiddleware, employeeMiddleware, upload.single('i
 // @route   PUT /api/products/:id
 // @desc    Cập nhật thông tin sản phẩm
 // @access  Private (Chỉ dành cho quản trị viên)
-router.put('/:id', authMiddleware, employeeMiddleware, upload.single('image'), async (req, res) => {
+router.put('/:id/update', authMiddleware, employeeMiddleware, upload.single('image'), async (req, res) => {
     const productId = req.params.id;
     try {
         const product = await Product.findById(productId);
