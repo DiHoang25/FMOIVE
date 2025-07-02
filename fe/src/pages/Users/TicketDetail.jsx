@@ -1,26 +1,32 @@
 import React, { useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom'; // Import useLocation
+import { useNavigate } from 'react-router-dom';
+
+// Redux imports
+import { useSelector, useDispatch } from 'react-redux';
+import { resetBooking } from '../../redux/bookingSlice'; // Keeping your specified path
 
 // Use a default poster if movie.image_url is not available
 import defaultPoster from '../../assets/batman.png'; // Make sure this path is correct
 
 const TicketDetail = () => {
-  const location = useLocation(); // Get the location object to access state
-  const navigate = useNavigate(); // Use navigate for navigation actions
-  // Destructure data passed from the previous page (ConfirmBooking or Payment Success)
-  const {
-    movie: movieDetails,        // Full movie object: name, image_url, version, running_time, time, cinema_room
-    selectedSeats,      // Array of seat IDs, e.g., ['A1', 'B2']
-    totalSeatPrice,     // Total price calculated for selected seats
-    selectedCombos,     // Array of combo objects with name, quantity, price, id
-    totalComboPrice,    // Total price for all selected combos
-    serviceFee,         // Service fee (passed from ConfirmBooking)
-    grandTotal,         // Grand total (passed from ConfirmBooking)
-    user: userData,     // User details (passed from ConfirmBooking, or from auth context)
-    bookingId,          // The booking ID (mock generated in ConfirmBooking or from backend)
-  } = location.state || {}; // Fallback to an empty object for safety
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  // Define fallbacks for display if data is missing (e.g., direct page access)
+  // Destructure data directly from Redux store using useSelector
+  const {
+    movieDetails,      // Full movie object: name, image_url, version, running_time, time, cinema_room, genres, etc.
+    selectedSeats,     // Array of seat IDs, e.g., ['A1', 'B2']
+    totalSeatPrice,    // Total price calculated for selected seats
+    selectedCombos,    // Array of combo objects with name, quantity, price, id
+    totalComboPrice,   // Total price for all selected combos
+    serviceFee,        // Service fee from Redux state
+    grandTotal,        // Grand total from Redux state
+    user,              // User details from Redux state (mock for now)
+    bookingId,         // The booking ID from Redux state
+  } = useSelector((state) => state.booking);
+
+
+  // Define fallbacks for display if data is missing (e.g., direct page access or incomplete flow)
   const movie = movieDetails || {
     name: 'Movie Title N/A',
     image_url: defaultPoster, // Default poster if none is provided
@@ -28,46 +34,71 @@ const TicketDetail = () => {
     running_time: 'N/A',
     time: 'N/A', // This should already contain the full date and hour from previous steps
     cinema_room: 'N/A',
+    genres: [], // Ensure genres is in fallback
   };
 
   const seats = selectedSeats || [];
   const combos = selectedCombos || [];
-  const user = userData || { // Fallback for user data (replace with actual user data logic)
+  const userData = user || { // Fallback for user data (replace with actual user data logic)
     name: 'N/A',
     email: 'N/A',
     id: 'N/A',
     phone: 'N/A',
   };
 
-  // Use the actual calculated prices received, provide fallbacks
+  // Use the actual calculated prices received from Redux, provide fallbacks
   const actualTotalSeatPrice = totalSeatPrice || 0;
   const actualTotalComboPrice = totalComboPrice || 0;
   const actualServiceFee = serviceFee || 0;
   const actualGrandTotal = grandTotal || 0; // The final total confirmed on the previous page
 
   // Optional: useEffect to handle cases where essential data might be missing
-  useEffect(() => {
-    if (!movieDetails || !selectedSeats || totalSeatPrice === undefined || !selectedCombos || totalComboPrice === undefined || !bookingId || grandTotal === undefined) {
-      console.warn("TicketDetail: Missing essential booking confirmation data. Displaying default/empty values.");
-      // In a real application, you might redirect to a booking history page or error page if data is crucial
-      // Example: navigate('/booking-history');
-    }
-  }, [movieDetails, selectedSeats, totalSeatPrice, selectedCombos, totalComboPrice, bookingId, grandTotal]);
+  // As per your request, this useEffect for redirecting has been removed.
+  // Missing info will now display as 'N/A'.
+  // useEffect(() => {
+  //   if (!movieDetails || !selectedSeats || totalSeatPrice === undefined || !selectedCombos || totalComboPrice === undefined || !bookingId || grandTotal === undefined) {
+  //     console.warn("TicketDetail: Missing essential booking confirmation data. Displaying default/empty values.");
+  //     // In a real application, you might redirect to a booking history page or error page if data is crucial
+  //     // Example: navigate('/booking-history');
+  //   }
+  // }, [movieDetails, selectedSeats, totalSeatPrice, selectedCombos, totalComboPrice, bookingId, grandTotal]);
 
-  // Helper function to format the movie time string for display
+  // Helper function to format the movie time string for display (as per ConfirmBooking.jsx)
   const formatMovieTime = (timeString) => {
-      if (!timeString || timeString === 'N/A') return { date: 'N/A', time: 'N/A' };
-      // Assuming timeString is like "Today, 7:30 PM" or "Monday, May 26, 7:30 PM"
-      const parts = timeString.split(', ');
-      if (parts.length > 1) {
-          const datePart = parts.slice(0, -1).join(', '); // All parts except the last one (which is time)
-          const timePart = parts[parts.length - 1];      // The last part is the time
-          return { date: datePart, time: timePart };
+      if (!timeString || timeString === 'N/A') return { display: 'N/A' };
+
+      const dateObj = new Date(timeString);
+
+      if (isNaN(dateObj.getTime())) {
+          // Fallback for unparseable strings
+          const parts = timeString.split(', ');
+          const timePart = parts[parts.length - 1].trim(); // Get the last part as time
+          // Reconstruct date part, excluding year if present
+          const datePartArray = parts.slice(0, parts.length - 1).filter(part => !/\d{4}/.test(part.trim()));
+          const datePart = datePartArray.join(', ').trim();
+          return { display: `${timePart}, ${datePart}` };
       }
-      return { date: timeString, time: '' }; // Fallback if no comma (might just be a date or just a time)
+
+      // Options for date formatting (excluding year)
+      const dateOptions = { weekday: 'long', month: 'long', day: 'numeric' };
+      const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
+
+      const formattedDate = dateObj.toLocaleDateString('en-US', dateOptions); // e.g., "Monday, June 30"
+      const formattedTime = dateObj.toLocaleTimeString('en-US', timeOptions); // e.g., "3:00 PM"
+
+      // Construct the desired display string: "TIME, DATE"
+      return { display: `${formattedTime}, ${formattedDate}` };
   };
 
   const formattedTime = formatMovieTime(movie.time);
+
+  // Optional: Reset booking state when user leaves the ticket detail page
+  // or navigates to booking history, to clear the Redux store for the next booking.
+  // useEffect(() => {
+  //   return () => {
+  //     // dispatch(resetBooking()); // Uncomment this if you want to reset the booking state after viewing the ticket
+  //   };
+  // }, [dispatch]);
 
 
   return (
@@ -84,9 +115,12 @@ const TicketDetail = () => {
           <img src={movie.image_url} alt={movie.name} className="w-28 h-40 rounded-md object-cover" />
           <div className="space-y-1">
             <h2 className="text-lg font-semibold">{movie.name}</h2> {/* Movie Title */}
-            <p className="text-gray-400">{movie.cinema_room}</p> {/* Screen */}
-            <p className="text-gray-400">{formattedTime.date}</p> {/* Formatted Date */}
-            <p className="text-xl">{formattedTime.time}</p> {/* Formatted Time */}
+            {/* Displaying version, running time, and genres */}
+            <p className="text-gray-400">
+                {movie.version || 'N/A'} • {movie.running_time} min • {movie.genres && movie.genres.length > 0 ? movie.genres.join(', ') : 'N/A'}
+            </p>
+            <p className="text-gray-400">{movie.cinema_room || 'N/A'}</p> {/* Screen */}
+            <p className="text-xl">{formattedTime.display}</p> {/* Formatted Time and Date */}
           </div>
         </div>
 
@@ -165,10 +199,10 @@ const TicketDetail = () => {
         <div>
           <h3 className="text-red-500 font-semibold mb-2">Your Information</h3>
           <div className="text-sm grid grid-cols-1 sm:grid-cols-2 gap-y-1">
-            <p><span className="text-gray-400">Full Name:</span> {user.name}</p>
-            <p><span className="text-gray-400">Email:</span> {user.email}</p>
-            <p><span className="text-gray-400">ID Number:</span> {user.id}</p>
-            <p><span className="text-gray-400">Phone:</span> {user.phone}</p>
+            <p><span className="text-gray-400">Full Name:</span> {userData.name}</p>
+            <p><span className="text-gray-400">Email:</span> {userData.email}</p>
+            <p><span className="text-gray-400">ID Number:</span> {userData.id}</p>
+            <p><span className="text-gray-400">Phone:</span> {userData.phone}</p>
           </div>
         </div>
 

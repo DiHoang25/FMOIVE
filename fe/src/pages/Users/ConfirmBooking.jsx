@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from 'react-router-dom'; // useLocation not strictly needed for data, but can be for other hooks
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
 // Redux imports
@@ -61,30 +61,53 @@ const ConfirmBooking = () => {
     dispatch(updateGrandTotal(grandTotalAfterDiscount));
   }, [grandTotalAfterDiscount, dispatch]); // Depend on grandTotalAfterDiscount to dispatch when it changes
 
-  // Optional: Add a useEffect to log missing data or redirect if essential data is not present
-  useEffect(() => {
-    if (!movieDetails || !selectedSeats || totalSeatPrice === undefined || !selectedCombos || totalComboPrice === undefined) {
-      console.warn("ConfirmBooking: Missing essential booking details in Redux. Showing default data.");
-      // In a production app, you might want to redirect the user
-      // navigate('/'); // Example: Redirect to home or an error page
-    }
-  }, [movieDetails, selectedSeats, totalSeatPrice, selectedCombos, totalComboPrice, navigate]);
+  // **REMOVED:** The useEffect that redirects if essential data is not present.
+  // This means the page will no longer automatically navigate away if Redux state is incomplete.
+  // Some information might display as 'N/A' if the flow is not followed from ShowtimePage.
+  // useEffect(() => {
+  //   if (!movieDetails || !movieDetails.time || !movieDetails.cinema_room) {
+  //     console.warn("ConfirmBooking: Missing essential movie or showtime details in Redux. Redirecting to Showtime page.");
+  //     navigate('/showtime');
+  //   } else if (!selectedSeats || totalSeatPrice === undefined) {
+  //       console.warn("ConfirmBooking: Missing seat selection details in Redux. Redirecting to Seat Selection page.");
+  //       navigate('/select-seats');
+  //   } else if (!selectedCombos || totalComboPrice === undefined) {
+  //       console.warn("ConfirmBooking: Missing combo selection details in Redux. Redirecting to Combo Selection page.");
+  //       navigate('/combo-selection');
+  //   }
+  // }, [movieDetails, selectedSeats, totalSeatPrice, selectedCombos, totalComboPrice, navigate]);
+
 
   const handleProceedToPayment = () => {
     // All data is in Redux, so no need to pass state via navigate
     navigate('/payment');
   };
 
-  // Helper function to format the movie time string for display
+  // Helper function to format the movie time string for display (Updated)
   const formatMovieTime = (timeString) => {
-    if (!timeString || timeString === 'N/A') return { date: 'N/A', time: 'N/A' };
-    const parts = timeString.split(', ');
-    if (parts.length > 1 && parts[parts.length - 1].match(/\d{1,2}:\d{2}\s(AM|PM)?/i)) { // Make AM/PM optional and case-insensitive
-        const timePart = parts.pop(); // Remove time part
-        const datePart = parts.join(', '); // Remaining parts are date
-        return { date: datePart, time: timePart };
-    }
-    return { date: timeString, time: '' }; // Fallback if no clear time part
+      if (!timeString || timeString === 'N/A') return { display: 'N/A' };
+
+      const dateObj = new Date(timeString);
+
+      if (isNaN(dateObj.getTime())) {
+          // Fallback for unparseable strings
+          const parts = timeString.split(', ');
+          const timePart = parts[parts.length - 1].trim(); // Get the last part as time
+          // Reconstruct date part, excluding year if present
+          const datePartArray = parts.slice(0, parts.length - 1).filter(part => !/\d{4}/.test(part.trim()));
+          const datePart = datePartArray.join(', ').trim();
+          return { display: `${timePart}, ${datePart}` };
+      }
+
+      // Options for date formatting (excluding year)
+      const dateOptions = { weekday: 'long', month: 'long', day: 'numeric' };
+      const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
+
+      const formattedDate = dateObj.toLocaleDateString('en-US', dateOptions); // e.g., "Monday, June 30"
+      const formattedTime = dateObj.toLocaleTimeString('en-US', timeOptions); // e.g., "3:00 PM"
+
+      // Construct the desired display string: "TIME, DATE"
+      return { display: `${formattedTime}, ${formattedDate}` };
   };
   const formattedTime = formatMovieTime(movie.time);
 
@@ -105,7 +128,7 @@ const ConfirmBooking = () => {
                   {movie.version || 'N/A'} • {movie.running_time} min • {movie.genres && movie.genres.length > 0 ? movie.genres.join(', ') : 'N/A'}
                 </p>
                 <p className="text-gray-400">{movie.cinema_room || 'N/A'}</p>
-                <p className="text-gray-400">{formattedTime.date}, {formattedTime.time}</p>
+                <p className="text-gray-400">{formattedTime.display}</p> {/* Using the new 'display' property */}
               </div>
             </div>
 
