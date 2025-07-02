@@ -20,7 +20,7 @@ router.post('/new_product', authMiddleware, employeeMiddleware, async (req, res)
         const newProduct = new Product({
             productId,
             productName,
-            category, // Mặc định là 'popcorn' nếu không có category
+            category: category || 'other', // Mặc định là 'other' nếu không có danh mục
             price,
             stockQuantity,
             description,

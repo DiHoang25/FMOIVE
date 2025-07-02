@@ -45,6 +45,11 @@ export const fetchAllMovies = createAsyncThunk(
   }
 );
 
+// Hàm để escape các ký tự đặc biệt trong biểu thức chính quy
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+
 const movieSearchSlice = createSlice({
   name: 'movieSearch',
   initialState: {
@@ -62,10 +67,18 @@ const movieSearchSlice = createSlice({
       if (!state.searchTerm.trim()) {
         state.filteredMovies = state.movies;
       } else {
-        const searchRegex = new RegExp(state.searchTerm, 'i');
-        state.filteredMovies = state.movies.filter(movie =>
-          searchRegex.test(movie.name)
-        );
+        try {
+          const escapedSearchTerm = escapeRegExp(state.searchTerm);
+          const searchRegex = new RegExp(escapedSearchTerm, 'i');
+          state.filteredMovies = state.movies.filter(movie =>
+            searchRegex.test(movie.name)
+          );
+        } catch (error) {
+          // Fallback khi RegExp thất bại - tìm kiếm đơn giản hơn
+          state.filteredMovies = state.movies.filter(movie =>
+            movie.name.toLowerCase().includes(state.searchTerm.toLowerCase())
+          );
+        }
       }
       state.currentPage = 0; // Reset về trang đầu tiên
     },

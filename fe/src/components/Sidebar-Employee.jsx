@@ -1,17 +1,17 @@
 // Sidebar-Admin.jsx
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   DashboardOutlined,
 } from "@ant-design/icons";
-
-import { IoTicketOutline } from "react-icons/io5";
+import { LogoutOutlined } from '@ant-design/icons';
+import { IoTicketOutline, IoFastFoodOutline } from "react-icons/io5";
 import { AiOutlineBook } from "react-icons/ai";
 import { Button, Layout, Menu, theme } from "antd";
 import { RxAvatar } from "react-icons/rx";
+import { useAuth } from '../contexts/AuthContext';
 
 const { Header, Sider, Content } = Layout;
 
@@ -21,6 +21,14 @@ const SidebarLayout = ({ children }) => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <Layout className="min-h-screen bg-[#0f172a]">
@@ -53,17 +61,27 @@ const SidebarLayout = ({ children }) => {
               icon: <IoTicketOutline />,
               label: <Link to="/employee/counter-showtimes">Movie & Showtime</Link>,
             },
-           
-            
-            
             {
-              key: "/employee/booking-list",
+              key: "/employee/counter-booking-list",
               icon: <AiOutlineBook />,
               label: <Link to="/employee/counter-booking-list">Booking List</Link>,
             },
-            
+            {
+              key: "/employee/view-combo",
+              icon: <IoFastFoodOutline />,
+              label: <Link to="/employee/view-combo">View Combo</Link>,
+            },
           ]}
         />
+
+        <div className="p-4">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded text-base"
+          >
+            <LogoutOutlined />
+          </button>
+        </div>
       </Sider>
       <Layout>
         <Header
