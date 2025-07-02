@@ -76,7 +76,7 @@ const SidebarLayout = ({ children }) => {
               key: "/employee/view-product",
               icon: <RiDrinksFill />,
               label: <Link to="/employee/view-product">View Product</Link>,
-            },
+            }
           ]}
         />
 

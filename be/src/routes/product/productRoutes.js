@@ -50,7 +50,7 @@ router.post('/new_product', authMiddleware, employeeMiddleware, upload.single('i
 // @route   PUT /api/products/:id
 // @desc    Cập nhật thông tin sản phẩm
 // @access  Private (Chỉ dành cho quản trị viên)
-router.put('/:id', authMiddleware, employeeMiddleware, upload.single('image'), async (req, res) => {
+router.put('/:id/update', authMiddleware, employeeMiddleware, upload.single('image'), async (req, res) => {
     const productId = req.params.id;
     try {
         const product = await Product.findById(productId);
@@ -112,10 +112,10 @@ router.get('/:productId', authMiddleware, employeeMiddleware, async (req, res) =
 
     try {
         // Lấy danh sách tất cả các sản phẩm
-        const products = await Product.find({ productId }).select('-__v'); // Loại bỏ trường __v để giảm bớt dữ liệu trả về
+        const product = await Product.findById(productId).select('-__v'); // Loại bỏ trường __v để giảm bớt dữ liệu trả về
 
         res.status(200).json({
-            products
+            product
         });
     } catch (error) {
         console.error('Lỗi khi lấy danh sách sản phẩm:', error.message);
