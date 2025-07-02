@@ -46,50 +46,55 @@ const SidebarLayout = ({ children }) => {
           </Link>
         </header>
 
-                {/* Menu Items */}
-                <Menu
-                    theme="dark"
-                    mode="inline"
-                    selectedKeys={[location.pathname]}
-                    items={[
-                        {
-                            key: '/admin',
-                            icon: <DashboardOutlined />,
-                            label: <Link to="/admin">Dashboard Overview</Link>,
-                        },
-                        {
-                            key: '/admin/view-members',
-                            icon: <FaUserFriends />,
-                            label: <Link to="/admin/view-members">View Members</Link>, // Changed label for clarity
-                        },
-                        // NEW TAB FOR EMPLOYEES
-                        {
-                            key: '/admin/view-employees',
-                            icon: <FaUserFriends />, // You can choose a different icon if preferred
-                            label: <Link to="/admin/view-employees"> View Employees </Link>,
-                        },
-                        {
-                            key: '/admin/booking-list',
-                            icon: <AiOutlineBook />,
-                            label: <Link to="/admin/booking-list">Booking List</Link>,
-                        },
-                        {
-                            key: '/admin/movie-list',
-                            icon: <FaClipboardList />,
-                            label: <Link to="/admin/movie-list">Movie List</Link>,
-                        },
-                        {
-                            key: '/admin/cinema-rooms',
-                            icon: <FaRegBuilding />,
-                            label: <Link to="/admin/cinema-rooms">Cinema Rooms</Link>,
-                        },
-                        {
-                            key: '/admin/promotions',
-                            icon: <SlPresent />,
-                            label: <Link to="/admin/promotions">Promotions</Link>,
-                        },
-                    ]}
-                />
+        {/* Menu Items */}
+        <Menu
+          theme="dark"
+          mode="inline"
+          selectedKeys={[location.pathname]}
+          items={[
+            {
+              key: '/admin',
+              icon: <DashboardOutlined />,
+              label: <Link to="/admin">Dashboard Overview</Link>,
+            },
+            {
+              key: '/admin/view-members',
+              icon: <FaUserFriends />,
+              label: <Link to="/admin/view-members">View Members</Link>, // Changed label for clarity
+            },
+            // NEW TAB FOR EMPLOYEES
+            {
+              key: '/admin/view-employees',
+              icon: <FaUserFriends />, // You can choose a different icon if preferred
+              label: <Link to="/admin/view-employees"> View Employees </Link>,
+            },
+            {
+              key: '/admin/booking-list',
+              icon: <AiOutlineBook />,
+              label: <Link to="/admin/booking-list">Booking List</Link>,
+            },
+            {
+              key: '/admin/movie-list',
+              icon: <FaClipboardList />,
+              label: <Link to="/admin/movie-list">Movie List</Link>,
+            },
+            {
+              key: '/admin/cinema-rooms',
+              icon: <FaRegBuilding />,
+              label: <Link to="/admin/cinema-rooms">Cinema Rooms</Link>,
+            },
+            {
+              key: '/admin/promotions',
+              icon: <SlPresent />,
+              label: <Link to="/admin/promotions">Promotions</Link>,
+            },
+            {
+              key: '/admin/movienews-list',
+              icon: <RiInformation2Line />,
+              label: <Link to="/admin/movienews-list">Movie News</Link>,
+            },
+          ]}
+        />
 
         {/* Logout Button */}
         <div className="p-4">
