@@ -18,7 +18,6 @@ import RegisterPage from './pages/Login/RegisterPage';
 import ViewMembers from './pages/Admin/ViewMembers';
 import AdminProfile from './pages/Admin/AdminProfile';
 import MovieDetails from './pages/Movie/MovieDetails';
-import MovieNews from './pages/Movie/MovieNews';
 import MovieSearch from './pages/Movie/MovieSearch';
 import EmployeeProfile from './pages/Employee/EmployeeProfile';
 import ViewMembersList from './pages/Employee/ViewMembersList';
@@ -71,6 +70,10 @@ import AddEmployee from './pages/Admin/AddEmployee';
 import AddCombo from './pages/Employee/AddCombo';
 import ViewCombo from './pages/Employee/ViewCombo';
 import EditCombo from './pages/Employee/EditCombo';
+import MovieNewsDetails from './pages/Movie/MovieNewsDetails';
+import AddMovieNews from './pages/Admin/AddMovieNews';
+import MovieNewsList from './pages/Admin/MovieNewsList'
+import EditMovieNews from './pages/Admin/EditMovieNews';
 
 
 function AppContent() {
@@ -104,7 +107,7 @@ function AppContent() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/new-password" element={<NewPasswordPage />} />
           <Route path="/moviedetails/:id" element={<MovieDetails />} />
-          <Route path="/movienews" element={<MovieNews />} />
+          
           <Route path="/moviesearch" element={<MovieSearch />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/promotions" element={<PromotionsPage />} />
@@ -113,10 +116,10 @@ function AppContent() {
           <Route path="/delivery-policy" element={<DeliveryPolicy />} />
           <Route path="/information-security" element={<InformationSecurity />} />
           <Route path="/returns-refunds" element={<InspectionReturns />} />
+          <Route path="/movienews/:slug" element={<MovieNewsDetails />} />
 
 
-          {/* <Route path="/moviedetailssearch" element={<MovieDetailsSearch />} />
-          <Route path="/movienewsssearch" element={<MovieNewsSearch />} /> */}
+         
           
           <Route path="/customer-benefits" element={<CustomerBenefits />} />         
           <Route path="/contact" element={<ContactPage />} />
@@ -162,7 +165,9 @@ function AppContent() {
           <Route path="/admin/cinema-rooms" element={<RequireRole allowedRoles={['admin']}><CinemaRooms /></RequireRole>} />
           <Route path="/admin/room/:roomId" element={<RequireRole allowedRoles={['admin']}><CinemaRoomDetail /></RequireRole>} />
           <Route path="/admin/cinema-rooms/add-new-cinema-room" element={<RequireRole allowedRoles={['admin']}><AddCinemaRoom /></RequireRole>} />
-
+          <Route path="/admin/add-movienews" element={<RequireRole allowedRoles={['admin']}><AddMovieNews /></RequireRole>} />
+          <Route path="/admin/movienews-list" element={<RequireRole allowedRoles={['admin']}><MovieNewsList /></RequireRole>} />
+          <Route path="/admin/edit-movienews/:id" element={<RequireRole allowedRoles={['admin']}><EditMovieNews /></RequireRole>} />
           {/* Employee */}
           <Route path="/employee" element={<RequireRole allowedRoles={['employee']}><EmployeeDashboard /></RequireRole>} />
           <Route path="/employee/employee-profile" element={<RequireRole allowedRoles={['employee']}><EmployeeProfile /></RequireRole>} />
@@ -200,4 +205,3 @@ function App() {
 }
 
 export default App;
-
