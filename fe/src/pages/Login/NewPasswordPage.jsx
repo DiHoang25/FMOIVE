@@ -16,12 +16,9 @@ function NewPasswordPage() {
   const location = useLocation();
   const email = location.state?.email || '';
 
-  // Get the reset token from localStorage
   const resetToken = localStorage.getItem('resetToken');
 
   useEffect(() => {
-    // Only redirect if token is missing AND we haven't completed password reset
-    // This prevents redirect after successful password reset
     if (!resetToken && !passwordResetComplete && !showSuccessModal) {
       navigate('/forgot-password');
     }
@@ -38,7 +35,6 @@ function NewPasswordPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Form validation
     if (!formData.newPassword) {
       setError('Please enter a new password');
       return;
@@ -58,7 +54,6 @@ function NewPasswordPage() {
     setError('');
 
     try {
-      // Call API to reset password
       const response = await fetch('http://localhost:5000/api/auth/reset-password', {
         method: 'POST',
         headers: {
@@ -77,14 +72,10 @@ function NewPasswordPage() {
         throw new Error(data.message || 'Failed to reset password');
       }
 
-      // Mark password reset as complete before removing token
-      // This prevents the useEffect from redirecting
       setPasswordResetComplete(true);
 
-      // Remove token after marking completion
       localStorage.removeItem('resetToken');
 
-      // Show success modal
       setShowSuccessModal(true);
 
     } catch (err) {
@@ -95,8 +86,7 @@ function NewPasswordPage() {
     }
   };
 
-  const handleSuccessConfirm = () => {
-    // Navigate to login page
+   const handleSuccessConfirm = () => {
     navigate('/login');
   };
 
@@ -171,7 +161,6 @@ function NewPasswordPage() {
         />
       </div>
 
-      {/* Success Modal - exactly as requested */}
       {showSuccessModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">

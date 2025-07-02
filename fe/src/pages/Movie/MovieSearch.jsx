@@ -23,7 +23,6 @@ const MovieSearch = () => {
   } = useSelector(state => state.movieSearch);
   const moviesPerPage = 10;
 
-  // Khi component mount, lấy danh sách phim từ API
   useEffect(() => {
     dispatch(fetchAllMovies())
       .unwrap()
@@ -32,20 +31,15 @@ const MovieSearch = () => {
       });
   }, [dispatch]);
 
-  // Xử lý thay đổi trong ô input tìm kiếm
+  
   const handleInputChange = (e) => {
     const value = e.target.value;
     dispatch(setSearchTerm(value));
 
-    // Nếu cần tìm kiếm realtime từ server, bỏ comment phần dưới
-    // if (value.trim()) {
-    //   dispatch(searchMovies({ search: value }));
-    // } else {
-    //   dispatch(fetchAllMovies());
-    // }
+  
   };
 
-  // Xử lý tìm kiếm khi nhấn Enter
+  
   const handleSearch = (e) => {
     if (e.key === 'Enter' && searchTerm.trim()) {
       dispatch(searchMovies({ search: searchTerm }))
@@ -56,13 +50,13 @@ const MovieSearch = () => {
     }
   };
 
-  // Tính toán phim hiển thị trên trang hiện tại
+  
   const indexOfLastMovie = (currentPage + 1) * moviesPerPage;
   const indexOfFirstMovie = currentPage * moviesPerPage;
   const currentMovies = filteredMovies.slice(indexOfFirstMovie, indexOfLastMovie);
   const totalPages = Math.ceil(filteredMovies.length / moviesPerPage);
 
-  // Xử lý thay đổi trang
+  
   const handlePageChange = (page) => {
     dispatch(setCurrentPage(page));
   };
@@ -122,7 +116,7 @@ const MovieSearch = () => {
           </div>
         </div>
 
-        {/* Movie grid */}
+        
         {filteredMovies.length > 0 ? (
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
@@ -151,7 +145,7 @@ const MovieSearch = () => {
               ))}
             </div>
 
-            {/* Pagination */}
+            
             {filteredMovies.length > moviesPerPage && (
               <Pagination
                 currentPage={currentPage}

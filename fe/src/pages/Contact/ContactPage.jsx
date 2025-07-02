@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-
+import React, { useState, useRef, useEffect } from 'react';
+import { initEmailJS, sendContactEmail } from '../../utils/emailService';
 const ContactPage = () => {
+  const form = useRef();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -9,16 +10,24 @@ const ContactPage = () => {
   });
 
   const [errors, setErrors] = useState({});
-  const [submitStatus, setSubmitStatus] = useState({ success: false, message: '' });
+  const [submitStatus, setSubmitStatus] = useState({
+    loading: false,
+    success: false,
+    error: false,
+    message: ''
+  });
 
-  // Handle input changes
+  
+  useEffect(() => {
+    initEmailJS();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value,
     });
-    // Clear error when user types
     if (errors[name]) {
       setErrors({
         ...errors,
@@ -27,7 +36,6 @@ const ContactPage = () => {
     }
   };
 
-  // Validate form
   const validateForm = () => {
     const newErrors = {};
     
@@ -55,37 +63,56 @@ const ContactPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (validateForm()) {
-      // Simulate API call
-      setTimeout(() => {
         setSubmitStatus({
-          success: true,
-          message: 'Thank you for your message! We will get back to you shortly.',
+        loading: true,
+        success: false,
+        error: false,
+        message: 'Sending your message...'
         });
         
-        // Reset form after successful submission
-        setFormData({
-          name: '',
-          email: '',
-          subject: '',
-          message: '',
+      try {
+        // Sử dụng utility function để gửi email
+        await sendContactEmail(formData, form.current);
+          setSubmitStatus({
+            loading: false,
+            success: true,
+            error: false,
+            message: 'Thank you for your message! We will get back to you shortly.',
         });
         
-        // Clear success message after 5 seconds
+          setFormData({
+            name: '',
+            email: '',
+            subject: '',
+            message: '',
+          });
+
         setTimeout(() => {
-          setSubmitStatus({ success: false, message: '' });
+            setSubmitStatus({
+              loading: false,
+              success: false,
+              error: false,
+              message: ''
+            });
         }, 5000);
-      }, 1000);
+      } catch (error) {
+        console.error('Failed to send email:', error);
+          setSubmitStatus({
+            loading: false,
+            success: false,
+            error: true,
+            message: 'Failed to send your message. Please try again later.',
+          });
+    }
     }
   };
 
   return (
     <div className="bg-black text-white min-h-screen">
-      {/* Hero Section */}
       <div className="relative bg-gray-900 py-16">
         <div className="absolute inset-0 bg-gradient-to-b from-black to-transparent opacity-80"></div>
         <div className="container mx-auto px-4 relative z-10">
@@ -96,10 +123,8 @@ const ContactPage = () => {
         </div>
       </div>
 
-      {/* Contact Information Section */}
       <div className="container mx-auto px-4 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-          {/* Address */}
           <div className="bg-gray-800 p-6 rounded-lg shadow-lg text-center">
             <div className="bg-red-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -117,7 +142,6 @@ const ContactPage = () => {
             </p>
           </div>
 
-          {/* Email */}
           <div className="bg-gray-800 p-6 rounded-lg shadow-lg text-center">
             <div className="bg-red-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -126,13 +150,12 @@ const ContactPage = () => {
             </div>
             <h3 className="text-xl font-semibold mb-2">Email Us</h3>
             <p className="text-gray-300">
-              Support: <a href="mailto:support@fat.edu.vn" className="text-red-500 hover:underline">support@fat.edu.vn</a>
+              Support: <a href="mailto:fmoivee@gmail.com" className="text-red-500 hover:underline">fmoivee@gmail.com</a>
               <br />
-              General: <a href="mailto:info@fat.edu.vn" className="text-red-500 hover:underline">info@fat.edu.vn</a>
+              General: <a href="mailto:fmoivee@gmail.com" className="text-red-500 hover:underline">fmoivee@gmail.com</a>
             </p>
           </div>
 
-          {/* Phone */}
           <div className="bg-gray-800 p-6 rounded-lg shadow-lg text-center">
             <div className="bg-red-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -148,20 +171,35 @@ const ContactPage = () => {
           </div>
         </div>
 
-        {/* Contact Form Section */}
         <div className="max-w-4xl mx-auto bg-gray-800 p-8 rounded-lg shadow-lg">
           <h2 className="text-3xl font-bold mb-6 text-center">Send Us a Message</h2>
           
-          {/* Success Message */}
+          {submitStatus.loading && (
+            <div className="bg-blue-600 text-white p-4 rounded mb-6 text-center">
+              <div className="flex items-center justify-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {submitStatus.message}
+              </div>
+            </div>
+          )}
+
           {submitStatus.success && (
             <div className="bg-green-600 text-white p-4 rounded mb-6 text-center">
               {submitStatus.message}
+              </div>
+          )}
+              
+          {submitStatus.error && (
+            <div className="bg-red-600 text-white p-4 rounded mb-6 text-center">
+              {submitStatus.message}
             </div>
           )}
-          
-          <form onSubmit={handleSubmit}>
+
+          <form ref={form} onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {/* Name Field */}
               <div>
                 <label htmlFor="name" className="block text-sm font-medium mb-2">Name</label>
                 <input
@@ -169,14 +207,13 @@ const ContactPage = () => {
                   id="name"
                   name="name"
                   value={formData.name}
-                  onChange={handleChange}
+                onChange={handleChange}
                   className={`w-full bg-gray-700 text-white rounded px-4 py-3 focus:outline-none focus:ring-2 ${errors.name ? 'border-red-500 focus:ring-red-500' : 'focus:ring-red-500'}`}
                   placeholder="Your name"
-                />
+              />
                 {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-              </div>
-              
-              {/* Email Field */}
+            </div>
+            
               <div>
                 <label htmlFor="email" className="block text-sm font-medium mb-2">Email</label>
                 <input
@@ -184,15 +221,14 @@ const ContactPage = () => {
                   id="email"
                   name="email"
                   value={formData.email}
-                  onChange={handleChange}
+                onChange={handleChange}
                   className={`w-full bg-gray-700 text-white rounded px-4 py-3 focus:outline-none focus:ring-2 ${errors.email ? 'border-red-500 focus:ring-red-500' : 'focus:ring-red-500'}`}
                   placeholder="Your email"
                 />
                 {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-              </div>
             </div>
-            
-            {/* Subject Field */}
+            </div>
+
             <div className="mb-6">
               <label htmlFor="subject" className="block text-sm font-medium mb-2">Subject</label>
               <input
@@ -205,9 +241,8 @@ const ContactPage = () => {
                 placeholder="Subject of your message"
               />
               {errors.subject && <p className="text-red-500 text-sm mt-1">{errors.subject}</p>}
-            </div>
-            
-            {/* Message Field */}
+        </div>
+
             <div className="mb-6">
               <label htmlFor="message" className="block text-sm font-medium mb-2">Message</label>
               <textarea
@@ -220,21 +255,21 @@ const ContactPage = () => {
                 rows="6"
               ></textarea>
               {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
-            </div>
-            
+      </div>
+
             <div className="text-center">
               <button
                 type="submit"
-                className="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-8 rounded-lg transition duration-300 transform hover:scale-105"
+                className="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-8 rounded-lg transition duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={submitStatus.loading}
               >
-                Send Message
+                {submitStatus.loading ? 'Sending...' : 'Send Message'}
               </button>
-            </div>
-          </form>
-        </div>
       </div>
-
-      {/* Map Section */}
+          </form>
+          </div>
+          </div>
+          
       <div className="w-full h-96 mt-8">
         <iframe
           title="Our Location"
@@ -244,32 +279,31 @@ const ContactPage = () => {
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
         ></iframe>
-      </div>
-
-      {/* FAQ Section */}
+          </div>
+          
       <div className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold mb-12 text-center">Frequently Asked Questions</h2>
-        
+
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="bg-gray-800 rounded-lg p-6">
             <h3 className="text-xl font-semibold mb-3">What are your operating hours?</h3>
             <p className="text-gray-300">Our cinema is open daily from 9:00 AM to 11:00 PM. Box office and concession stands open 30 minutes before the first show and close 30 minutes after the last show starts.</p>
           </div>
-          
+
           <div className="bg-gray-800 rounded-lg p-6">
             <h3 className="text-xl font-semibold mb-3">How can I get a refund for my tickets?</h3>
             <p className="text-gray-300">Refunds are available for tickets purchased online up to 2 hours before the scheduled showtime. Please contact our customer service with your booking details to process your refund.</p>
-          </div>
-          
+        </div>
+
           <div className="bg-gray-800 rounded-lg p-6">
             <h3 className="text-xl font-semibold mb-3">Do you offer discounts for students or seniors?</h3>
             <p className="text-gray-300">Yes, we offer special discounts for students, seniors (age 60+), and children under 12. Please bring a valid ID to the box office to receive your discount.</p>
-          </div>
-          
+      </div>
+
           <div className="bg-gray-800 rounded-lg p-6">
             <h3 className="text-xl font-semibold mb-3">Can I bring outside food and drinks?</h3>
             <p className="text-gray-300">Outside food and drinks are not allowed in our cinema. We offer a variety of snacks, beverages, and meal options at our concession stands.</p>
-          </div>
+    </div>
         </div>
       </div>
     </div>

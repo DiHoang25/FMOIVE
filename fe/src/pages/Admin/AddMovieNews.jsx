@@ -4,6 +4,7 @@ import SidebarLayout from '../../components/Sidebar-Admin';
 import { Modal, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
+import { CheckCircleOutlined } from '@ant-design/icons';
 
 const AddMovieNews = () => {
   const [formData, setFormData] = useState({
@@ -13,15 +14,34 @@ const AddMovieNews = () => {
     short_description: '',
     content: '',
     author: '',
-    date: dayjs().format('YYYY-MM-DD')
+    date: dayjs().format('YYYY-MM-DD') // ✅ fix cứng format ngay từ đầu
   });
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      image: null,
+      preview: '',
+      short_description: '',
+      content: '',
+      author: '',
+      date: dayjs().format('YYYY-MM-DD')
+    });
+  };
 
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    // ✅ Ensure date is always in YYYY-MM-DD format
+    const formattedValue =
+      name === 'date' ? dayjs(value).format('YYYY-MM-DD') : value;
+
+    setFormData(prev => ({
+      ...prev,
+      [name]: formattedValue
+    }));
   };
 
   const handleImageUpload = (e) => {
@@ -49,7 +69,6 @@ const AddMovieNews = () => {
 
     try {
       const token = localStorage.getItem('token');
-      console.log([...form.entries()]);
       const response = await fetch('http://localhost:5000/api/movie-news/add', {
         method: 'POST',
         headers: {
@@ -59,8 +78,7 @@ const AddMovieNews = () => {
       });
 
       if (!response.ok) {
-        const text = await response.text(); // <- tránh JSON parse lỗi
-        console.error('❌ Raw server response:', text);
+        const text = await response.text();
         throw new Error(`Failed: ${text}`);
       }
 
@@ -126,20 +144,44 @@ const AddMovieNews = () => {
         </form>
       </div>
 
-      <Modal open={success} onCancel={() => setSuccess(false)} footer={null} centered>
+      <Modal
+        open={success}
+        onCancel={() => setSuccess(false)}
+        footer={null}
+        centered
+        width={350}
+      >
         <div className="text-center p-6">
           <div className="text-green-500 text-5xl mb-4">✔️</div>
-          <h3 className="text-xl font-bold mb-2 text-black">Success</h3>
-          <p className="text-gray-700 mb-4">Movie news added successfully.</p>
+          <h3 className="text-xl font-bold text-gray-800 mb-2">Success</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Movie news added successfully. Do you want to add another news?
+          </p>
           <div className="flex gap-4">
-            <button onClick={() => setSuccess(false)} className="bg-green-600 text-white px-4 py-2 rounded">Add more</button>
-            <button onClick={() => navigate('/admin/movienews-list')} className="bg-gray-400 px-4 py-2 rounded">Go to list</button>
+            <button
+              onClick={() => {
+                setSuccess(false);
+                resetForm();
+              }}
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+            >
+              Yes
+            </button>
+            <button
+              onClick={() => {
+                setSuccess(false);
+                navigate('/admin/movienews-list');
+              }}
+              className="flex-1 bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded"
+            >
+              No
+            </button>
           </div>
         </div>
       </Modal>
+
     </SidebarLayout>
   );
 };
 
 export default AddMovieNews;
-
