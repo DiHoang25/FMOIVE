@@ -90,7 +90,7 @@ const AddCinemaRoom = () => {
                 options={[
                   { label: '2D', value: '2D' },
                   { label: '3D', value: '3D' },
-                  { label: 'IMAX', value: 'imax' },
+                  { label: 'IMAX', value: 'IMAX' },
                 ]}
                 placeholder="Select room type"
               />

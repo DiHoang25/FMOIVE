@@ -35,7 +35,7 @@ const router = express.Router();
  *                 type: integer
  *               roomType:
  *                 type: string
- *                 enum: ["2D", "3D", "imax"]
+ *                 enum: ["2D", "3D", "IMAX"]
  *               normalPrice:
  *                 type: number
  *               vipPrice:
