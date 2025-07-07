@@ -43,7 +43,7 @@ const NotificationBar = () => {
               >
                 <img src={avatar} alt="User Icon" className="h-10 w-10 object-contain" />
               </div>
-              <span className="text-white font-semibold">Hello {user.username}</span>
+              <span className="text-white font-semibold">Hello {user.fullname}</span>
               <button
                 onClick={handleLogout}
                 className="bg-red-600 px-3 py-2 rounded text-white text-sm hover:bg-red-700 border-2 border-white"
