@@ -1,14 +1,18 @@
+// MovieDetail.jsx
 import React, { useState, useEffect } from 'react';
 import ReactPlayer from 'react-player/youtube';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useDispatch } from 'react-redux'; // Import useDispatch
+import { setMovieDetails } from '../../redux/bookingSlice'; // Import action để set movie details
 
 const MovieDetails = () => {
     const { id } = useParams(); // Lấy id từ URL
     const [movie, setMovie] = useState(null);
     const [startDate, setStartDate] = useState(new Date());
-    const [selectedDate, setSelectedDate] = useState(null);
+    const [selectedDate, setSelectedDate] = useState(null); // Lưu trữ đối tượng Date
     const [selectedTime, setSelectedTime] = useState('');
     const navigate = useNavigate();
+    const dispatch = useDispatch(); // Khởi tạo useDispatch
 
     const getWeekDates = (startDate) => {
         const dates = [];
@@ -31,12 +35,21 @@ const MovieDetails = () => {
                 const res = await fetch(`http://localhost:5000/api/movies/${id}`);
                 const data = await res.json();
                 setMovie(data);
+                // Optional: Dispatch initial movie details to Redux here if you want them available globally
+                // dispatch(setMovieDetails(data));
             } catch (error) {
                 console.error('Lỗi lấy chi tiết phim:', error);
             }
         };
         fetchMovie();
     }, [id]);
+
+    // Handler cho việc chọn ngày
+    const handleDateSelect = (date) => {
+        setSelectedDate(date); // Lưu trữ đối tượng Date gốc
+        // Reset selectedTime khi chọn ngày mới để tránh lỗi logic
+        setSelectedTime('');
+    };
 
     if (!movie) return <div className="text-white text-center mt-20">Loading...</div>;
 
@@ -73,28 +86,39 @@ const MovieDetails = () => {
             <div className="mt-10 text-center bg-gray-900 p-6 rounded-lg shadow-md">
                 <h2 className="text-2xl font-bold text-red-500 mb-4">Choose Your Show</h2>
                 <div className="flex items-center justify-center gap-2 mb-6">
-                    <button onClick={() => setStartDate(prev => new Date(prev.setDate(prev.getDate() - 6)))}
+                    <button onClick={() => setStartDate(prev => {
+                            const newDate = new Date(prev); // Tạo bản sao để tránh mutating state trực tiếp
+                            newDate.setDate(prev.getDate() - 6);
+                            return newDate;
+                        })}
                         className="p-2 rounded-full hover:bg-gray-700">❮</button>
 
                     {getWeekDates(startDate).map((date, idx) => {
                         const label = formatDate(date);
+                        // Convert selectedDate (which is a Date object) to a comparable string
+                        const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
                         return (
                             <button key={idx}
-                                onClick={() => setSelectedDate(label)}
-                                className={`px-4 py-2 rounded text-sm font-medium ${selectedDate === label ? 'bg-yellow-400 text-black' : 'bg-gray-800 hover:bg-red-600'}`}>
+                                onClick={() => handleDateSelect(date)} // Truyền đối tượng Date
+                                className={`px-4 py-2 rounded text-sm font-medium ${isSelected ? 'bg-yellow-400 text-black' : 'bg-gray-800 hover:bg-red-600'}`}>
                                 {label}
                             </button>
                         );
                     })}
 
-                    <button onClick={() => setStartDate(prev => new Date(prev.setDate(prev.getDate() + 6)))}
+                    <button onClick={() => setStartDate(prev => {
+                            const newDate = new Date(prev); // Tạo bản sao để tránh mutating state trực tiếp
+                            newDate.setDate(prev.getDate() + 6);
+                            return newDate;
+                        })}
                         className="p-2 rounded-full hover:bg-gray-700">❯</button>
                 </div>
 
                 {selectedDate && (
                     <>
                         <div className="flex flex-wrap justify-center gap-3">
-                            {movie.showtimes.map((time, idx) => (
+                            {/* Assuming movie.showtimes is an array of strings like ["10:00", "13:30"] */}
+                            {movie.showtimes && movie.showtimes.map((time, idx) => (
                                 <button key={idx}
                                     onClick={() => setSelectedTime(time)}
                                     className={`px-4 py-2 rounded text-sm font-medium ${selectedTime === time ? 'bg-yellow-400 text-black' : 'bg-gray-700 hover:bg-red-600'}`}>

@@ -5,8 +5,10 @@ import SidebarLayout from '../../components/Sidebar-Admin';
 import { Switch, Modal, message, Select, Tag, Button } from 'antd';
 import {
     PlusOutlined,
-    ExclamationCircleFilled
+    ExclamationCircleFilled,
+    LoadingOutlined // Added for loading spinner
 } from '@ant-design/icons';
+import { FaTrash } from 'react-icons/fa'; // Import FaTrash
 import Pagination from '../../components/PaginationHomepage';
 
 const { Option } = Select;
@@ -19,7 +21,6 @@ const AUTH_API_BASE_URL = 'http://localhost:5000/api/auth'; // Base URL for auth
 const ViewEmployees = () => {
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
-    // Declare token state here
     const [token, setToken] = useState(''); 
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(0); 
@@ -30,7 +31,6 @@ const ViewEmployees = () => {
     useEffect(() => {
         const storedToken = localStorage.getItem('token');
         if (storedToken) {
-            // Use setToken to update the state
             setToken(storedToken);
         } else {
             message.error('No authentication token found. Please log in.');
@@ -45,7 +45,6 @@ const ViewEmployees = () => {
         }
     }, [token]);
 
-    // Add this useEffect to reset currentPage to 0 when searchTerm changes
     useEffect(() => {
         setCurrentPage(0); 
     }, [searchTerm]);
@@ -53,7 +52,6 @@ const ViewEmployees = () => {
     const fetchEmployees = async () => {
         setLoading(true);
         try {
-            // This fetch still uses the admin API base URL for getting employee list
             const response = await axios.get(`${API_BASE_URL}/employees`, {
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -61,8 +59,8 @@ const ViewEmployees = () => {
             });
             const fetchedEmployees = (response.data.Employee || []).map(emp => ({
                 ...emp,
-                id: emp.userId,
-                key: emp.userId
+                id: emp.userId, 
+                key: emp.userId 
             }));
             setEmployees(fetchedEmployees);
 
@@ -74,9 +72,8 @@ const ViewEmployees = () => {
         }
     };
 
-    // Modified handleUpdateStatus to only change the active status (true/false)
     const handleUpdateStatus = (employeeId, currentStatus, employeeName) => {
-        const newStatusValue = !currentStatus; // What the status *will be* if confirmed
+        const newStatusValue = !currentStatus; 
 
         let confirmTitle = newStatusValue ? 'Confirm Activation' : 'Confirm Deactivation';
         let confirmContent = newStatusValue ?
@@ -89,9 +86,8 @@ const ViewEmployees = () => {
             `Failed to activate employee "${employeeName}":` :
             `Failed to deactivate employee "${employeeName}":`;
 
-        // Always point to the AUTH_API_BASE_URL for status updates
         const apiEndpoint = `${AUTH_API_BASE_URL}/${employeeId}/status`;
-        const apiBody = { status: newStatusValue.toString() }; // Send as string 'true' or 'false'
+        const apiBody = { status: newStatusValue.toString() }; 
 
         confirm({
             title: confirmTitle,
@@ -108,13 +104,13 @@ const ViewEmployees = () => {
             },
             onOk: async () => {
                 try {
-                    await axios.patch( // Use patch for partial update (status)
+                    await axios.patch( 
                         apiEndpoint,
                         apiBody,
                         { headers: { Authorization: `Bearer ${token}` } }
                     );
                     message.success(successMessage);
-                    fetchEmployees(); // Refresh the list to reflect changes
+                    fetchEmployees(); 
                 } catch (error) {
                     console.error('Error updating status:', error);
                     message.error(`${errorMessage} ${error.response?.data?.message || error.message}`);
@@ -123,12 +119,9 @@ const ViewEmployees = () => {
         });
     };
 
-    // Modified handleUpdateRole to use selectedRole directly
     const handleUpdateRole = (employeeId, employeeName, selectedRole) => {
-        // Only trigger update if the role actually changed
         const employeeToUpdate = employees.find(emp => emp.id === employeeId);
         if (employeeToUpdate && employeeToUpdate.role === selectedRole) {
-            // Role is the same, no action needed.
             return;
         }
 
@@ -151,17 +144,47 @@ const ViewEmployees = () => {
             },
             onOk: async () => {
                 try {
-                    // This role update endpoint is still assumed to be under the admin base URL
                     await axios.patch(
                         `${API_BASE_URL}/employees/${employeeId}/role`,
-                        { newRole: selectedRole },
+                        { role: selectedRole }, 
                         { headers: { Authorization: `Bearer ${token}` } }
                     );
                     message.success(`Role for "${employeeName}" updated to "${selectedRole}".`);
-                    fetchEmployees(); // Refresh the list
+                    fetchEmployees(); 
                 } catch (error) {
                     console.error('Error updating role:', error);
                     message.error(`Failed to update role for "${employeeName}": ${error.response?.data?.message || error.message}`);
+                }
+            },
+        });
+    };
+
+    const handleHardDelete = (employeeId, employeeName) => {
+        confirm({
+            title: 'Confirm Permanent Deletion',
+            icon: <ExclamationCircleFilled />,
+            content: `Are you sure you want to PERMANENTLY delete employee "${employeeName}"? This action cannot be undone.`,
+            okText: 'Yes, Delete Permanently',
+            okType: 'danger', 
+            cancelText: 'No',
+            okButtonProps: {
+                style: {
+                    backgroundColor: '#dc2626', 
+                    color: 'white',
+                    borderColor: '#dc2626',
+                },
+            },
+            onOk: async () => {
+                try {
+                    await axios.delete(
+                        `${API_BASE_URL}/employees/${employeeId}/hard_delete`, 
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    );
+                    message.success(`Employee "${employeeName}" permanently deleted.`);
+                    fetchEmployees(); 
+                } catch (error) {
+                    console.error('Error hard deleting employee:', error);
+                    message.error(`Failed to permanently delete employee "${employeeName}": ${error.response?.data?.message || error.message}`);
                 }
             },
         });
@@ -171,7 +194,6 @@ const ViewEmployees = () => {
         navigate('/admin/add-employee');
     };
 
-    // Corrected filteredEmployees logic to handle potential undefined properties
     const filteredEmployees = employees.filter(employee => {
         const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
 
@@ -186,14 +208,23 @@ const ViewEmployees = () => {
 
 
     const totalPages = Math.ceil(filteredEmployees.length / employeesPerPage);
+    // Adjust currentPage if it's out of bounds after filtering/data changes
+    useEffect(() => {
+        if (currentPage >= totalPages && totalPages > 0) {
+            setCurrentPage(totalPages - 1); // Go to the last page if current page is now out of bounds
+        } else if (totalPages === 0 && currentPage !== 0) {
+            setCurrentPage(0); // If no employees, reset to page 0
+        }
+    }, [totalPages, currentPage]);
+
     const currentEmployees = filteredEmployees.slice(currentPage * employeesPerPage, (currentPage + 1) * employeesPerPage);
 
-    // Columns: ID, Username, Full Name, Email, Phone, Address, Role, Active (8 columns)
-    const numberOfColumns = 8;
+    // Columns: ID, Username, Full Name, Email, Phone, Role, Active, Actions (9 columns)
+    const numberOfColumns = 9; 
 
     return (
         <SidebarLayout>
-            {/* Added style block for custom Ant Design Select dropdown options and selected text */}
+            {/* Ant Design Select dropdown options and selected text styling */}
             <style>
                 {`
                 /* Target the Select input text when a value is selected */
@@ -212,15 +243,16 @@ const ViewEmployees = () => {
                     background-color: #1f2937; /* Dark background for options */
                 }
 
-                /* Target hover state */
+                /* Target hover state - background white, text black */
                 .ant-select-dropdown.ant-select-dropdown-dark-theme-override .ant-select-item-option-active {
-                    background-color: #374151; /* Darker background on hover */
+                    background-color: white !important; /* White background on hover */
+                    color: black !important; /* Black text on hover */
                 }
 
-                /* Target selected item */
+                /* Target selected item - background white, text black */
                 .ant-select-dropdown.ant-select-dropdown-dark-theme-override .ant-select-item-option-selected {
-                    background-color: #dc2626; /* Red background for selected item */
-                    color: white; /* White text for selected item */
+                    background-color: white !important; /* White background for selected item */
+                    color: black !important; /* Black text for selected item */
                 }
                 `}
             </style>
@@ -237,7 +269,7 @@ const ViewEmployees = () => {
                                 placeholder="Search..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="bg-gray-800 text-gray-300 pl-4 pr-10 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-red-700 w-64"
+                                className="bg-gray-700 text-white px-3 py-2 rounded-md w-64 focus:outline-none focus:ring-1 focus:ring-red-700"
                             />
                             <Button
                                 type="primary"
@@ -255,36 +287,38 @@ const ViewEmployees = () => {
                         </div>
 
                         {loading ? (
-                            <div className="text-center text-gray-400">Loading employees...</div>
+                            <div className="text-center py-4 text-gray-400">
+                                <LoadingOutlined className="animate-spin mr-2 inline-block" /> Loading employees...
+                            </div>
                         ) : (
                             <>
                                 <div className="text-sm text-gray-400 mb-2">
                                     Showing {filteredEmployees.length} employees
                                 </div>
 
-                                <div className="bg-gray-800 rounded-md overflow-hidden border border-zinc-700 overflow-x-auto">
+                                {/* Removed border border-zinc-700 to match MovieList */}
+                                <div className="bg-gray-800 rounded-md overflow-hidden overflow-x-auto">
                                     <table className="min-w-full divide-y divide-zinc-700">
-                                        <thead>
-                                            <tr className="bg-gray-800">
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">ID #</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Username</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Full Name</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Email</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Phone</th>
-                                              
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Role</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Active</th>
+                                        <thead className="bg-gray-900">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">ID #</th>
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">Username</th>
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">Full Name</th>
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">Email</th>
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">Phone</th>
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">Role</th>
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">Active</th>
+                                                <th className="px-6 py-3 text-center text-xs font-bold text-gray-300 uppercase">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody className="bg-gray-800 divide-y divide-zinc-700">
                                             {currentEmployees.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan={numberOfColumns} className="px-6 py-4 text-sm text-gray-300 text-center">No employees found.</td>
+                                                    <td colSpan={numberOfColumns} className="px-6 py-4 text-sm text-gray-400 text-center">No employees found.</td>
                                                 </tr>
                                             ) : (
                                                 currentEmployees.map((employee, index) => (
                                                     <tr key={employee.key} className="hover:bg-gray-700 transition-colors duration-200">
-                                                        {/* Display sequential ID, adjusted for 0-indexed currentPage */}
                                                         <td className="px-6 py-4 text-sm text-gray-300">
                                                             {currentPage * employeesPerPage + index + 1}
                                                         </td>
@@ -318,6 +352,14 @@ const ViewEmployees = () => {
                                                                     borderColor: employee.is_actived ? 'green' : 'red',
                                                                 }}
                                                             />
+                                                        </td>
+                                                        <td className="px-6 py-4 text-center">
+                                                            <button 
+                                                                onClick={() => handleHardDelete(employee.id, employee.fullname)} 
+                                                                className="text-red-400 hover:text-red-500 text-xl"
+                                                            >
+                                                                <FaTrash />
+                                                            </button>
                                                         </td>
                                                     </tr>
                                                 ))

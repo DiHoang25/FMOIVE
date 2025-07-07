@@ -39,6 +39,7 @@ import EditAccount from './pages/Users/EditAccount';
 import BookingList from './pages/Admin/BookingList';
 import TicketDetail from './pages/Users/TicketDetail';
 import PaymentPage from './pages/Users/PaymentMethod';
+import PaymentStatusPage from './pages/Users/PaymentStatus'; 
 import CounterShowtimesPage from './pages/Employee/CounterShowtimePage';
 import CounterSeatSelectionPage from './pages/Employee/CounterSelectionSeat';
 import CounterComboPage from './pages/Employee/CounterCombo';
@@ -137,7 +138,7 @@ function AppContent() {
 
           {/* Booking */}
           {/* <Route path="/showtimes" element={<RequireRole allowedRoles={['customer']}><ShowtimePage /></RequireRole>} /> */}
-          <Route path="/select-seats/:roomId" element={<RequireRole allowedRoles={['customer']}><SeatSelectionPage /></RequireRole>} />
+          <Route path="/select-seats/" element={<RequireRole allowedRoles={['customer']}><SeatSelectionPage /></RequireRole>} />
           <Route path="/booking-confirmation" element={<RequireRole allowedRoles={['customer']}><BookingConfirmationPage /></RequireRole>} />
           <Route path="/combo-selection" element={<RequireRole allowedRoles={['customer']}><ComboSelection /></RequireRole>} />
           <Route path="/confirm-booking" element={<RequireRole allowedRoles={['customer']}><ConfirmBooking /></RequireRole>} />
@@ -169,7 +170,7 @@ function AppContent() {
           <Route path="/employee/employee-profile" element={<RequireRole allowedRoles={['employee']}><EmployeeProfile /></RequireRole>} />
           <Route path="/employee/members-list" element={<RequireRole allowedRoles={['employee']}><ViewMembersList /></RequireRole>} />
           <Route path="/employee/counter-showtimes" element={<RequireRole allowedRoles={['employee']}><CounterShowtimesPage /></RequireRole>} />
-          <Route path="/employee/counter-seat" element={<RequireRole allowedRoles={['employee']}><CounterSeatSelectionPage /></RequireRole>} />
+          <Route path="/employee/counter-seat/:roomId" element={<RequireRole allowedRoles={['employee']}><CounterSeatSelectionPage /></RequireRole>} />
           <Route path="/employee/counter-combo" element={<RequireRole allowedRoles={['employee']}><CounterComboPage /></RequireRole>} />
           <Route path="/employee/counter-confirm" element={<RequireRole allowedRoles={['employee']}><CounterConfirmBooking /></RequireRole>} />
           <Route path="/employee/counter-payment" element={<RequireRole allowedRoles={['employee']}><PaymentCounter /></RequireRole>} />

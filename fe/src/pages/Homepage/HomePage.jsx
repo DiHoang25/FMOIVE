@@ -83,7 +83,7 @@ const HomePage = () => {
     }
 
     if (comingSoonMovies.length > itemsPerPage) {
-      comingSoonInterval = setInterval(() => {
+comingSoonInterval = setInterval(() => {
         setComingSoonIndex((prev) => {
           const maxIndex = comingSoonMovies.length - itemsPerPage;
           return prev < maxIndex ? prev + 1 : prev;
@@ -161,7 +161,7 @@ const HomePage = () => {
             className="disabled:opacity-30"
           >
             <div className="bg-red-600 rounded-full p-1 hover:bg-red-700 transition">
-              <img src={prevbanner} alt="Prev" className="w-7 h-7 object-contain" />
+<img src={prevbanner} alt="Prev" className="w-7 h-7 object-contain" />
             </div>
           </button>
           <button
@@ -229,7 +229,7 @@ const HomePage = () => {
             </Link>
             <div>
               <h3 className="text-3xl font-bold text-red-500">{movie.name}</h3>
-              <div className="flex items-center gap-3 text-sm font-medium mb-1">
+<div className="flex items-center gap-3 text-sm font-medium mb-1">
                 <span className='text-xl'>{movie.genres?.join(', ') || 'N/A'}</span>
                 <span className="bg-red-600 text-b  lack px-1 rounded text-m">{movie.version}</span>
                 {/* <span className="bg-red-600 text-white px-1 rounded text-m">{movie.rating}</span> */}
@@ -298,7 +298,7 @@ const HomePage = () => {
         }}
       >
         <div className="relative pb-[56.25%] h-0">
-          {isModalVisible && (
+{isModalVisible && (
             <ReactPlayer
               key={trailerUrl}
               url={trailerUrl}

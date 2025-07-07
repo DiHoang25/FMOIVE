@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import SidebarLayout from '../../components/Sidebar-Admin';
 import { Switch, Modal, message, Select, Tag } from 'antd';
-import { ExclamationCircleFilled } from '@ant-design/icons';
+import { ExclamationCircleFilled, LoadingOutlined } from '@ant-design/icons'; // Import LoadingOutlined
 // Assuming you have a PaginationHomepage component for consistent pagination
 import PaginationHomepage from '../../components/PaginationHomepage'; 
 
@@ -142,12 +142,23 @@ const ViewMembers = () => {
         const fullNameMatches = (member.fullName?.trim().toLowerCase().includes(lowerCaseSearchTerm)) || false;
         const emailMatches = (member.email?.trim().toLowerCase().includes(lowerCaseSearchTerm)) || false;
         
-
         return idMatches || fullNameMatches || emailMatches;
     });
 
     const totalPages = Math.ceil(filteredMembers.length / membersPerPage);
+    // Adjust currentPage if it's out of bounds after filtering/data changes
+    useEffect(() => {
+        if (currentPage >= totalPages && totalPages > 0) {
+            setCurrentPage(totalPages - 1); // Go to the last page if current page is now out of bounds
+        } else if (totalPages === 0 && currentPage !== 0) {
+            setCurrentPage(0); // If no members, reset to page 0
+        }
+    }, [totalPages, currentPage]);
+
     const currentMembers = filteredMembers.slice(currentPage * membersPerPage, (currentPage + 1) * membersPerPage);
+
+    // Columns: ID, Full Name, DOB, Email, Phone, Status (6 columns)
+    const numberOfColumns = 6; 
 
     return (
         <SidebarLayout>
@@ -164,41 +175,43 @@ const ViewMembers = () => {
                                 placeholder="Search..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="bg-gray-800 text-gray-300 pl-4 pr-10 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-red-700 w-64"
+                                className="bg-gray-700 text-white px-3 py-2 rounded-md w-64 focus:outline-none focus:ring-1 focus:ring-red-700" // Matched MovieList search input
                             />
                             {/* The "Add New Employee" button was removed as per your comments */}
                         </div>
 
                         {loading ? (
-                            <div className="text-center text-gray-400">Loading members...</div>
+                            <div className="text-center py-4 text-gray-400"> {/* Matched MovieList loading text */}
+                                <LoadingOutlined className="animate-spin mr-2 inline-block" /> Loading members... {/* Added Ant Design LoadingOutlined */}
+                            </div>
                         ) : (
                             <>
-                                <div className="text-sm text-gray-400 mb-2">
+                                <div className="text-sm text-gray-400 mb-2"> {/* Matched MovieList count text */}
                                     Showing {filteredMembers.length} members
                                 </div>
 
-                                <div className="bg-gray-800 rounded-md overflow-hidden border border-zinc-700 overflow-x-auto">
+                                {/* Table container with styling matched to MovieList, removed border */}
+                                <div className="bg-gray-800 rounded-md overflow-hidden overflow-x-auto"> {/* Removed border border-zinc-700 */}
                                     <table className="min-w-full divide-y divide-zinc-700">
-                                        <thead>
-                                            <tr className="bg-gray-800">
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">ID #</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Full Name</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">DOB</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Email</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Phone</th>
-                                                
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Status</th>
+                                        <thead className="bg-gray-900"> {/* Darker header background */}
+                                            <tr>
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">ID #</th> {/* Bolder text */}
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">Full Name</th> {/* Bolder text */}
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">DOB</th> {/* Bolder text */}
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">Email</th> {/* Bolder text */}
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">Phone</th> {/* Bolder text */}
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">Status</th> {/* Bolder text */}
                                             </tr>
                                         </thead>
-                                        <tbody className="bg-gray-800 divide-y divide-zinc-700">
+                                        <tbody className="bg-gray-800 divide-y divide-zinc-700"> {/* Matched MovieList tbody background and dividers */}
                                             {currentMembers.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan={7} className="px-6 py-4 text-sm text-gray-300 text-center">No members found.</td>
+                                                    <td colSpan={numberOfColumns} className="px-6 py-4 text-sm text-gray-400 text-center">No members found.</td> {/* Matched MovieList no data text */}
                                                 </tr>
                                             ) : (
                                                 currentMembers.map((member, index) => (
-                                                    <tr key={member.id} className="hover:bg-gray-700 transition-colors duration-200">
-                                                        <td className="px-6 py-4 text-sm text-gray-300">
+                                                    <tr key={member.id} className="hover:bg-gray-700 transition-colors duration-200"> {/* Matched MovieList row hover */}
+                                                        <td className="px-6 py-4 text-sm text-gray-300"> {/* Matched MovieList td styles */}
                                                             {currentPage * membersPerPage + index + 1}
                                                         </td>
                                                         <td className="px-6 py-4 text-sm text-gray-300">{member.fullName}</td>

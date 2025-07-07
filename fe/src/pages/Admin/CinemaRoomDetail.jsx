@@ -2,6 +2,9 @@ import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { ArrowLeft, Save, Users, Crown, Monitor, MapPin, DollarSign } from "lucide-react"
 import SidebarLayout from "../../components/Sidebar-Admin"
+import { Modal, message } from 'antd';
+import { ExclamationCircleFilled } from '@ant-design/icons';
+
 
 
 const CinemaRoomDetail = () => {
@@ -18,69 +21,67 @@ const CinemaRoomDetail = () => {
   useEffect(() => {
     const fetchRoom = async () => {
       try {
-        const token = localStorage.getItem("token")
+        const token = localStorage.getItem("token");
         const res = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.message || "Lỗi khi fetch dữ liệu phòng")
-        setRoomData(data.room)
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Lỗi khi fetch dữ liệu phòng");
+        setRoomData(data.room);
       } catch (err) {
-        console.error("❌ Lỗi khi tải dữ liệu phòng:", err.message)
+        Modal.error({ title: "Lỗi", content: err.message });
       }
-    }
+    };
 
-    fetchRoom()
-  }, [roomId])
+    fetchRoom();
+  }, [roomId]);
 
   const toggleSeatOrRow = (seat) => {
-  if (selectMode === "row") {
-    const rowNumber = seat.row;
+    if (selectMode === "row") {
+      const rowNumber = seat.row;
+      setSelectedRows((prev) =>
+        prev.includes(rowNumber)
+          ? prev.filter((r) => r !== rowNumber)
+          : [...prev, rowNumber]
+      );
+    } else {
+      setSelectedSeats((prev) =>
+        prev.includes(seat.label)
+          ? prev.filter((s) => s !== seat.label)
+          : [...prev, seat.label]
+      );
+    }
+  };
+
+
+  const toggleRow = (rowNumber) => {
     setSelectedRows((prev) =>
       prev.includes(rowNumber)
         ? prev.filter((r) => r !== rowNumber)
         : [...prev, rowNumber]
     );
-  } else {
-    setSelectedSeats((prev) =>
-      prev.includes(seat.label)
-        ? prev.filter((s) => s !== seat.label)
-        : [...prev, seat.label]
-    );
-  }
-};
-
-
-  const toggleRow = (rowNumber) => {
-  setSelectedRows((prev) =>
-    prev.includes(rowNumber)
-      ? prev.filter((r) => r !== rowNumber)
-      : [...prev, rowNumber]
-  );
-};
+  };
 
 
 
   const getSeatClass = (seat) => {
-  const isSelected =
-    (selectMode === "row" && selectedRows.includes(seat.row)) ||
-    (selectMode === "single" && selectedSeats.includes(seat.label));
+    const isSelected =
+      (selectMode === "row" && selectedRows.includes(seat.row)) ||
+      (selectMode === "single" && selectedSeats.includes(seat.label));
 
-  const baseClasses =
-    "w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-200 transform hover:scale-110 hover:shadow-lg border-2";
+    const baseClasses =
+      "w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-200 transform hover:scale-110 hover:shadow-lg border-2";
 
-  if (isSelected) {
-    return `${baseClasses} bg-gradient-to-br from-red-500 to-red-600 text-white border-red-400 shadow-lg scale-105`;
-  }
+    if (isSelected) {
+      return `${baseClasses} bg-gradient-to-br from-red-500 to-red-600 text-white border-red-400 shadow-lg scale-105`;
+    }
 
-  if (seat.type === "VIP") {
-    return `${baseClasses} bg-gradient-to-br from-amber-400 to-yellow-500 text-gray-900 border-amber-300`;
-  }
+    if (seat.type === "VIP") {
+      return `${baseClasses} bg-gradient-to-br from-amber-400 to-yellow-500 text-gray-900 border-amber-300`;
+    }
 
-  return `${baseClasses} bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 border-gray-300`;
-};
+    return `${baseClasses} bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 border-gray-300`;
+  };
 
 
 
@@ -90,76 +91,88 @@ const CinemaRoomDetail = () => {
   const handleBack = () => navigate(-1)
 
   const getTotalPrice = () => {
-  if (!roomData) return 0;
+    if (!roomData) return 0;
 
-  if (selectMode === "row") {
-    return roomData.seats
-      .filter((seat) => selectedRows.includes(seat.row))
-      .reduce((total, seat) => total + seat.price, 0);
-  } else {
-    return roomData.seats
-      .filter((seat) => selectedSeats.includes(seat.label))
-      .reduce((total, seat) => total + seat.price, 0);
-  }
-};
+    if (selectMode === "row") {
+      return roomData.seats
+        .filter((seat) => selectedRows.includes(seat.row))
+        .reduce((total, seat) => total + seat.price, 0);
+    } else {
+      return roomData.seats
+        .filter((seat) => selectedSeats.includes(seat.label))
+        .reduce((total, seat) => total + seat.price, 0);
+    }
+  };
 
 
-  const handleConvertToVIP = async () => {
-  try {
+  const fetchAndRefreshRoom = async () => {
     const token = localStorage.getItem("token");
-
-    // 1. Lấy danh sách ghế VIP hiện tại từ roomData
-    const currentVIPSeats = roomData.seats
-      .filter((s) => s.type === "VIP")
-      .map((s) => s.label);
-
-    // 2. Lấy danh sách ghế trong hàng mới được chọn
-    const newVIPSeats = roomData.seats
-      .filter((s) => selectedRows.includes(s.row))
-      .map((s) => s.label);
-
-    // 3. Gộp lại và loại trùng
-    const updatedVIPSeats = Array.from(new Set([...currentVIPSeats, ...newVIPSeats]));
-
-    // 4. Các ghế còn lại là ghế thường
-    const updatedNormalSeats = roomData.seats
-      .map((s) => s.label)
-      .filter((label) => !updatedVIPSeats.includes(label));
-
-    const res = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}/update-seat-types`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        vipSeats: updatedVIPSeats,
-        normalSeats: updatedNormalSeats,
-        vipPrice: 150000,
-        normalPrice: 90000,
-      }),
-    });
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Cập nhật thất bại");
-
-    alert("Chuyển thêm hàng thành VIP thành công!");
-    setSelectedRows([]);
-
-    const updated = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}`, {
+    const res = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    const updatedData = await updated.json();
-    setRoomData(updatedData.room);
-  } catch (err) {
-    console.error("❌ Lỗi:", err.message);
-    alert("Cập nhật thất bại!");
-  }
+    const data = await res.json();
+    setRoomData(data.room);
+  };
+
+  const handleConvertToVIP = () => {
+  const vipCount = selectedRows.length;
+  if (vipCount === 0) return;
+
+  const selectedRowLabels = selectedRows.map(r => String.fromCharCode(64 + Number(r))).join(", ");
+
+  Modal.confirm({
+    title: 'Xác nhận chuyển VIP',
+    icon: <ExclamationCircleFilled />,
+    content: `Bạn có chắc muốn chuyển hàng [${selectedRowLabels}] thành ghế VIP?`,
+    okText: 'Xác nhận',
+    cancelText: 'Hủy',
+    okType: 'primary',
+    okButtonProps: {
+      style: {
+        backgroundColor: '#f59e0b', // amber-500
+        color: 'white',
+        borderColor: '#f59e0b',
+      },
+    },
+    onOk: async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const currentVIP = roomData.seats.filter(s => s.type === "VIP").map(s => s.label);
+        const newVIP = roomData.seats.filter(s => selectedRows.includes(s.row)).map(s => s.label);
+        const updatedVIP = Array.from(new Set([...currentVIP, ...newVIP]));
+        const updatedNormal = roomData.seats.map(s => s.label).filter(l => !updatedVIP.includes(l));
+
+        const res = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}/update-seat-types`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            vipSeats: updatedVIP,
+            normalSeats: updatedNormal,
+            vipPrice: 150000,
+            normalPrice: 90000,
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Cập nhật thất bại");
+
+        message.success("Đã chuyển thành công hàng sang VIP.");
+        setSelectedRows([]);
+        await fetchAndRefreshRoom();
+      } catch (err) {
+        message.error(`Lỗi khi cập nhật: ${err.message}`);
+      }
+    },
+  });
 };
+
 
 
   const handleSave = async () => {
-    
+
     try {
       const token = localStorage.getItem("token");
 
@@ -204,61 +217,77 @@ const CinemaRoomDetail = () => {
     }
   };
 
-  const handleConvertToNormal = async () => {
-  try {
-    const token = localStorage.getItem("token");
+  const handleConvertToNormal = () => {
+  const selectedRowLabels = selectedRows.map(r => String.fromCharCode(64 + Number(r))).join(", ");
 
-    // 1. Lấy danh sách ghế VIP hiện tại từ dữ liệu
-    const currentVIPSeats = roomData.seats
-      .filter((s) => s.type === "VIP")
-      .map((s) => s.label);
+  Modal.confirm({
+    title: 'Xác nhận chuyển về ghế thường',
+    icon: <ExclamationCircleFilled />,
+    content: `Bạn có chắc muốn chuyển hàng [${selectedRowLabels}] thành ghế thường không?`,
+    okText: 'Xác nhận',
+    cancelText: 'Hủy',
+    okType: 'danger',
+    okButtonProps: {
+      style: {
+        backgroundColor: '#dc2626', // Tailwind red-600
+        color: 'white',
+        borderColor: '#dc2626',
+      },
+    },
+    onOk: async () => {
+      try {
+        const token = localStorage.getItem("token");
 
-    // 2. Lấy danh sách ghế thuộc hàng đang chọn (muốn gỡ khỏi VIP)
-    const toBeNormalSeats = roomData.seats
-      .filter((s) => selectedRows.includes(s.row))
-      .map((s) => s.label);
+        // Lấy danh sách ghế VIP hiện tại từ dữ liệu
+        const currentVIPSeats = roomData.seats
+          .filter((s) => s.type === "VIP")
+          .map((s) => s.label);
 
-    // 3. Danh sách VIP sau khi loại bỏ các ghế trên
-    const updatedVIPSeats = currentVIPSeats.filter(
-      (label) => !toBeNormalSeats.includes(label)
-    );
+        // Lấy danh sách ghế thuộc hàng đang chọn (muốn gỡ khỏi VIP)
+        const toBeNormalSeats = roomData.seats
+          .filter((s) => selectedRows.includes(s.row))
+          .map((s) => s.label);
 
-    // 4. Ghế thường mới là các ghế bị chuyển từ VIP ra
-    const updatedNormalSeats = toBeNormalSeats;
+        // Danh sách VIP sau khi loại bỏ các ghế chuyển về thường
+        const updatedVIPSeats = currentVIPSeats.filter(
+          (label) => !toBeNormalSeats.includes(label)
+        );
 
-    const res = await fetch(
-      `http://localhost:5000/api/theater/rooms/${roomId}/update-seat-types`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          vipSeats: updatedVIPSeats,
-          normalSeats: updatedNormalSeats,
-          vipPrice: 150000,
-          normalPrice: 90000,
-        }),
+        const res = await fetch(
+          `http://localhost:5000/api/theater/rooms/${roomId}/update-seat-types`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              vipSeats: updatedVIPSeats,
+              normalSeats: toBeNormalSeats,
+              vipPrice: 150000,
+              normalPrice: 90000,
+            }),
+          }
+        );
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Cập nhật thất bại");
+
+        message.success("Đã chuyển thành công hàng sang ghế thường.");
+        setSelectedRows([]);
+
+        // Refetch lại dữ liệu phòng
+        const updated = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const updatedData = await updated.json();
+        setRoomData(updatedData.room);
+      } catch (err) {
+        console.error("❌ Lỗi:", err.message);
+        message.error(`Cập nhật thất bại: ${err.message}`);
       }
-    );
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Cập nhật thất bại");
-
-    alert("Đã chuyển hàng sang ghế thường thành công!");
-    setSelectedRows([]);
-
-    // Refetch lại dữ liệu phòng
-    const updated = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const updatedData = await updated.json();
-    setRoomData(updatedData.room);
-  } catch (err) {
-    console.error("❌ Lỗi:", err.message);
-    alert("Cập nhật thất bại!");
-  }
+    },
+  });
 };
 
 
@@ -427,22 +456,22 @@ const CinemaRoomDetail = () => {
             </div>
 
             <div className="flex justify-center mt-6 mb-8">
-  <button
-    disabled={selectedRows.length === 0}
-    onClick={handleConvertToVIP}
-    className="px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-lg shadow-lg mx-2"
-  >
-    Convert to VIP
-  </button>
+              <button
+                disabled={selectedRows.length === 0}
+                onClick={handleConvertToVIP}
+                className="px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-lg shadow-lg mx-2"
+              >
+                Convert to VIP
+              </button>
 
-  <button
-    disabled={selectedRows.length === 0}
-    onClick={handleConvertToNormal}
-    className="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-black font-bold rounded-lg shadow-lg mx-2"
-  >
-    Convert to Normal
-  </button>
-</div>
+              <button
+                disabled={selectedRows.length === 0}
+                onClick={handleConvertToNormal}
+                className="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-black font-bold rounded-lg shadow-lg mx-2"
+              >
+                Convert to Normal
+              </button>
+            </div>
 
 
 

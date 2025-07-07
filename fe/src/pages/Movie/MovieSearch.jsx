@@ -98,7 +98,7 @@ const MovieSearch = () => {
         {/* Search bar với icon kính lúp */}
         <div className="flex flex-col mb-10 max-w-xl mx-auto">
           <div className="relative">
-            <Input
+<Input
               placeholder="Tìm kiếm phim theo tên..."
               value={searchTerm}
               onChange={handleInputChange}
@@ -166,3 +166,4 @@ const MovieSearch = () => {
 };
 
 export default MovieSearch;
+
