@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import UserDashboardLayout from '../../components/UserDashboardlayout';
 import avatar from '../../assets/avatar.png';
 import { useNavigate } from 'react-router-dom';
+import SidebarLayout from '../../components/Sidebar-Admin';
 
 const AdminProfile = () => {
     const navigate = useNavigate();
@@ -41,17 +41,17 @@ const AdminProfile = () => {
 
     if (error) {
         return (
-            <UserDashboardLayout>
+            <SidebarLayout>
                 <div className="text-center text-red-500 mt-10">{error}</div>
-            </UserDashboardLayout>
+            </SidebarLayout>
         );
     }
 
     if (!user) {
         return (
-            <UserDashboardLayout>
+            <SidebarLayout>
                 <div className="text-center text-white mt-10">Loading...</div>
-            </UserDashboardLayout>
+            </SidebarLayout>
         );
     }
 
@@ -69,11 +69,11 @@ const AdminProfile = () => {
         : 'Not provided';
 
     return (
-        <UserDashboardLayout>
-            <div className="bg-[#0a0f1c] text-white py-10 px-6 rounded-md min-h-[80vh] flex items-center justify-center">
-                <div className="flex flex-col md:flex-row items-center gap-10 w-full max-w-5xl bg-[#121826] p-8 rounded-xl shadow-lg">
+        <SidebarLayout>
+            <div className="text-white py-10 px-6 rounded-md min-h-[80vh] flex items-center justify-center">
+                <div className="flex flex-col md:flex-row items-center gap-10 w-full max-w-5xl bg-slate-800 p-8 rounded-xl shadow-lg">
                     {/* Avatar và Tên */}
-                    <div className="justify-center flex flex-col items-center" style={{ marginLeft: '250px' }}>
+                    <div className="justify-center flex flex-col items-center">
                         <img src={avatar} alt="Avatar" className="w-32 h-32 rounded-full mb-3 border-4" />
                         <h2 className="text-2xl font-bold mb-2">{user.fullname}</h2>
                         <button
@@ -102,7 +102,7 @@ const AdminProfile = () => {
                     </div>
                 </div>
             </div>
-        </UserDashboardLayout>
+        </SidebarLayout>
     );
 };
 

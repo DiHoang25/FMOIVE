@@ -117,6 +117,8 @@ function AppContent() {
           <Route path="/information-security" element={<PublicRouteGuard><InformationSecurity /></PublicRouteGuard>} />
           <Route path="/returns-refunds" element={<PublicRouteGuard><InspectionReturns /></PublicRouteGuard>} />
           <Route path="/movienews/:slug" element={<PublicRouteGuard><MovieNewsDetails /></PublicRouteGuard>} />
+          <Route path="/showtimes" element={<PublicRouteGuard><ShowtimePage /></PublicRouteGuard>} />
+
 
           {/* Customer */}
           {/* <Route path="/Users" element={<RequireRole allowedRoles={['customer']}><UsersDashboard /></RequireRole>} /> */}
@@ -126,10 +128,13 @@ function AppContent() {
           <Route path="/editaccount" element={<RequireRole allowedRoles={['customer']}><EditAccount /></RequireRole>} />
           <Route path="/changepassword" element={<RequireRole allowedRoles={['customer']}><ChangePassword /></RequireRole>} />
           <Route path="/customer-benefits" element={<RequireRole allowedRoles={['customer']}><CustomerBenefits /></RequireRole>} />
+          <Route path="//moviedetails/:movieId/select-seats" element={<RequireRole allowedRoles={['customer']}><SeatSelectionPage /></RequireRole>} />
+
+
 
           {/* Booking */}
-          <Route path="/showtimes" element={<RequireRole allowedRoles={['customer']}><ShowtimePage /></RequireRole>} />
-          <Route path="/select-seats" element={<RequireRole allowedRoles={['customer']}><SeatSelectionPage /></RequireRole>} />
+          {/* <Route path="/showtimes" element={<RequireRole allowedRoles={['customer']}><ShowtimePage /></RequireRole>} /> */}
+          <Route path="/select-seats/:roomId" element={<RequireRole allowedRoles={['customer']}><SeatSelectionPage /></RequireRole>} />
           <Route path="/booking-confirmation" element={<RequireRole allowedRoles={['customer']}><BookingConfirmationPage /></RequireRole>} />
           <Route path="/combo-selection" element={<RequireRole allowedRoles={['customer']}><ComboSelection /></RequireRole>} />
           <Route path="/confirm-booking" element={<RequireRole allowedRoles={['customer']}><ConfirmBooking /></RequireRole>} />

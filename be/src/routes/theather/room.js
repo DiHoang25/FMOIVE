@@ -146,7 +146,7 @@ router.get('/', authMiddleware, adminMiddleware, async (req, res) => {
  *       500:
  *         description: Lỗi máy chủ.
  */
-router.get('/:roomId', authMiddleware, adminMiddleware, async (req, res) => {
+router.get('/:roomId', authMiddleware, async (req, res) => {
     try {
         const room = await Room.findOne({ roomId: req.params.roomId }).select('-__v -_id');
         if (!room) {
