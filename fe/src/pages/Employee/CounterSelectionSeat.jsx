@@ -1,59 +1,68 @@
-import { useState, useEffect } from "react"; // Import useEffect
-import { useNavigate, useLocation } from "react-router-dom"; // Import useLocation
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const SeatSelection = () => {
   const navigate = useNavigate();
-  const { state } = useLocation(); // Get state from previous navigation
+  const { state } = useLocation();
 
-  // Destructure data passed from CounterShowtimesPage
   const {
-    movieDetails = {}, // Full movie object
+    movieDetails = {},
     selectedShowtimeTime = '',
     fullShowtimeDate = '',
-    // movieTitle, // No longer directly needed as we use movieDetails
-    // movieImage, // No longer directly needed as we use movieDetails
-    // selectedMovieId, // No longer directly needed
-    // selectedShowtimeDetails // No longer directly needed
-  } = state || {}; // Provide default empty object if state is null
+    roomId = '',
+    userInformation = {},
+  } = state || {};
 
-  const seatRows = "ABCDEFGH".split("");
-  const seatColsPerSide = 6;
+  const [roomData, setRoomData] = useState(null);
   const [selectedSeats, setSelectedSeats] = useState([]);
-  const [occupiedSeats, setOccupiedSeats] = useState(["B4", "C4", "C5"]); // You might fetch these dynamically later
 
-  // Optional: Display movie info for context
-  const movieDisplay = {
-    title: movieDetails.name || 'Unknown Movie',
-    poster: movieDetails.image_url || 'path/to/default/poster.png', // Fallback image
-    time: fullShowtimeDate,
-    hour: selectedShowtimeTime,
-    screen: movieDetails.cinema_room || 'Screen N/A',
-  };
+  useEffect(() => {
+    const fetchRoomData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-  const toggleSeat = (seatId) => {
-    if (occupiedSeats.includes(seatId)) return;
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to load room data");
+        setRoomData(data.room);
+      } catch (err) {
+        console.error("❌ Error fetching room data:", err.message);
+      }
+    };
+
+    fetchRoomData();
+  }, [roomId]);
+
+  const toggleSeat = (seatLabel) => {
     setSelectedSeats((prev) =>
-      prev.includes(seatId)
-        ? prev.filter((s) => s !== seatId)
-        : [...prev, seatId]
+      prev.includes(seatLabel)
+        ? prev.filter((s) => s !== seatLabel)
+        : [...prev, seatLabel]
     );
   };
 
-  const getSeatClass = (row, col) => {
-    const seatId = `${row}${col}`;
-    if (selectedSeats.includes(seatId)) return "bg-red-600";
-    if (occupiedSeats.includes(seatId)) return "bg-gray-600";
-    return ["A", "B"].includes(row) ? "bg-white" : "bg-yellow-400";
+  const getSeatClass = (seat) => {
+    const isSelected = selectedSeats.includes(seat.label);
+    const base = "w-8 h-8 rounded text-[10px] flex items-center justify-center";
+
+    if (seat.status === "booked") return `${base} bg-gray-600 text-white cursor-not-allowed`;
+    if (isSelected) return `${base} bg-red-600 text-white`;
+    if (seat.type === "VIP") return `${base} bg-yellow-400 text-yellow-900 opacity-80`;
+    return `${base} bg-white text-gray-900 opacity-80`;
   };
 
-  const calculateTotalTicketPrice = () =>
-    selectedSeats.reduce((total, seat) => {
-      const row = seat[0];
-      const price = ["A", "B"].includes(row) ? 15 : 20; // Example pricing
-      return total + price;
-    }, 0);
+  const calculateTotalTicketPrice = () => {
+    if (!roomData) return 0;
+    return roomData.seats
+      .filter((seat) => selectedSeats.includes(seat.label))
+      .reduce((total, seat) => total + seat.price, 0);
+  };
 
-  const SERVICE_FEE = 2.50; // Define a service fee
+  const SERVICE_FEE = 2.5;
 
   const handleContinue = () => {
     if (selectedSeats.length === 0) {
@@ -61,25 +70,25 @@ const SeatSelection = () => {
       return;
     }
 
-    const ticketPrice = calculateTotalTicketPrice();
+    const selectedSeatObjects = roomData.seats.filter((seat) =>
+      selectedSeats.includes(seat.label)
+    );
+    const totalPrice = calculateTotalTicketPrice();
 
     navigate("/employee/counter-combo", {
       state: {
-        movieDetails, // Pass the full movie details object
+        movieDetails,
         selectedShowtimeTime,
         fullShowtimeDate,
-        selectedSeats,
-        ticketPrice: ticketPrice, // Pass the calculated ticket price
-        serviceFee: SERVICE_FEE, // Pass a default service fee
-        userInformation: state?.userInformation || {}, // Pass through user info if it exists
+        selectedSeats: selectedSeatObjects,
+        ticketPrice: totalPrice,
+        serviceFee: SERVICE_FEE,
+        userInformation,
       },
     });
-    console.log("Selected Seats:", selectedSeats);
   };
 
-  const handleBack = () => {
-    navigate(-1);
-  };
+  const handleBack = () => navigate(-1);
 
   return (
     <div className="min-h-screen bg-black text-white py-6">
@@ -93,85 +102,55 @@ const SeatSelection = () => {
           </button>
         </div>
 
-        {/* Movie Info (for context on this page) */}
         <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold">{movieDisplay.title}</h2>
-            <p className="text-gray-400 text-sm">
-                {movieDisplay.time} • {movieDisplay.hour} • {movieDisplay.screen}
-            </p>
+          <h2 className="text-2xl font-bold">{movieDetails.name || "Unknown Movie"}</h2>
+          <p className="text-gray-400 text-sm">
+            {fullShowtimeDate} • {selectedShowtimeTime} •{" "}
+            {movieDetails.cinema_room || "Screen N/A"}
+          </p>
         </div>
 
         <h2 className="text-center text-2xl font-bold mb-2">SELECT YOUR SEATS</h2>
-        <p className="text-center mb-6 text-sm">Screen This Way</p>
+        <p className="text-center mb-4 text-sm text-gray-400">Screen this way</p>
         <div className="h-1 w-full bg-white mb-6" />
 
-        {/* Seat Grid */}
-        <div className="space-y-3">
-          {seatRows.map((row) => (
-            <div key={row} className="flex items-center gap-3 justify-center">
-              <span className="w-4 text-sm">{row}</span>
-              <div className="flex gap-2">
-                {/* Left column */}
-                {Array.from({ length: seatColsPerSide }).map((_, i) => {
-                  const seatId = `${row}${i + 1}`;
-                  return (
-                    <button
-                      key={seatId}
-                      onClick={() => toggleSeat(seatId)}
-                      className={`w-8 h-8 rounded text-[10px] flex items-center justify-center ${getSeatClass(row, i + 1)}`}
-                      disabled={occupiedSeats.includes(seatId)} // Disable occupied seats
-                    >
-                      <span
-                        className={`font-semibold ${
-                          selectedSeats.includes(seatId) || occupiedSeats.includes(seatId)
-                            ? "text-white"
-                            : ["A", "B"].includes(row)
-                            ? "text-gray-900 opacity-50"
-                            : "text-yellow-900 opacity-50"
-                        }`}
-                      >
-                        {seatId}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+        {roomData ? (
+          <div className="space-y-3">
+            {[...Array(roomData.rows)].map((_, rowIndex) => {
+              const rowLetter = String.fromCharCode(65 + rowIndex);
+              const rowSeats = roomData.seats.filter((s) => Number(s.row) === rowIndex + 1);
 
-              {/* Aisle */}
-              <div className="w-6" />
+              return (
+                <div key={rowLetter} className="flex items-center justify-center gap-3">
+                  <span className="w-4 text-sm text-slate-300">{rowLetter}</span>
 
-              <div className="flex gap-2">
-                {/* Right column */}
-                {Array.from({ length: seatColsPerSide }).map((_, i) => {
-                  const seatId = `${row}${i + 1 + seatColsPerSide}`;
-                  return (
-                    <button
-                      key={seatId}
-                      onClick={() => toggleSeat(seatId)}
-                      className={`w-8 h-8 rounded text-[10px] flex items-center justify-center ${getSeatClass(
-                        row,
-                        i + 1 + seatColsPerSide
-                      )}`}
-                      disabled={occupiedSeats.includes(seatId)} // Disable occupied seats
-                    >
-                      <span
-                        className={`font-semibold ${
-                          selectedSeats.includes(seatId) || occupiedSeats.includes(seatId)
-                            ? "text-white"
-                            : ["A", "B"].includes(row)
-                            ? "text-gray-900 opacity-50"
-                            : "text-yellow-900 opacity-50"
-                        }`}
-                      >
-                        {seatId}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
+                  <div className="flex gap-2">
+                    {[...Array(roomData.columns)].map((_, colIndex) => {
+                      const seat = rowSeats.find((s) => Number(s.column) === colIndex + 1);
+                      if (!seat) return <div key={`empty-${colIndex}`} className="w-8 h-8" />;
+
+                      return (
+                        <button
+                          key={seat.label}
+                          disabled={seat.status === "booked"}
+                          onClick={() => toggleSeat(seat.label)}
+                          className={getSeatClass(seat)}
+                          title={`Seat ${seat.label} - ${seat.type} - ${seat.price.toLocaleString()} VND`}
+                        >
+                          {seat.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <span className="w-4 text-sm text-slate-300">{rowLetter}</span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center text-gray-400 py-6">Loading seat data...</div>
+        )}
 
         {/* Legend */}
         <div className="flex justify-around text-sm mt-6 flex-wrap gap-y-2">
@@ -185,14 +164,14 @@ const SeatSelection = () => {
             <div className="w-4 h-4 bg-yellow-400 rounded" /> VIP
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-4 h-4 bg-gray-600 rounded" /> Occupied
+            <div className="w-4 h-4 bg-gray-600 rounded" /> Booked
           </div>
         </div>
 
-        {/* Total and Continue */}
+        {/* Total + Continue */}
         <div className="mt-6 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="bg-gray-700 text-white px-6 py-2 rounded text-sm">
-            PRICE: {calculateTotalTicketPrice().toFixed(2)} $
+            PRICE: {calculateTotalTicketPrice().toLocaleString()} VND
           </div>
           <button
             className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded font-semibold disabled:opacity-50"
