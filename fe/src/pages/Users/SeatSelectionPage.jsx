@@ -2,42 +2,53 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Monitor, Crown } from "lucide-react";
 import { useSelector, useDispatch } from 'react-redux';
-import { setSelectedSeats } from '../../redux/bookingSlice';
+import { setSelectedSeats } from '../../redux/bookingSlice'; // Ensure this path is correct
 
 // Helper function to format minutes into "Xh Ym"
 const formatMinutesToHoursMinutes = (minutes) => {
   if (typeof minutes !== 'number' || minutes < 0) return 'N/A';
   const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
+  const remainingMinutes = minutes = 60;
   return `${hours}h ${remainingMinutes}m`;
+};
+
+// Helper function to format cinema room name (e.g., "ROOM000000016" to "Cinema 16")
+// You can comment out the use of this function if you prefer the raw room ID display
+const formatCinemaRoomName = (roomName) => {
+  if (!roomName) return 'N/A';
+  const match = roomName.match(/ROOM0*(\d+)/); // Matches "ROOM" followed by any number of zeros and then digits
+  if (match && match[1]) {
+    return `Cinema ${parseInt(match[1], 10)}`; // Convert the captured digits to an integer
+  }
+  return roomName; // Return original if format doesn't match
 };
 
 function SeatSelectionPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { roomId } = useParams(); // ✅ Đã đổi từ showtimeId sang roomId
+  const { roomId } = useParams(); // roomId is used here for API fetching
 
   const movieDetails = useSelector((state) => state.booking.movieDetails);
 
   const movie = movieDetails || {
     name: 'Movie Title N/A',
-    image_url: 'https://placehold.co/120x180/000000/FFFFFF?text=No+Poster',
+    image_url: 'https://placehold.co/120x180/000000/FFFFFF?text=No+Poster', // Placeholder
     version: 'N/A', 
     running_time: 'N/A',
     time: 'N/A',
-    cinema_room: 'N/A',
+    cinema_room: 'N/A', // This will be the raw room name from Redux (e.g., "ROOM000000016")
     rating: 'N/A', 
     genres: [],
   };
 
   const [roomData, setRoomDataState] = useState(null);
-  const [selectedSeats, setSelectedSeatsState] = useState([]);
+  const [selectedSeatsState, setSelectedSeatsState] = useState([]); // State to hold selected seat labels (strings)
 
   useEffect(() => {
     const fetchRoomData = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}`, {
+        const res = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}`, { // roomId is used here
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -52,7 +63,7 @@ function SeatSelectionPage() {
     };
 
     fetchRoomData();
-  }, [roomId]);
+  }, [roomId]); // Depend on roomId to refetch if it changes
 
   const handleToggleSeat = (seat) => {
     setSelectedSeatsState((prev) =>
@@ -63,7 +74,7 @@ function SeatSelectionPage() {
   };
 
   const getSeatClass = (seat) => {
-    const isSelected = selectedSeats.includes(seat.label);
+    const isSelected = selectedSeatsState.includes(seat.label); // Use selectedSeatsState here
     const baseClasses =
       "w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-200 transform hover:scale-110 hover:shadow-lg border-2";
 
@@ -81,20 +92,17 @@ function SeatSelectionPage() {
   const getTotalPrice = () => {
     if (!roomData) return 0;
     return roomData.seats
-      .filter((seat) => selectedSeats.includes(seat.label))
+      .filter((seat) => selectedSeatsState.includes(seat.label))
       .reduce((total, seat) => total + seat.price, 0);
   };
 
   const handleSeatSelectionContinue = () => {
-    const selectedSeatObjects = roomData.seats.filter((seat) => selectedSeats.includes(seat.label));
-    const totalSeatPrice = getTotalPrice();
-
     dispatch(setSelectedSeats({
-      seats: selectedSeatObjects,
-      totalPrice: totalSeatPrice,
+      seats: selectedSeatsState, // Dispatch the array of seat labels (strings)
+      totalPrice: getTotalPrice(),
     }));
 
-    navigate('/combo-selection');
+    navigate('/combo-selection'); // This is the navigation call
   };
 
   const handleBack = () => {
@@ -102,6 +110,10 @@ function SeatSelectionPage() {
   };
 
   const formattedRunningTime = formatMinutesToHoursMinutes(movie.running_time);
+  // Use this if you want the formatted "Cinema 16"
+  const displayCinemaRoomName = formatCinemaRoomName(movie.cinema_room); 
+  // Or use movie.cinema_room directly if you want the raw "ROOM000000016"
+  // const displayCinemaRoomName = movie.cinema_room; 
 
   return (
     <div className="bg-black min-h-screen text-white px-6 py-10">
@@ -130,7 +142,7 @@ function SeatSelectionPage() {
               {movie.version} • {formattedRunningTime} • {movie.genres && movie.genres.length > 0 ? movie.genres.join(', ') : 'N/A'}
             </p>
             <p className="text-gray-300 text-sm">
-              {movie.time} • {movie.cinema_room}
+              {movie.time} • {displayCinemaRoomName} {/* Displays formatted or raw name based on your choice above */}
             </p>
           </div>
         </div>
@@ -162,7 +174,7 @@ function SeatSelectionPage() {
                           <button
                             key={seat.label}
                             onClick={() => handleToggleSeat(seat)}
-                            title={`Seat ${seat.label} - ${seat.type} - ${seat.price.toLocaleString()} VND`}
+                            title={`Seat ${seat.label} - ${seat.type} - ${seat.price.toLocaleString('vi-VN')} VND`}
                             className={getSeatClass(seat)}
                           >
                             {seat.type === "VIP" ? <Crown className="w-3 h-3" /> : seat.label}
@@ -204,10 +216,10 @@ function SeatSelectionPage() {
             </div>
 
             <div className="text-center">
-              <p className="text-lg font-semibold">Total: {getTotalPrice().toLocaleString()} VND</p>
+              <p className="text-lg font-semibold">Total: {getTotalPrice().toLocaleString('vi-VN')} VND</p>
               <button
                 onClick={handleSeatSelectionContinue}
-                disabled={selectedSeats.length === 0}
+                disabled={selectedSeatsState.length === 0} // Use selectedSeatsState here
                 className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg disabled:opacity-50"
               >
                 Continue
