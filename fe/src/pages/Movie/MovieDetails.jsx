@@ -106,26 +106,27 @@ const MovieDetails = () => {
                         <button
                             onClick={() => {
                                 if (selectedDate && selectedTime) {
-                                    navigate('/select-seats', {
+                                    navigate(`/moviedetails/${id}/select-seats`, {
                                         state: {
                                             name: movie.name,
                                             image_url: movie.image_url,
                                             version: movie.version,
                                             running_time: movie.running_time,
                                             time: `${selectedDate}, ${selectedTime}`,
-                                            cinema_room: movie.cinema_room || 'Room 1', // phòng chiếu bạn có thể tùy chỉnh
+                                            cinema_room: movie.cinema_room || 'Room 1',
                                         }
                                     });
                                 }
                             }}
                             className={`mt-4 px-5 py-2 rounded text-base w-fit transition
-                                        ${selectedDate && selectedTime
+        ${selectedDate && selectedTime
                                     ? 'bg-red-600 text-white hover:bg-red-700'
                                     : 'bg-gray-500 text-gray-300 cursor-not-allowed'}`}
                             disabled={!selectedDate || !selectedTime}
                         >
                             Book now
                         </button>
+
                     </>
                 )}
             </div>

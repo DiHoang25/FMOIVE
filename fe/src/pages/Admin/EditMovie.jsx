@@ -40,6 +40,11 @@ const EditMovie = () => {
     });
 
     const [loading, setLoading] = useState(true);
+    const [roomOptions, setRoomOptions] = useState([]);
+
+    // Lọc theo phiên bản
+    const selectedVersions = Object.keys(formData.version).filter(v => formData.version[v]);
+    const filteredRooms = roomOptions.filter(room => selectedVersions.includes(room.roomType));
 
     useEffect(() => {
         const fetchMovie = async () => {
@@ -59,7 +64,14 @@ const EditMovie = () => {
                     movieDescription: data.description || '',
                     moviePosterPreview: data.image_url || '',
                     movieBannerPreview: data.banner_url || '',
-                    cinemaRoom: data.cinema_room ? [data.cinema_room] : [],
+                    cinemaRoom: data.cinema_room
+                        ? [{
+                            value: data.cinema_room.roomId,
+                            label: data.cinema_room.roomName,
+                            roomType: data.cinema_room.roomType
+                        }]
+                        : [],
+
 
                     genres: data.genres || [],
                     version: {
@@ -80,6 +92,30 @@ const EditMovie = () => {
 
         fetchMovie();
     }, [id]);
+
+    useEffect(() => {
+        const fetchRooms = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await axios.get('http://localhost:5000/api/theater/rooms', {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                const options = res.data.rooms.map(room => ({
+                    value: room.roomId,
+                    label: room.roomName,
+                    roomType: room.roomType
+                }));
+                setRoomOptions(options);
+            } catch (err) {
+                console.error('Failed to fetch rooms:', err);
+            }
+        };
+
+        fetchRooms();
+    }, []);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -105,7 +141,10 @@ const EditMovie = () => {
             formDataToSend.append('running_time', formData.runningTime);
             formDataToSend.append('description', formData.movieDescription);
             formDataToSend.append('genres', formData.genres.join(','));
-            formDataToSend.append('cinema_room', formData.cinemaRoom.join(','));
+            if (formData.cinemaRoom.length > 0) {
+                formDataToSend.append('cinema_room', formData.cinemaRoom[0].value); // ✅ chỉ gửi roomId
+            }
+
             formData.showTimes.forEach((time) => {
                 formDataToSend.append('showtimes[]', time.trim());
             });
@@ -124,7 +163,7 @@ const EditMovie = () => {
             }
 
             const response = await axios.put(`http://localhost:5000/api/movies/${id}`, formDataToSend);
-            
+
             const result = response.data;
             message.success('Đã cập nhật thông tin phim thành công!');
             navigate('/admin/movie-list');
@@ -218,7 +257,27 @@ const EditMovie = () => {
                                         </label>
                                         <div className="flex space-x-3 mt-2">
                                             {['2D', '3D', 'IMAX'].map((ver) => (
-                                                <button key={ver} type="button" onClick={() => setFormData({ ...formData, version: { ...formData.version, [ver]: !formData.version[ver] } })} className={`px-4 py-2 rounded-lg border transition ${formData.version[ver] ? 'bg-red-600 text-white border-red-700' : 'bg-slate-700 text-gray-300 border-slate-600 hover:bg-slate-600'}`}>
+                                                <button
+                                                    key={ver}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newVersion = !formData.version[ver];
+                                                        const updatedVersion = {
+                                                            ...formData.version,
+                                                            [ver]: newVersion
+                                                        };
+
+                                                        setFormData({
+                                                            ...formData,
+                                                            version: updatedVersion,
+                                                            cinemaRoom: [] // Reset phòng chiếu
+                                                        });
+                                                    }}
+                                                    className={`px-4 py-2 rounded-lg border transition ${formData.version[ver]
+                                                        ? 'bg-red-600 text-white border-red-700'
+                                                        : 'bg-slate-700 text-gray-300 border-slate-600 hover:bg-slate-600'
+                                                        }`}
+                                                >
                                                     {ver}
                                                 </button>
                                             ))}
@@ -227,13 +286,19 @@ const EditMovie = () => {
 
                                     <div>
                                         <label className="block text-gray-300 mb-1">
-                                            Cinema Rooms <span className="text-red-500">*</span>
+                                            Cinema Room <span className="text-red-500">*</span>
                                         </label>
                                         <DropDown
-                                            value={formData.cinemaRoom}
-                                            onChange={(val) => setFormData({ ...formData, cinemaRoom: val })}
+                                            value={formData.cinemaRoom[0]}
+                                            onChange={(selectedRoom) => {
+                                                setFormData({
+                                                    ...formData,
+                                                    cinemaRoom: [selectedRoom]
+                                                });
+                                            }}
+                                            options={filteredRooms}
+                                            disabled={selectedVersions.length === 0}
                                         />
-
                                     </div>
 
                                     <div>

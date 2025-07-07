@@ -70,8 +70,8 @@ const AdminProfile = () => {
 
     return (
         <SidebarLayout>
-            <div className="bg-[#0a0f1c] text-white py-10 px-6 rounded-md min-h-[80vh] flex items-center justify-center">
-                <div className="flex flex-col md:flex-row items-center gap-10 w-full max-w-5xl bg-[#121826] p-8 rounded-xl shadow-lg">
+            <div className="text-white py-10 px-6 rounded-md min-h-[80vh] flex items-center justify-center">
+                <div className="flex flex-col md:flex-row items-center gap-10 w-full max-w-5xl bg-slate-800 p-8 rounded-xl shadow-lg">
                     {/* Avatar và Tên */}
                     <div className="justify-center flex flex-col items-center">
                         <img src={avatar} alt="Avatar" className="w-32 h-32 rounded-full mb-3 border-4" />
