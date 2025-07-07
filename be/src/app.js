@@ -54,7 +54,7 @@ app.use('/api/home', homepageRoutes);
 app.use('/api/promotions', promotionRoutes);
 
 // tuyến quản lý đặt vé
-app.use('/api/bookings', bookingRoutes); // tuyến quản lý đặt vé
+app.use('/api/booking', bookingRoutes); // tuyến quản lý đặt vé
 app.use('/api/payment', paymentRoutes); // tuyến thanh toán 
 // tuyến quản lý phòng
 app.use('/api/theater/rooms', roomManagermentRoutes);
