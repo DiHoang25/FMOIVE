@@ -15,7 +15,8 @@ import { RxAvatar } from "react-icons/rx";
 import { LogoutOutlined } from '@ant-design/icons';
 import AdminNotification from './Admin-Notification';
 import { useAuth } from '../contexts/AuthContext';
-import { RiInformation2Line } from "react-icons/ri";
+import { RiInformation2Line, RiDrinksFill } from "react-icons/ri";
+import { IoFastFoodOutline } from "react-icons/io5";
 
 const { Header, Sider, Content } = Layout;
 
@@ -95,7 +96,7 @@ const SidebarLayout = ({ children }) => {
               key: '/admin/movienews-list',
               icon: <RiInformation2Line />,
               label: <Link to="/admin/movienews-list">Movie News</Link>,
-            },
+            },           
           ]}
         />
 

@@ -75,7 +75,7 @@ const ConfirmBooking = () => {
     dispatch(updateGrandTotal(grandTotalAfterDiscount));
   }, [grandTotalAfterDiscount, dispatch]);
 
-  // Helper function to format the movie time string for display
+  // Helper function to format the movie time string for display (Updated)
   const formatMovieTime = (timeString) => {
       if (!timeString || timeString === 'N/A') return { display: 'N/A' };
 

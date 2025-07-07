@@ -116,23 +116,23 @@ const PaymentPage = () => {
           <h3 className="text-lg font-semibold text-gray-200 mb-2">Order Summary:</h3>
           <div className="flex justify-between">
             <span>Movie Tickets ({displayTicketCount})</span>
-            <span>${displayTicketPrice.toFixed(2)}</span>
+            <span>{displayTicketPrice.toLocaleString('vi-VN')} VND</span>
           </div>
           {selectedCombos.length > 0 && (
             <div className="flex justify-between">
               <span>Combos & Snacks</span>
-              <span>${displayCombosTotal.toFixed(2)}</span>
+              <span>{displayCombosTotal.toLocaleString('vi-VN')} VND</span>
             </div>
           )}
           <div className="flex justify-between">
             <span>Service Fee</span>
-            <span>${serviceFee.toFixed(2)}</span>
+            <span>{serviceFee.toLocaleString('vi-VN')} VND</span>
           </div>
           
           <hr className="border-gray-700 my-2" />
           <div className="flex justify-between font-bold text-xl text-red-400">
             <span>Total Amount</span>
-            <span>${displayTotal}</span>
+            <span>{displayTotal.toLocaleString('vi-VN')} VND</span>
           </div>
         </div>
 

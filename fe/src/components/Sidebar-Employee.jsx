@@ -12,6 +12,7 @@ import { AiOutlineBook } from "react-icons/ai";
 import { Button, Layout, Menu, theme } from "antd";
 import { RxAvatar } from "react-icons/rx";
 import { useAuth } from '../contexts/AuthContext';
+import { RiDrinksFill } from "react-icons/ri";
 
 const { Header, Sider, Content } = Layout;
 
@@ -71,6 +72,11 @@ const SidebarLayout = ({ children }) => {
               icon: <IoFastFoodOutline />,
               label: <Link to="/employee/view-combo">View Combo</Link>,
             },
+            {
+              key: "/employee/view-product",
+              icon: <RiDrinksFill />,
+              label: <Link to="/employee/view-product">View Product</Link>,
+            }
           ]}
         />
 

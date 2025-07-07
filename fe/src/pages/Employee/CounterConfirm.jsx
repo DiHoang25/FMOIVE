@@ -110,7 +110,7 @@ const CounterConfirmBooking = () => {
                                     {combosDisplay.map(combo => (
                                         <div key={combo.id} className="flex justify-between bg-zinc-800 px-4 py-2 rounded">
                                             <span>{combo.name} × {combo.quantity}</span>
-                                            <span>${(combo.price * combo.quantity).toFixed(2)}</span>
+                                            <span>{(combo.price * combo.quantity).toLocaleString('vi-VN')} VND</span>
                                         </div>
                                     ))}
                                 </div>
@@ -142,22 +142,22 @@ const CounterConfirmBooking = () => {
                             <div className="bg-zinc-800 rounded-lg p-4 space-y-2 text-base">
                                 <div className="flex justify-between">
                                     <span>Standard Ticket × {seatsDisplay.length}</span>
-                                    <span>${currentTicketPrice.toFixed(2)}</span>
+                                    <span>{currentTicketPrice.toLocaleString('vi-VN')} VND</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span>Service Fee</span>
-                                    <span>${currentServiceFee.toFixed(2)}</span>
+                                    <span>{currentServiceFee.toLocaleString('vi-VN')} VND</span>
                                 </div>
                                 {combosDisplay.length > 0 && (
                                     <div className="flex justify-between">
                                         <span>Combos</span>
-                                        <span>{currentCombosTotal.toFixed(2)}</span>
+                                        <span>${currentCombosTotal.toFixed(2)}</span>
                                     </div>
                                 )}
                                 <hr className="border-gray-700" />
                                 <div className="flex justify-between font-bold text-xl">
                                     <span>Total</span>
-                                    <span>${currentTotal.toFixed(2)}</span>
+                                    <span>{currentTotal.toLocaleString('vi-VN')} VND</span>
                                 </div>
                             </div>
 

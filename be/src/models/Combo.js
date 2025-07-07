@@ -51,7 +51,7 @@ const comboSchema = new mongoose.Schema({
     },
     image_url: { 
         type: String,
-        required: [true, 'Combo phải có hình ảnh'],
+        // required: [true, 'Combo phải có hình ảnh'],
         validate: {
             validator: function (v) {
                 return /^https?:\/\/.+/.test(v);

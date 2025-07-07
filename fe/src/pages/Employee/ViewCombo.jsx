@@ -64,7 +64,7 @@ const ViewCombo = () => {
   const confirmDelete = async (combo) => {
     Modal.confirm({
       title: 'Confirm Delete',
-      content: `Are you sure you want to delete \"${combo.comboName}\"?`,
+      content: `Are you sure you want to delete "${combo.comboName}"?`,
       okText: 'Delete',
       cancelText: 'Cancel',
       okType: 'danger',
@@ -263,7 +263,7 @@ const ViewCombo = () => {
                 </div>
                 <div className="col-span-2">
                   <p className="text-gray-400">Image:</p>
-                  <img src={selectedCombo.image_url} alt="Combo" className="w-full rounded-md shadow" />
+                  <img src={selectedCombo.image_url} alt="Combo" className="max-w-xs w-full h-auto rounded-md shadow mx-auto" />
                 </div>
               </div>
             </div>

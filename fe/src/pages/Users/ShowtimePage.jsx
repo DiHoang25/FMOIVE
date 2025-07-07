@@ -108,8 +108,22 @@ function ShowtimePage() {
     }
   }));
 
-  // ✅ Điều hướng tới trang chọn ghế với roomId
-  navigate(`/select-seats/${cinemaRoom}`);
+  navigate(`/select-seats`, {
+  state: {
+    roomId: cinemaRoom,
+    movieDetails: {
+      name: movieDetailsFromCard.name,
+      image_url: movieDetailsFromCard.image_url,
+      version: movieDetailsFromCard.version || '2D',
+      running_time: movieDetailsFromCard.running_time,
+      cinema_room: cinemaRoom,
+      genres: parsedGenres,
+      rating: movieDetailsFromCard.rating,
+      time: `${formattedDate}, ${timeClicked}`,
+    }
+  }
+});
+
 };
 
 

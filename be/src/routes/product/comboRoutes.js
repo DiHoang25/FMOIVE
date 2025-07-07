@@ -54,8 +54,8 @@ router.post('/new_combo', authMiddleware, employeeMiddleware, upload.single('ima
         const { comboName, description, price, items, startDate, endDate, isActive } = req.body;
         const file = req.file;
 
-        if (!comboName || !price || !items || !startDate || !endDate || !file) {
-            return res.status(400).json({ message: 'Vui lòng cung cấp đầy đủ thông tin và ảnh combo.' });
+        if (!comboName || !price || !items || !startDate || !endDate ) {
+            return res.status(400).json({ message: 'Vui lòng cung cấp đầy đủ thông tin combo.' });
         }
 
         const parsedItems = typeof items === 'string' ? JSON.parse(items) : items;

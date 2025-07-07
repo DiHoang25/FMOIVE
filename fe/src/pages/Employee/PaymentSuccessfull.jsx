@@ -90,7 +90,7 @@ const PaymentSuccess = () => {
                                     {selectedCombos.map(combo => (
                                         <li key={combo.id} className="flex justify-between items-center bg-zinc-700 px-4 py-2 rounded-lg">
                                             <span>{combo.name} <span className="font-semibold">x{combo.quantity}</span></span>
-                                            <span className="font-bold">${(combo.price * combo.quantity).toFixed(2)}</span>
+                                            <span className="font-bold">{(combo.price * combo.quantity).toLocaleString('vi-VN')} VND</span>
                                         </li>
                                     ))}
                                 </ul>
@@ -103,22 +103,22 @@ const PaymentSuccess = () => {
                             <div className="bg-zinc-700 rounded-lg p-4 space-y-2 text-md">
                                 <div className="flex justify-between">
                                     <span>Tickets ({selectedSeats.length}x)</span>
-                                    <span>${ticketPrice.toFixed(2)}</span>
+                                    <span>{ticketPrice.toLocaleString('vi-VN')} VND</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span>Service Fee</span>
-                                    <span>${serviceFee.toFixed(2)}</span>
+                                    <span>{serviceFee.toLocaleString('vi-VN')} VND</span>
                                 </div>
                                 {selectedCombos.length > 0 && (
                                     <div className="flex justify-between">
                                         <span>Combos</span>
-                                        <span>${combosTotal.toFixed(2)}</span>
+                                        <span>{combosTotal.toLocaleString('vi-VN')} VND</span>
                                     </div>
-                                )}
+                                )}  
                                 <hr className="border-gray-600 my-2" />
                                 <div className="flex justify-between font-extrabold text-xl text-green-300">
                                     <span>Grand Total</span>
-                                    <span>${finalTotal.toFixed(2)}</span>
+                                    <span>{finalTotal.toLocaleString('vi-VN')} VND</span>
                                 </div>
                             </div>
                         </div>
