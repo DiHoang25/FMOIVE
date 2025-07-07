@@ -2,13 +2,19 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-    movieDetails: null, // Sẽ lưu thông tin phim và thời gian chiếu được chọn
+    movieDetails: null,
     selectedSeats: [],
     totalSeatPrice: 0,
-    selectedCombos: [], // <-- ADDED: To store selected combos
-    totalComboPrice: 0, // <-- ADDED: To store total combo price
-    grandTotal: 0,      // <-- ADDED: To store the overall total price
-    // ... các state khác nếu có
+    selectedCombos: [],
+    totalComboPrice: 0,
+    serviceFee: 10000,
+    grandTotal: 0,
+    user: {
+        _id: '60c72b2f9b1d8e001c8e4d3a', // Mock user ID
+        fullName: 'Nguyen Van A',
+        email: 'nguyenvana@example.com',
+        phone: '0901234567',
+    },
 };
 
 const bookingSlice = createSlice({
@@ -16,45 +22,47 @@ const bookingSlice = createSlice({
     initialState,
     reducers: {
         setMovieDetails: (state, action) => {
-            // This action now handles setting movie details AND selected date/time
             state.movieDetails = action.payload;
         },
         setSelectedSeats: (state, action) => {
             state.selectedSeats = action.payload.seats;
             state.totalSeatPrice = action.payload.totalPrice;
         },
-        // --- ADDED REDUCERS BELOW ---
-
         setSelectedCombos: (state, action) => {
             state.selectedCombos = action.payload.combos;
             state.totalComboPrice = action.payload.totalPrice;
         },
         updateGrandTotal: (state, action) => {
-            // Assuming action.payload is the new grand total
             state.grandTotal = action.payload;
         },
-        // Re-evaluate if setMovieAndDateTime is truly needed.
-        // If it's just for setting the movie and time, setMovieDetails already does this.
-        // If it's for something else, define its logic here.
-        // For now, I'll add it, assuming it takes movie info and date/time.
-        // If setMovieDetails already covers this, you might remove this.
         setMovieAndDateTime: (state, action) => {
             state.movieDetails = {
-                ...state.movieDetails, // Keep existing movie details
-                ...action.payload,    // Override or add date/time info from payload
+                ...state.movieDetails,
+                ...action.payload,
             };
-            // Example payload: { selectedDate: "ISO_DATE", selectedTime: "HH:MM", fullShowtime: "ISO_DATETIME" }
         },
-        // --- END ADDED REDUCERS ---
+        setUserData: (state, action) => {
+            state.user = { ...state.user, ...action.payload };
+        },
+        // NEW: Action to reset the booking state
+        resetBooking: (state) => {
+            // Đặt lại state về trạng thái ban đầu, giữ lại thông tin user
+            return {
+                ...initialState, // Copy tất cả các trường từ initialState
+                user: state.user // Giữ lại thông tin user hiện tại
+            };
+        }
     },
 });
 
 export const {
     setMovieDetails,
     setSelectedSeats,
-    setSelectedCombos,  // <-- EXPORTED
-    updateGrandTotal,   // <-- EXPORTED
-    setMovieAndDateTime // <-- EXPORTED (if you decide to keep it separate from setMovieDetails)
+    setSelectedCombos,
+    updateGrandTotal,
+    setMovieAndDateTime,
+    setUserData,
+    resetBooking // <-- EXPORT MỚI
 } = bookingSlice.actions;
 
 export default bookingSlice.reducer;

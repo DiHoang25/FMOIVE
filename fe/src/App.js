@@ -39,6 +39,7 @@ import EditAccount from './pages/Users/EditAccount';
 import BookingList from './pages/Admin/BookingList';
 import TicketDetail from './pages/Users/TicketDetail';
 import PaymentPage from './pages/Users/PaymentMethod';
+import PaymentStatusPage from './pages/Users/PaymentStatus'; 
 import CounterShowtimesPage from './pages/Employee/CounterShowtimePage';
 import CounterSeatSelectionPage from './pages/Employee/CounterSelectionSeat';
 import CounterComboPage from './pages/Employee/CounterCombo';
@@ -150,6 +151,7 @@ function AppContent() {
           <Route path="/combo-selection" element={<ComboSelection />} />
           <Route path="/confirm-booking" element={<ConfirmBooking />} />
           <Route path="/payment" element={<PaymentPage />} />
+          <Route path="/payment-status" element={<PaymentStatusPage />} />
           <Route path="/ticket-detail" element={<TicketDetail />} />
 
           {/* Admin */}
