@@ -82,49 +82,35 @@ function ShowtimePage() {
     }, [selectedDate]);
 
     const handleMovieCardShowtimeClick = (movieDetailsFromCard, timeClicked) => {
-        const todayParts = selectedDate.split('/');
-        const currentYear = new Date().getFullYear();
-        const fullDateObj = new Date(currentYear, parseInt(todayParts[1]) - 1, parseInt(todayParts[0]));
-        const formattedDate = formatDateForNavigation(fullDateObj);
+  const todayParts = selectedDate.split('/');
+  const currentYear = new Date().getFullYear();
+  const fullDateObj = new Date(currentYear, parseInt(todayParts[1]) - 1, parseInt(todayParts[0]));
+  const formattedDate = formatDateForNavigation(fullDateObj);
 
-        // Logic to extract cinema_room (if present in API response)
-        // This assumes cinema_room might be a top-level property of the movie
-        // OR it might be part of a showtime object if you change your API structure.
-        // For now, it will be undefined if your API doesn't provide it, leading to N/A.
-        const cinemaRoom = movieDetailsFromCard.cinema_room; 
+  const cinemaRoom = movieDetailsFromCard.cinema_room;
 
-        // Safely parse genres: If it's an array with a single comma-separated string, split it.
-        // If it's already an array of strings, it remains.
-        const parsedGenres = Array.isArray(movieDetailsFromCard.genres) 
-            ? movieDetailsFromCard.genres.flatMap(genre => 
-                typeof genre === 'string' ? genre.split(',').map(s => s.trim()) : []
-              )
-            : [];
+  const parsedGenres = Array.isArray(movieDetailsFromCard.genres) 
+    ? movieDetailsFromCard.genres.flatMap(genre => 
+        typeof genre === 'string' ? genre.split(',').map(s => s.trim()) : []
+      )
+    : [];
 
-        // Dispatch comprehensive movie details to Redux store
-        dispatch(setMovieAndDateTime({
-            movieDetails: { 
-                name: movieDetailsFromCard.name,
-                image_url: movieDetailsFromCard.image_url,
-                version: movieDetailsFromCard.version || '2D',
-                running_time: movieDetailsFromCard.running_time,
-                
-                // Pass the extracted cinema_room
-                cinema_room: cinemaRoom, 
-                
-                // Ensure genres is an array of individual strings
-                genres: parsedGenres, 
-                
-                // Rating and other fields
-                rating: movieDetailsFromCard.rating, // Assuming rating is available
-                
-                // The 'time' field in Redux will store the full date and selected time
-                time: `${formattedDate}, ${timeClicked}`, 
-            }
-        }));
+  dispatch(setMovieAndDateTime({
+    movieDetails: { 
+      name: movieDetailsFromCard.name,
+      image_url: movieDetailsFromCard.image_url,
+      version: movieDetailsFromCard.version || '2D',
+      running_time: movieDetailsFromCard.running_time,
+      cinema_room: cinemaRoom,
+      genres: parsedGenres,
+      rating: movieDetailsFromCard.rating,
+      time: `${formattedDate}, ${timeClicked}`, 
+    }
+  }));
 
-        navigate('/select-seats');
-    };
+  // ✅ Điều hướng tới trang chọn ghế với roomId
+  navigate(`/select-seats/${cinemaRoom}`);
+};
 
 
     return (

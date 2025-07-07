@@ -1,11 +1,8 @@
-// SeatSelectionPage.jsx
-import React, { useEffect } from 'react'; // Import useEffect
-import { useNavigate } from 'react-router-dom';
-import SelectSeatGrid from '../../components/SelectSeatGrid';
-
-// Redux imports
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Monitor, Crown } from "lucide-react";
 import { useSelector, useDispatch } from 'react-redux';
-import { setSelectedSeats, setMovieDetails } from '../../redux/bookingSlice'; // Đảm bảo import setMovieDetails
+import { setSelectedSeats } from '../../redux/bookingSlice';
 
 // Helper function to format minutes into "Xh Ym"
 const formatMinutesToHoursMinutes = (minutes) => {
@@ -16,106 +13,211 @@ const formatMinutesToHoursMinutes = (minutes) => {
 };
 
 function SeatSelectionPage() {
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { roomId } = useParams(); // ✅ Đã đổi từ showtimeId sang roomId
 
-    // Lấy movieDetails từ Redux store
-    const movieDetails = useSelector((state) => state.booking.movieDetails);
+  const movieDetails = useSelector((state) => state.booking.movieDetails);
 
-    // Kiểm tra nếu movieDetails không có, chuyển hướng người dùng về trang chi tiết phim
-    // hoặc hiển thị thông báo lỗi
-    useEffect(() => {
-        if (!movieDetails || !movieDetails.fullShowtime) {
-            // Nếu không có thông tin phim hoặc thời gian chiếu đầy đủ,
-            // có thể do người dùng truy cập trực tiếp URL hoặc làm mới trang
-            // Điều hướng về trang chi tiết phim hoặc trang chủ
-            console.warn("Movie details or showtime missing in Redux. Redirecting.");
-            navigate('/'); // Hoặc navigate(`/movies/${movieId}`) nếu bạn có ID phim
-        }
-    }, [movieDetails, navigate]);
+  const movie = movieDetails || {
+    name: 'Movie Title N/A',
+    image_url: 'https://placehold.co/120x180/000000/FFFFFF?text=No+Poster',
+    version: 'N/A', 
+    running_time: 'N/A',
+    time: 'N/A',
+    cinema_room: 'N/A',
+    rating: 'N/A', 
+    genres: [],
+  };
 
-    // Sử dụng movieDetails từ Redux, nếu chưa có thì dùng fallback
-    const movie = movieDetails || {
-        name: 'Movie Title N/A',
-        image_url: 'https://placehold.co/120x180/000000/FFFFFF?text=No+Poster',
-        version: 'N/A',
-        running_time: 'N/A',
-        selectedTime: 'N/A', // Sử dụng selectedTime thay vì time
-        selectedDate: 'N/A', // Sử dụng selectedDate thay vì time
-        cinema_room: 'N/A',
-        rating: 'N/A',
-        genres: [],
+  const [roomData, setRoomDataState] = useState(null);
+  const [selectedSeats, setSelectedSeatsState] = useState([]);
+
+  useEffect(() => {
+    const fetchRoomData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to load seat data");
+        setRoomDataState(data.room);
+      } catch (err) {
+        console.error("❌ Error fetching room:", err.message);
+      }
     };
 
-    // Định dạng lại ngày và giờ chiếu từ Redux
-    const formattedShowtime = movie.selectedDate && movie.selectedTime
-        ? `${new Date(movie.selectedDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${movie.selectedTime}`
-        : 'N/A';
-    // Hoặc nếu bạn muốn hiển thị định dạng "DD DAY" như trong MovieDetails
-    const formattedDateForDisplay = movie.selectedDate
-        ? (() => {
-            const date = new Date(movie.selectedDate);
-            const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-            return `${date.getDate().toString().padStart(2, '0')} ${days[date.getDay()]}`;
-        })()
-        : 'N/A';
-    const displayTime = `${formattedDateForDisplay}, ${movie.selectedTime}`;
+    fetchRoomData();
+  }, [roomId]);
 
-    const handleSeatSelectionContinue = (selectedSeats, totalSeatPrice) => {
-        dispatch(setSelectedSeats({
-            seats: selectedSeats,
-            totalPrice: totalSeatPrice,
-        }));
+  const handleToggleSeat = (seat) => {
+    setSelectedSeatsState((prev) =>
+      prev.includes(seat.label)
+        ? prev.filter((s) => s !== seat.label)
+        : [...prev, seat.label]
+    );
+  };
 
-        navigate('/combo-selection');
-    };
+  const getSeatClass = (seat) => {
+    const isSelected = selectedSeats.includes(seat.label);
+    const baseClasses =
+      "w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-200 transform hover:scale-110 hover:shadow-lg border-2";
 
-    const handleBack = () => {
-        navigate(-1);
-    };
-
-    const formattedRunningTime = formatMinutesToHoursMinutes(movie.running_time);
-
-    // Không render nếu movieDetails chưa có để tránh lỗi
-    if (!movieDetails || !movieDetails.fullShowtime) {
-        return null; // Hoặc một spinner/loading component
+    if (isSelected) {
+      return `${baseClasses} bg-gradient-to-br from-red-500 to-red-600 text-white border-red-400 shadow-lg scale-105`;
     }
 
-    return (
-        <div className="bg-black min-h-screen text-white px-6 py-10">
-            <div className="bg-[#1a1a1a] max-w-xl mx-auto p-6 rounded">
-                <div className="mb-6">
-                    <button
-                        onClick={handleBack}
-                        className="text-sm text-white bg-gray-700 hover:bg-gray-600 px-4 py-1 rounded"
-                    >
-                        ← Back
-                    </button>
-                </div>
+    if (seat.type === "VIP") {
+      return `${baseClasses} bg-gradient-to-br from-amber-400 to-yellow-500 text-gray-900 border-amber-300`;
+    }
 
-                <h1 className="text-2xl font-bold text-center mb-8">SELECT YOUR SEATS</h1>
+    return `${baseClasses} bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 border-gray-300`;
+  };
 
-                <div className="flex gap-4 mb-6 items-center">
-                    <img
-                        src={movie.image_url}
-                        alt={movie.name}
-                        className="w-[120px] h-[180px] object-cover rounded"
-                    />
-                    <div className="flex-1 space-y-1">
-                        <h2 className="text-2xl font-bold text-white">{movie.name}</h2>
-                        <p className="text-gray-300 text-sm">
-                            {movie.version} • {formattedRunningTime} • {movie.genres && movie.genres.length > 0 ? movie.genres.join(', ') : 'N/A'}
-                        </p>
-                        <p className="text-gray-300 text-sm">
-                            {displayTime} • {movie.cinema_room}
-                        </p>
-                    </div>
-                </div>
+  const getTotalPrice = () => {
+    if (!roomData) return 0;
+    return roomData.seats
+      .filter((seat) => selectedSeats.includes(seat.label))
+      .reduce((total, seat) => total + seat.price, 0);
+  };
 
-                <SelectSeatGrid onContinue={handleSeatSelectionContinue} />
-            </div>
+  const handleSeatSelectionContinue = () => {
+    const selectedSeatObjects = roomData.seats.filter((seat) => selectedSeats.includes(seat.label));
+    const totalSeatPrice = getTotalPrice();
+
+    dispatch(setSelectedSeats({
+      seats: selectedSeatObjects,
+      totalPrice: totalSeatPrice,
+    }));
+
+    navigate('/combo-selection');
+  };
+
+  const handleBack = () => {
+    navigate(-1);
+  };
+
+  const formattedRunningTime = formatMinutesToHoursMinutes(movie.running_time);
+
+  return (
+    <div className="bg-black min-h-screen text-white px-6 py-10">
+      <div className="bg-[#1a1a1a] max-w-4xl mx-auto p-6 rounded">
+        {/* Back Button */}
+        <div className="mb-6">
+          <button
+            onClick={handleBack}
+            className="text-sm text-white bg-gray-700 hover:bg-gray-600 px-4 py-1 rounded"
+          >
+            ← Back
+          </button>
         </div>
-    );
+
+        <h1 className="text-2xl font-bold text-center mb-8">SELECT YOUR SEATS</h1>
+
+        <div className="flex gap-4 mb-6 items-center">
+          <img
+            src={movie.image_url}
+            alt={movie.name}
+            className="w-[120px] h-[180px] object-cover rounded"
+          />
+          <div className="flex-1 space-y-1">
+            <h2 className="text-2xl font-bold text-white">{movie.name}</h2>
+            <p className="text-gray-300 text-sm">
+              {movie.version} • {formattedRunningTime} • {movie.genres && movie.genres.length > 0 ? movie.genres.join(', ') : 'N/A'}
+            </p>
+            <p className="text-gray-300 text-sm">
+              {movie.time} • {movie.cinema_room}
+            </p>
+          </div>
+        </div>
+
+        {/* Seat Grid */}
+        <div className="bg-gray-800/30 rounded-xl p-6 border border-gray-700">
+          <div className="mb-6 text-center">
+            <Monitor className="inline w-6 h-6 text-slate-400 mr-2" />
+            <span className="text-slate-400 text-sm font-medium">SCREEN</span>
+            <div className="h-2 bg-gradient-to-r from-transparent via-white to-transparent rounded-full mt-2 mb-4 opacity-80" />
+          </div>
+
+          {roomData ? (
+            <div className="space-y-3">
+              {[...Array(roomData.rows)].map((_, rIdx) => {
+                const rowLetter = String.fromCharCode(65 + rIdx);
+                const rowSeats = roomData.seats.filter((s) => Number(s.row) === rIdx + 1);
+
+                return (
+                  <div key={rowLetter} className="flex items-center justify-center gap-2">
+                    <div className="w-8 flex items-center justify-center">
+                      <span className="text-slate-400 font-bold text-sm">{rowLetter}</span>
+                    </div>
+
+                    <div className="flex gap-2 justify-center">
+                      {[...Array(roomData.columns)].map((_, cIdx) => {
+                        const seat = rowSeats.find((s) => Number(s.column) === cIdx + 1);
+                        return seat ? (
+                          <button
+                            key={seat.label}
+                            onClick={() => handleToggleSeat(seat)}
+                            title={`Seat ${seat.label} - ${seat.type} - ${seat.price.toLocaleString()} VND`}
+                            className={getSeatClass(seat)}
+                          >
+                            {seat.type === "VIP" ? <Crown className="w-3 h-3" /> : seat.label}
+                          </button>
+                        ) : (
+                          <div key={`empty-${cIdx}`} className="w-10 h-10" />
+                        );
+                      })}
+                    </div>
+
+                    <div className="w-8 flex items-center justify-center">
+                      <span className="text-slate-400 font-bold text-sm">{rowLetter}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-slate-400">Loading seats...</div>
+          )}
+
+          {/* Legend & Actions */}
+          <div className="mt-10 space-y-6">
+            <div className="flex justify-center gap-8 flex-wrap">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-gradient-to-br from-red-500 to-red-600 rounded-lg border-2 border-red-400"></div>
+                <span className="text-slate-300 text-sm font-medium">Selected</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg border-2 border-gray-300"></div>
+                <span className="text-slate-300 text-sm font-medium">Normal</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-lg border-2 border-amber-300 flex items-center justify-center">
+                  <Crown className="w-3 h-3 text-gray-900" />
+                </div>
+                <span className="text-slate-300 text-sm font-medium">VIP</span>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <p className="text-lg font-semibold">Total: {getTotalPrice().toLocaleString()} VND</p>
+              <button
+                onClick={handleSeatSelectionContinue}
+                disabled={selectedSeats.length === 0}
+                className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg disabled:opacity-50"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default SeatSelectionPage;

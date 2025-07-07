@@ -130,30 +130,27 @@ const MovieDetails = () => {
                         <button
                             onClick={() => {
                                 if (selectedDate && selectedTime) {
-                                    // Tạo đối tượng Date hoàn chỉnh cho thời gian chiếu
-                                    const fullShowtimeDate = new Date(selectedDate);
-                                    const [hours, minutes] = selectedTime.split(':').map(Number);
-                                    fullShowtimeDate.setHours(hours, minutes, 0, 0);
-
-                                    // Gửi tất cả thông tin cần thiết vào Redux
-                                    dispatch(setMovieDetails({
-                                        ...movie, // Copy tất cả thông tin phim
-                                        selectedDate: selectedDate.toISOString(), // Lưu dưới dạng ISO string
-                                        selectedTime: selectedTime, // Lưu giờ chiếu
-                                        fullShowtime: fullShowtimeDate.toISOString(), // Lưu thời gian chiếu đầy đủ dưới dạng ISO string
-                                    }));
-
-                                    navigate('/select-seats'); // Chỉ navigate, không cần truyền state qua navigate nữa
+                                    navigate(`/moviedetails/${id}/select-seats`, {
+                                        state: {
+                                            name: movie.name,
+                                            image_url: movie.image_url,
+                                            version: movie.version,
+                                            running_time: movie.running_time,
+                                            time: `${selectedDate}, ${selectedTime}`,
+                                            cinema_room: movie.cinema_room || 'Room 1',
+                                        }
+                                    });
                                 }
                             }}
                             className={`mt-4 px-5 py-2 rounded text-base w-fit transition
-                                         ${selectedDate && selectedTime
-                                        ? 'bg-red-600 text-white hover:bg-red-700'
-                                        : 'bg-gray-500 text-gray-300 cursor-not-allowed'}`}
+        ${selectedDate && selectedTime
+                                    ? 'bg-red-600 text-white hover:bg-red-700'
+                                    : 'bg-gray-500 text-gray-300 cursor-not-allowed'}`}
                             disabled={!selectedDate || !selectedTime}
                         >
                             Book now
                         </button>
+
                     </>
                 )}
             </div>
