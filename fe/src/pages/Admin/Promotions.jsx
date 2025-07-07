@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
-import { Modal, message } from 'antd';
-import SidebarLayout from '../../components/Sidebar-Admin';
+import { FaEye, FaEdit, FaTrash, FaSpinner } from 'react-icons/fa';
+import { Modal, message, Tag } from 'antd';
 import Pagination from '../../components/PaginationHomepage';
+import SidebarLayout from '../../components/Sidebar-Admin';
+import dayjs from 'dayjs';
+import axios from 'axios';
 
 const Promotions = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,6 +38,12 @@ const Promotions = () => {
         setLoading(false);
       });
   }, []);
+
+  const handleSearch = (e) => {
+  setSearchTerm(e.target.value);
+  setCurrentPage(0); // Reset về trang đầu khi tìm kiếm
+};
+
 
   const handlePageChange = page => {
     if (page < 0 || page >= Math.ceil(filtered.length / promotionsPerPage)) return;
@@ -75,7 +83,7 @@ const Promotions = () => {
   .sort((a, b) => {
     if (sortByStartDate) {
       return sortByStartDate === 'asc'
-        ? a.rawStartDate - b.rawStartDate
+? a.rawStartDate - b.rawStartDate
         : b.rawStartDate - a.rawStartDate;
     }
     if (sortByDiscount) {
@@ -95,115 +103,87 @@ const Promotions = () => {
 
   return (
     <SidebarLayout>
-      <div className="flex h-screen text-gray-300">
-        <div className="flex-1 flex flex-col overflow-hidden">
-
-          {/* Header */}
-          <div className="p-4 flex justify-center">
-            <h2 className="text-2xl text-white font-bold">Promotion Management</h2>
+      <div className="p-6 text-white">
+        <div className="p-4 flex items-center justify-between">
+          <div className="flex-1 text-center">
+            <h2 className="text-2xl font-bold">Promotion Management</h2>
           </div>
+        </div>
 
-          {/* Search + Add */}
-          <div className="flex justify-between items-center p-4">
-            <input
-              type="text"
-              placeholder="Search promotions..."
-              className="bg-gray-800 text-gray-300 pl-4 pr-10 py-2 rounded-md"
-              value={searchTerm}
-              onChange={e => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(0);
-              }}
-            />
-            <Link
-              to="/admin/add-promotion"
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md flex items-center"
-            >
-              <FaPlus className="mr-2" /> Add Promotion
-            </Link>
-          </div>
+        <div className="flex flex-wrap gap-4 mb-4">
+          <input
+            type="text"
+            placeholder="Search promotion..."
+            value={searchTerm}
+            onChange={handleSearch}
+            className="bg-gray-700 text-white px-3 py-2 rounded-md w-64"
+          />
+          <Link to="/admin/add-promotion" className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md">
+            + Add New Promotion
+          </Link>
+        </div>
 
-          {/* Table */}
-          <div className="flex-1 ">
-            {loading ? (
-              <div className="text-center text-gray-400">Đang tải...</div>
-            ) : (
-              <>
-                <div className="text-sm text-gray-400 mb-2">
-                  Showing {visible.length} of {filtered.length} promotion(s)
-                </div>
-
-                <div className="bg-gray-800 rounded-md overflow-hidden">
-                  <table className="min-w-full divide-y divide-gray-700">
-                    <thead>
-                      <tr className="bg-gray-800">
-                        <th className="px-6 py-3 text-xs text-gray-300 uppercase text-left">#</th>
-                        <th className="px-6 py-3 text-xs text-gray-300 uppercase text-left">Promotion Code</th>
-                        <th className="px-6 py-3 text-xs text-gray-300 uppercase text-left">Title</th>
-                        <th
-                          className="px-6 py-3 text-xs text-gray-300 uppercase text-left cursor-pointer"
-                          onClick={() => {
-                            setSortByStartDate(prev => prev === 'asc' ? 'desc' : 'asc');
-                            setSortByDiscount(null);
-                          }}
-                        >
-                          Start Date {sortByStartDate === 'asc' ? '▲' : sortByStartDate === 'desc' ? '▼' : ''}
-                        </th>
-                        <th className="px-6 py-3 text-xs text-gray-300 uppercase text-left">End Date</th>
-                        <th
-                          className="px-6 py-3 text-xs text-gray-300 uppercase text-left cursor-pointer"
-                          onClick={() => {
-                            setSortByDiscount(prev => prev === 'asc' ? 'desc' : 'asc');
-                            setSortByStartDate(null);
-                          }}
-                        >
-                          Discount {sortByDiscount === 'asc' ? '▲' : sortByDiscount === 'desc' ? '▼' : ''}
-                        </th>
-                        <th className="px-6 py-3 text-xs text-gray-300 uppercase text-left">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-gray-800 divide-y divide-gray-700">
-                      {visible.map((p, idx) => (
-                        <tr key={p.id} className="hover:bg-gray-700">
-                          <td className="px-6 py-4 text-sm text-gray-300">
-                            {currentPage * promotionsPerPage + idx + 1}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-300">{p.promotionCode}</td>
-                          <td className="px-6 py-4 text-sm text-gray-300">{p.title}</td>
-                          <td className="px-6 py-4 text-sm text-gray-300">{p.startDate}</td>
-                          <td className="px-6 py-4 text-sm text-gray-300">{p.endDate}</td>
-                          <td className="px-6 py-4 text-sm text-gray-300">{p.discountLevel}</td>
-                          <td className="px-6 py-4 text-sm flex space-x-3">
-                            <button
-                              className="text-yellow-400 hover:text-yellow-600"
-                              onClick={() => window.location.href = `/admin/promotions/edit-promotion/${p.id}`}
-                            >
-                              <FaEdit />
-                            </button>
-                            <button
-                              className="text-red-500 hover:text-red-700"
-                              onClick={() => handleDelete(p)}
-                            >
-                              <FaTrash />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                  />
-                )}
-              </>
-            )}
-          </div>
+        <div className="overflow-x-auto bg-gray-800 rounded-lg shadow">
+          <table className="min-w-full divide-y divide-gray-700">
+            <thead className="bg-gray-900 text-gray-300 text-sm uppercase">
+              <tr>
+                <th className="px-4 py-3 text-left">#</th>
+                <th className="px-4 py-3 text-left">Promotion Code</th>
+                <th className="px-4 py-3 text-left">Title</th>
+                <th className="px-4 py-3 text-left">Start Date</th>
+                <th className="px-4 py-3 text-left">End Date</th>
+                <th className="px-4 py-3 text-left">Discount</th>
+                <th className="px-4 py-3 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-700 text-gray-300 text-sm">
+              {loading ? (
+                <tr>
+                  <td colSpan="7" className="text-center py-4">
+                    <FaSpinner className="animate-spin mr-2" /> Loading promotions...
+                  </td>
+                </tr>
+              ) : visible.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="text-center py-4 text-gray-400">No promotions found.</td>
+                </tr>
+              ) : (
+                visible.map((p, idx) => (
+                  <tr key={p.id} className="hover:bg-gray-700 transition">
+                    <td className="px-4 py-2">{currentPage * promotionsPerPage + idx + 1}</td>
+                    <td className="px-4 py-2">{p.promotionCode}</td>
+                    <td className="px-4 py-2">{p.title}</td>
+                    <td className="px-4 py-2">{dayjs(p.rawStartDate).format('DD/MM/YYYY')}</td>
+                    <td className="px-4 py-2">{p.endDate}</td>
+<td className="px-4 py-2">{p.discountLevel}</td>
+                    <td className="px-4 py-2 text-center">
+                      <div className="flex justify-center gap-4">
+                        <button 
+                          onClick={() => window.location.href = `/admin/promotions/edit-promotion/${p.id}`} 
+                          className="text-yellow-400 hover:text-yellow-600 text-xl">
+                          <FaEdit />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(p)} 
+                          className="text-red-400 hover:text-red-600 text-xl">
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+          {totalPages > 0 && (
+            <div className="py-4">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          )}
         </div>
       </div>
     </SidebarLayout>
