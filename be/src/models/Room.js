@@ -90,7 +90,7 @@ roomSchema.pre('save', async function (next) {
         { $inc: { seq: 1 } },
         { new: true, upsert: true }
       );
-      this.roomId = 'ROOM' + String(counter.seq).padStart(9, '0');
+      this.roomId = 'ROOM' + String(counter.seq).padStart(1, '0');
     } catch (error) {
       return next(error);
     }

@@ -1,68 +1,93 @@
-// src/redux/bookingSlice.js
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-    movieDetails: null,
-    selectedSeats: [],
-    totalSeatPrice: 0,
-    selectedCombos: [],
-    totalComboPrice: 0,
-    serviceFee: 10000,
-    grandTotal: 0,
-    user: {
-        _id: '60c72b2f9b1d8e001c8e4d3a', // Mock user ID
-        fullName: 'Nguyen Van A',
-        email: 'nguyenvana@example.com',
-        phone: '0901234567',
-    },
+  movieDetails: null,        // Stores selected movie details (name, image_url, version, running_time, time, cinema_room, genres, etc.)
+  selectedSeats: [],         // Stores array of selected seat labels (strings, e.g., ['A1', 'B2'])
+  totalSeatPrice: 0,         // Total price for selected seats
+  selectedCombos: [],        // Stores array of selected combo objects { id, name, price, quantity, image }
+  totalComboPrice: 0,        // Total price for selected combos
+  serviceFee: 2.5,           // Static service fee (adjust if needed)
+  grandTotal: 0,             // Calculated total including all costs
+  bookingId: null,           // Generated after successful payment
+  user: {                    // User data from database or mock data
+    name: 'John Doe',        // fullname
+    email: 'john.doe@example.com',
+    id: 'A12345678',          // id_card
+    phone: '+1 (555) 123-4567',
+    username: 'john.doe',
+    gender: 'male',
+    address: '123 Main St',
+    id_card: '0123456789',   // Redundant if 'id' is also id_card, but kept for clarity based on your data
+  },
 };
 
-const bookingSlice = createSlice({
-    name: 'booking',
-    initialState,
-    reducers: {
-        setMovieDetails: (state, action) => {
-            state.movieDetails = action.payload;
-        },
-        setSelectedSeats: (state, action) => {
-            state.selectedSeats = action.payload.seats;
-            state.totalSeatPrice = action.payload.totalPrice;
-        },
-        setSelectedCombos: (state, action) => {
-            state.selectedCombos = action.payload.combos;
-            state.totalComboPrice = action.payload.totalPrice;
-        },
-        updateGrandTotal: (state, action) => {
-            state.grandTotal = action.payload;
-        },
-        setMovieAndDateTime: (state, action) => {
-            state.movieDetails = {
-                ...state.movieDetails,
-                ...action.payload,
-            };
-        },
-        setUserData: (state, action) => {
-            state.user = { ...state.user, ...action.payload };
-        },
-        // NEW: Action to reset the booking state
-        resetBooking: (state) => {
-            // Đặt lại state về trạng thái ban đầu, giữ lại thông tin user
-            return {
-                ...initialState, // Copy tất cả các trường từ initialState
-                user: state.user // Giữ lại thông tin user hiện tại
-            };
-        }
+export const bookingSlice = createSlice({
+  name: 'booking',
+  initialState,
+  reducers: {
+    // Action to set movie details, selected date, and showtime
+    setMovieAndDateTime: (state, action) => {
+      // The payload for this action should be an object like:
+      // { movieDetails: { name: '...', time: '...', cinema_room: '...', ...otherMovieProps } }
+      // So, we directly assign action.payload.movieDetails to state.movieDetails
+      state.movieDetails = {
+        ...action.payload.movieDetails, // Correctly spread all properties from the movieDetails object in the payload
+      };
+      // Reset other booking related states for a new booking flow
+      state.selectedSeats = [];
+      state.totalSeatPrice = 0;
+      state.selectedCombos = [];
+      state.totalComboPrice = 0;
+      state.grandTotal = 0;
+      state.bookingId = null;
     },
+    // Action to set selected seats and their total price
+    setSelectedSeats: (state, action) => {
+      state.selectedSeats = action.payload.seats; // Expects an array of strings (seat labels)
+      state.totalSeatPrice = action.payload.totalPrice;
+      // Recalculate grand total whenever seats or combos change
+      state.grandTotal = state.totalSeatPrice + state.totalComboPrice + state.serviceFee;
+    },
+    // Action to set selected combos and their total price
+    setSelectedCombos: (state, action) => {
+      state.selectedCombos = action.payload.combos; // Expects an array of combo objects
+      state.totalComboPrice = action.payload.totalPrice;
+      // Recalculate grand total whenever seats or combos change
+      state.grandTotal = state.totalSeatPrice + state.totalComboPrice + state.serviceFee;
+    },
+    // Action to explicitly update grand total (can be used after voucher application)
+    updateGrandTotal: (state, action) => {
+      state.grandTotal = action.payload;
+    },
+    // Action to finalize booking details (e.g., after payment success)
+    finalizeBooking: (state, action) => {
+      state.bookingId = action.payload.bookingId;
+      if (action.payload.user) {
+        state.user = { ...state.user, ...action.payload.user }; // Merge user data if provided
+      }
+      state.grandTotal = action.payload.grandTotal;
+    },
+    // Action to reset the entire booking state to its initial state
+    resetBooking: (state) => {
+      Object.assign(state, initialState);
+    },
+    // New action to set/update user information (used by ConfirmBooking to load user data)
+    setUser: (state, action) => {
+      state.user = { ...state.user, ...action.payload }; // Merge new user data into existing user state
+    },
+  },
 });
 
+// Export all actions generated by createSlice
 export const {
-    setMovieDetails,
-    setSelectedSeats,
-    setSelectedCombos,
-    updateGrandTotal,
-    setMovieAndDateTime,
-    setUserData,
-    resetBooking // <-- EXPORT MỚI
+  setMovieAndDateTime,
+  setSelectedSeats,
+  setSelectedCombos,
+  updateGrandTotal,
+  finalizeBooking,
+  resetBooking,
+  setUser, // Export the new setUser action
 } = bookingSlice.actions;
 
+// Export the reducer function
 export default bookingSlice.reducer;

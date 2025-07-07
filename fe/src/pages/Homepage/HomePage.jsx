@@ -5,6 +5,7 @@ import ReactPlayer from 'react-player/youtube';
 import buttonplay from '../../assets/play-button.png';
 import nextbanner from '../../assets/nextbanner.png';
 import prevbanner from '../../assets/prevbanner.png';
+import axios from 'axios';
 
 const HomePage = () => {
   const [trailerUrl, setTrailerUrl] = useState('');
@@ -18,19 +19,36 @@ const HomePage = () => {
   const [comingSoonIndex, setComingSoonIndex] = useState(0);
   const [currentBanner, setCurrentBanner] = useState(0);
   const [fade, setFade] = useState(false);
+  const currentDate = new Date();
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  const month = monthNames[currentDate.getMonth()];
+  const year = currentDate.getFullYear();
+
 
   const itemsPerPage = 7;
 
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/home');
-        const data = await res.json();
-        setBanners(data.banners || []);
-        setNowShowingMovies(data.nowShowing || []);
-        setComingSoonMovies(data.comingSoon || []);
-        setHotMovies(data.hotMovies || []);
-        setNews(data.news || []);
+        const [homeRes, moviesRes] = await Promise.all([
+          axios.get('http://localhost:5000/api/home'),
+          axios.get('http://localhost:5000/api/movies')
+        ]);
+
+        const homeData = homeRes.data;
+        const moviesData = moviesRes.data;
+
+        // Filter out ended movies for hot movies section
+        const activeMovies = moviesData.filter(movie => movie.status !== 'ended' && movie.is_hot);
+
+        setBanners(homeData.banners || []);
+        setNowShowingMovies(homeData.nowShowing || []);
+        setComingSoonMovies(homeData.comingSoon || []);
+        setHotMovies(activeMovies);
+        setNews(homeData.news || []);
       } catch (err) {
         console.error('Error fetching home data:', err);
       }
@@ -65,7 +83,7 @@ const HomePage = () => {
     }
 
     if (comingSoonMovies.length > itemsPerPage) {
-      comingSoonInterval = setInterval(() => {
+comingSoonInterval = setInterval(() => {
         setComingSoonIndex((prev) => {
           const maxIndex = comingSoonMovies.length - itemsPerPage;
           return prev < maxIndex ? prev + 1 : prev;
@@ -143,7 +161,7 @@ const HomePage = () => {
             className="disabled:opacity-30"
           >
             <div className="bg-red-600 rounded-full p-1 hover:bg-red-700 transition">
-              <img src={prevbanner} alt="Prev" className="w-7 h-7 object-contain" />
+<img src={prevbanner} alt="Prev" className="w-7 h-7 object-contain" />
             </div>
           </button>
           <button
@@ -201,7 +219,9 @@ const HomePage = () => {
 
       {/* Hot Movies */}
       <div className="mt-10">
-        <h2 className="text-xl font-bold mb-4">Hot movie : <span className="text-red-500">May 2025</span></h2>
+        <h2 className="text-xl font-bold mb-4">
+          Hot movie : <span className="text-red-500">{month} {year}</span>
+        </h2>
         {hotMovies.slice(0, 8).map((movie, idx) => (
           <div key={idx} className="flex items-start gap-4 mb-6 border-b border-gray-700 pb-4">
             <Link to={`/moviedetails/${movie._id}`}>
@@ -209,7 +229,7 @@ const HomePage = () => {
             </Link>
             <div>
               <h3 className="text-3xl font-bold text-red-500">{movie.name}</h3>
-              <div className="flex items-center gap-3 text-sm font-medium mb-1">
+<div className="flex items-center gap-3 text-sm font-medium mb-1">
                 <span className='text-xl'>{movie.genres?.join(', ') || 'N/A'}</span>
                 <span className="bg-red-600 text-b  lack px-1 rounded text-m">{movie.version}</span>
                 {/* <span className="bg-red-600 text-white px-1 rounded text-m">{movie.rating}</span> */}
@@ -278,7 +298,7 @@ const HomePage = () => {
         }}
       >
         <div className="relative pb-[56.25%] h-0">
-          {isModalVisible && (
+{isModalVisible && (
             <ReactPlayer
               key={trailerUrl}
               url={trailerUrl}
