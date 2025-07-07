@@ -151,7 +151,7 @@ const CounterConfirmBooking = () => {
                                 {combosDisplay.length > 0 && (
                                     <div className="flex justify-between">
                                         <span>Combos</span>
-                                        <span>${currentCombosTotal.toFixed(2)}</span>
+                                        <span>{currentCombosTotal.toFixed(2)}</span>
                                     </div>
                                 )}
                                 <hr className="border-gray-700" />
