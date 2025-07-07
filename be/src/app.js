@@ -17,6 +17,9 @@ const roomManagermentRoutes = require('./routes/theather/room'); // Import tuy�
 const productRoutes = require('./routes/product/productRoutes'); // Import tuyến quản lý sản phẩm
 const comboRoutes = require('./routes/product/comboRoutes'); // Import tuyến quản lý combo
 const movieNewsRoutes = require('./routes/movie/newsRoutes'); // Import tuyến quản lý tin tức
+
+const bookingRoutes = require('./routes/booking/bookingRoute'); // Import tuyến quản lý đặt vé
+const paymentRoutes = require('./routes/payments/vnPaySandboxRotes'); // Import tuyến thanh toán VNPay Sandbox
 // Khởi tạo ứng dụng Express
 
 const app = express();
@@ -49,6 +52,10 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/home', homepageRoutes);
 app.use('/api/promotions', promotionRoutes);
+
+// tuyến quản lý đặt vé
+app.use('/api/booking', bookingRoutes); // tuyến quản lý đặt vé
+app.use('/api/payment', paymentRoutes); // tuyến thanh toán 
 // tuyến quản lý phòng
 app.use('/api/theater/rooms', roomManagermentRoutes);
 // tuyến quản lý sản phẩm

@@ -69,7 +69,17 @@ router.post('/login', async (req, res) => {
             return res.status(403).json({ message: 'Tài khoản chưa kích hoạt hoặc đã bị khóa.' });
         }
         //Tạo JWT token với thông tin người dùng
-        const token = jwt.sign({ user: { id: user._id, username: user.username, role: user.role } }, process.env.JWT_SECRET, {
+        const payload = {
+            // Đảm bảo lấy ID từ user._id hoặc user.id (cả hai đều hoạt động)
+            user: {
+                userId: user._id, // <--- Đổi từ 'id: user.userId' thành 'userId: user._id'
+                username: user.username,
+                fullname: user.fullname, // <-- THÊM fullname vào đây
+                role: user.role
+            }
+        };
+
+        const token = jwt.sign(payload, process.env.JWT_SECRET, {
             expiresIn: '1h' // Token sẽ hết hạn sau 1 giờ
         });
         // Trả về token và thông tin người dùng
