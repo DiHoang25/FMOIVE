@@ -27,9 +27,9 @@ router.post('/create', authMiddleware, async (req, res) => {
             totalSeatPrice,
             selectedCombos = [],
             totalComboPrice = 0,
-            serviceFee = 10000,
+            // serviceFee = 10000,
             grandTotal } = req.body;
-        const calculatedGrandTotal = totalSeatPrice + totalComboPrice + serviceFee;
+        const calculatedGrandTotal = totalSeatPrice + totalComboPrice // + serviceFee;
 
         if (calculatedGrandTotal !== grandTotal) {
             console.warn(`Booking for user ${userId}: Frontend grandTotal (${grandTotal}) mismatch with calculated grandTotal (${calculatedGrandTotal}). Using calculated value.`);
