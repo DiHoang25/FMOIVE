@@ -132,7 +132,7 @@ function SeatSelectionPage() {
               {movie.version} • {formattedRunningTime} • {movie.genres?.join(', ') || 'N/A'}
             </p>
             <p className="text-gray-300 text-sm">
-              {movie.time} • {displayCinemaRoomName}
+              {movie.time} • {roomData?.roomName || 'Cinema N/A'}
             </p>
           </div>
         </div>

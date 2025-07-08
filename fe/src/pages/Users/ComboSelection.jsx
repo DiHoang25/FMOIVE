@@ -64,6 +64,34 @@
 
     const formattedRunningTime = formatMinutesToHoursMinutes(movie.running_time);
     const displayCinemaRoomName = formatCinemaRoomName(movie.cinema_room);
+    const [roomName, setRoomName] = useState('Loading...');
+
+    useEffect(() => {
+  const fetchRoomName = async () => {
+    if (!movie.cinema_room) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:5000/api/theater/rooms/${movie.cinema_room}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to fetch room');
+
+      setRoomName(data.room?.roomName || movie.cinema_room); // fallback to roomId
+    } catch (error) {
+      console.error('❌ Error fetching room name:', error.message);
+      setRoomName(movie.cinema_room); // fallback
+    }
+  };
+
+  fetchRoomName();
+}, [movie.cinema_room]);
+
+
 
 
     // Fetch Combo Data from API on component mount
@@ -215,7 +243,7 @@
               </div>
               <div className="mt-2">
                 <p className="text-gray-200 text-2xl">{movie.time}</p>
-                <p className="text-gray-200 text-2xl">{displayCinemaRoomName}</p> {/* Using formatted cinema room name */}
+                <p className="text-gray-200 text-2xl">{roomName}</p>
                 <p className="text-gray-200 text-2xl">Seats: {selectedSeats && selectedSeats.length > 0 ? selectedSeats.join(', ') : 'N/A'}</p>
                 <p className="text-gray-200 text-2xl">Seat Price: {totalSeatPrice !== undefined ? totalSeatPrice.toLocaleString('vi-VN') : 'N/A'} VND</p>
               </div>

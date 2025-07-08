@@ -79,6 +79,7 @@ import AddProduct from './pages/Employee/AddProduct';
 import ViewProduct from './pages/Employee/ViewProduct';
 import EditProduct from './pages/Employee/EditProduct';
 import PublicRouteGuard from './components/PublicRouteGuard';
+import EditCinemaRoom from './pages/Admin/EditCinemaRoom';
 
 
 function AppContent() {
@@ -165,6 +166,8 @@ function AppContent() {
           <Route path="/admin/add-movienews" element={<RequireRole allowedRoles={['admin']}><AddMovieNews /></RequireRole>} />
           <Route path="/admin/movienews-list" element={<RequireRole allowedRoles={['admin']}><MovieNewsList /></RequireRole>} />
           <Route path="/admin/edit-movienews/:id" element={<RequireRole allowedRoles={['admin']}><EditMovieNews /></RequireRole>} />
+          <Route path="/admin/edit-cinema-room/:roomId" element={<RequireRole allowedRoles={['admin']}><EditCinemaRoom /></RequireRole>} />
+
           {/* Employee */}
           <Route path="/employee" element={<RequireRole allowedRoles={['employee']}><EmployeeDashboard /></RequireRole>} />
           <Route path="/employee/employee-profile" element={<RequireRole allowedRoles={['employee']}><EmployeeProfile /></RequireRole>} />

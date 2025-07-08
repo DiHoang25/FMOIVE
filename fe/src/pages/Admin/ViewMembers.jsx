@@ -195,7 +195,7 @@ const ViewMembers = () => {
                                     <table className="min-w-full divide-y divide-zinc-700">
                                         <thead className="bg-gray-900"> {/* Darker header background */}
                                             <tr>
-                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">ID #</th> {/* Bolder text */}
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">ID</th> {/* Bolder text */}
                                                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">Full Name</th> {/* Bolder text */}
                                                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">DOB</th> {/* Bolder text */}
                                                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">Email</th> {/* Bolder text */}

@@ -12,14 +12,7 @@ import { setUser } from '../../redux/bookingSlice'; // Assuming you add a setUse
 import defaultPoster from '../../assets/batman.png'; // Make sure this path is correct
 
 // Helper function to format cinema room name (e.g., "ROOM000000016" to "Cinema 16")
-const formatCinemaRoomName = (roomName) => {
-  if (!roomName) return 'N/A';
-  const match = roomName.match(/ROOM0*(\d+)/);
-  if (match && match[1]) {
-    return `Cinema ${parseInt(match[1], 10)}`;
-  }
-  return roomName;
-};
+
 
 const ConfirmBooking = () => {
   const navigate = useNavigate();
@@ -98,10 +91,39 @@ const ConfirmBooking = () => {
       return { display: `${formattedTime}, ${formattedDate}` };
   };
   const formattedTime = formatMovieTime(movie.time);
-  const displayCinemaRoomName = formatCinemaRoomName(movie.cinema_room); // Formatted cinema room name
 
   // Simulate fetching user data from a backend or local storage and dispatching to Redux
   // In a real app, this might happen on login or a dedicated user profile page
+
+  const [roomName, setRoomName] = useState('Loading...');
+  useEffect(() => {
+  const fetchRoomName = async () => {
+    if (!movie.cinema_room) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:5000/api/theater/rooms/${movie.cinema_room}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to fetch room');
+
+      setRoomName(data.room?.roomName || movie.cinema_room); // fallback to roomId
+    } catch (error) {
+      console.error('❌ Error fetching room name:', error.message);
+      setRoomName(movie.cinema_room); // fallback
+    }
+  };
+
+  fetchRoomName();
+}, [movie.cinema_room]);
+
+
+
+
   useEffect(() => {
     const fetchAndSetUserData = async () => {
       const token = localStorage.getItem('token'); // Get token if available
@@ -187,7 +209,7 @@ const ConfirmBooking = () => {
                 <p className="text-gray-400">
                   {movie.version || 'N/A'} • {movie.running_time} min • {movie.genres && movie.genres.length > 0 ? movie.genres.join(', ') : 'N/A'}
                 </p>
-                <p className="text-gray-400">{displayCinemaRoomName}</p> {/* Using formatted cinema room name */}
+                <p className="text-gray-400">{roomName}</p> {/* Using formatted cinema room name */}
                 <p className="text-gray-400">{formattedTime.display}</p>
               </div>
             </div>
@@ -235,12 +257,10 @@ const ConfirmBooking = () => {
             <div className="text-sm border-t border-gray-600 mt-1 pt-2 space-y-1">
               <p><span className="text-gray-400">Full Name:</span> {userData.name}</p>
               <p><span className="text-gray-400">Email:</span> {userData.email}</p>
-              <p><span className="text-gray-400">ID Number:</span> {userData.id}</p>
               <p><span className="text-gray-400">Phone:</span> {userData.phone}</p>
               {/* Add other user details from Redux/fetched data */}
               <p><span className="text-gray-400">Username:</span> {userData.username}</p>
               <p><span className="text-gray-400">Gender:</span> {userData.gender}</p>
-              <p><span className="text-gray-400">Address:</span> {userData.address}</p>
             </div>
 
             {/* Voucher Input */}
