@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 
 
 import { useDispatch } from 'react-redux';
-import { setMovieAndDateTime } from '../../redux/bookingSlice';
+import { setMovieAndDateTime, setSelectedSeats } from '../../redux/bookingSlice';
 
 function getWeekDates(startDate) {
     const dates = [];
@@ -63,6 +63,8 @@ function ShowtimePage() {
             behavior: 'smooth'
         });
     };
+
+    dispatch(setSelectedSeats({ seats: [], totalPrice: 0 }));
 
     useEffect(() => {
         const handleScroll = () => {
