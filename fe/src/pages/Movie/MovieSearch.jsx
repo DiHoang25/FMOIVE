@@ -62,7 +62,7 @@ const MovieSearch = () => {
 
   if (loading) {
     return (
-      <div className="bg-black text-white min-h-screen p-6">
+      <div className="bg-black text-white min-h-screen p-6 ">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold text-center mb-8 text-white">Movie Search</h1>
           <p className="text-center">Đang tải dữ liệu phim...</p>
@@ -91,7 +91,10 @@ const MovieSearch = () => {
   }
 
   return (
-    <div className="bg-black text-white min-h-screen p-6">
+    
+    <div className="bg-black text-white min-h-screen p-6 pt-[50px]">
+
+
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-center mb-8 text-white">Movie Search</h1>
 
