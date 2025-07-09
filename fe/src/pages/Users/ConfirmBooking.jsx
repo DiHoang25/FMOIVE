@@ -6,7 +6,7 @@ import { message } from 'antd'; // Import message for notifications
 // Redux imports
 import { useSelector, useDispatch } from 'react-redux';
 import { updateGrandTotal } from '../../redux/bookingSlice';
-import { setUser } from '../../redux/bookingSlice'; // Assuming you add a setUser action to your bookingSlice
+import { setUser } from '../../redux/bookingSlice';
 
 // Use a placeholder image if movie.image_url is not available
 import defaultPoster from '../../assets/batman.png'; // Make sure this path is correct
@@ -26,78 +26,90 @@ const ConfirmBooking = () => {
     const dispatch = useDispatch();
 
     const [voucherCode, setVoucherCode] = useState('');
-    const [voucherDiscount, setVoucherDiscount] = useState(0); // State for voucher discount
-    const [isProcessing, setIsProcessing] = useState(false); // State để ngăn chặn nhấp đúp
-    const [error, setError] = useState(''); // State để hiển thị lỗi từ backend
+    const [voucherDiscount, setVoucherDiscount] = useState(0);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [error, setError] = useState('');
 
-    // Destructure all the data from Redux store
     const {
         movieDetails,
         selectedSeats,
         totalSeatPrice,
         selectedCombos,
         totalComboPrice,
-        serviceFee, // Add serviceFee from Redux state
         user, // Get user from Redux
     } = useSelector((state) => state.booking);
 
-    // Set up variables for display, with fallbacks for direct page access or missing data
     const movie = movieDetails || {
         name: 'Movie Title N/A',
         image_url: defaultPoster,
         version: 'N/A',
         running_time: 'N/A',
-        // Use selectedDate, selectedTime, fullShowtime from movieDetails
-        selectedDate: 'N/A',
-        selectedTime: 'N/A',
-        fullShowtime: 'N/A',
+        time: 'N/A',
         cinema_room: 'N/A',
         genres: [],
     };
 
     const seats = selectedSeats || [];
     const combos = selectedCombos || [];
-    const userData = user || {
-        fullName: 'N/A', // Use fullName to match backend User model
+    const userData = user || { // Make sure userData always has a structure, even if default
+        name: 'N/A',
         email: 'N/A',
-        userId: 'N/A', // Use userId to match backend User model (_id from MongoDB)
         phone: 'N/A',
         username: 'N/A',
         gender: 'N/A',
         address: 'N/A',
         id_card: 'N/A',
+        _id: null, // It's crucial that user._id is available if you want to include it.
     };
 
-    // Calculate the grand total on this page, considering potential voucher discounts
     const calculatedTicketPrice = totalSeatPrice || 0;
     const calculatedCombosTotal = totalComboPrice || 0;
-    const calculatedServiceFee = serviceFee || 0; // Use serviceFee from Redux
+    const grandTotalAfterDiscount = (calculatedTicketPrice + calculatedCombosTotal - voucherDiscount);
 
-    const grandTotalAfterDiscount = (calculatedTicketPrice + calculatedServiceFee + calculatedCombosTotal - voucherDiscount);
-
-    // Update Redux store's grandTotal whenever the calculation changes
     useEffect(() => {
         dispatch(updateGrandTotal(grandTotalAfterDiscount));
     }, [grandTotalAfterDiscount, dispatch]);
 
-    // Helper function to format the movie time string for display
-    const formatFullShowtime = (isoString) => {
-        if (!isoString || isoString === 'N/A') return 'N/A';
-        const dateObj = new Date(isoString);
-        if (isNaN(dateObj.getTime())) return 'N/A';
-
+    const formatMovieTime = (timeString) => {
+        if (!timeString || timeString === 'N/A') return { display: 'N/A' };
+        const dateObj = new Date(timeString);
+        if (isNaN(dateObj.getTime())) {
+            const parts = timeString.split(', ');
+            const timePart = parts[parts.length - 1].trim();
+            const datePartArray = parts.slice(0, parts.length - 1).filter(part => !/\d{4}/.test(part.trim()));
+            const datePart = datePartArray.join(', ').trim();
+            return { display: `${timePart}, ${datePart}` };
+        }
         const dateOptions = { weekday: 'long', month: 'long', day: 'numeric' };
         const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
-
         const formattedDate = dateObj.toLocaleDateString('en-US', dateOptions);
         const formattedTime = dateObj.toLocaleTimeString('en-US', timeOptions);
-
-        return `${formattedTime}, ${formattedDate}`;
+        return { display: `${formattedTime}, ${formattedDate}` };
     };
-    const displayShowtime = formatFullShowtime(movie.fullShowtime); // Use fullShowtime for display
-    const displayCinemaRoomName = formatCinemaRoomName(movie.cinema_room); // Formatted cinema room name
+    const formattedTime = formatMovieTime(movie.time);
 
-    // Simulate fetching user data from a backend or local storage and dispatching to Redux
+    const [roomName, setRoomName] = useState('Loading...');
+    useEffect(() => {
+        const fetchRoomName = async () => {
+            if (!movie.cinema_room) return;
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`http://localhost:5000/api/theater/rooms/${movie.cinema_room}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Failed to fetch room');
+                setRoomName(data.room?.roomName || movie.cinema_room);
+            } catch (error) {
+                console.error('❌ Error fetching room name:', error.message);
+                setRoomName(movie.cinema_room);
+            }
+        };
+        fetchRoomName();
+    }, [movie.cinema_room]);
+
     useEffect(() => {
         const fetchAndSetUserData = async () => {
             const token = localStorage.getItem('token');
@@ -109,9 +121,9 @@ const ConfirmBooking = () => {
                     const fetchedUser = response.data.user;
 
                     dispatch(setUser({
-                        fullName: fetchedUser.fullname, // Match Redux state and Booking model
+                        name: fetchedUser.fullname,
                         email: fetchedUser.email,
-                        userId: fetchedUser.id, // Assuming fetchedUser.id is the _id from DB
+                        _id: fetchedUser._id, // Quan trọng: lấy _id của user từ backend
                         phone: fetchedUser.phone,
                         username: fetchedUser.username,
                         gender: fetchedUser.gender,
@@ -120,7 +132,6 @@ const ConfirmBooking = () => {
                     }));
                 } catch (error) {
                     console.error('Error fetching user data:', error);
-                    message.error('Failed to load user data.');
                 }
             }
         };
@@ -128,19 +139,19 @@ const ConfirmBooking = () => {
     }, [dispatch]);
 
     const handleProceedToPayment = async () => {
-        if (isProcessing) return; // Ngăn chặn nhấp đúp
+        if (isProcessing) return;
 
-        // Basic validation before sending to backend
-        // if ( !movieDetails._id || !movieDetails.fullShowtime || !movieDetails.cinema_room ||
-        //     !seats || seats.length === 0 || totalSeatPrice === undefined ||
-        //     !user || !user.userId) { // Ensure user.userId is available
-        //     setError('Missing essential booking details. Please go back and re-select.');
-        //     message.error('Missing essential booking details. Please go back and re-select.');
+        // Ensure movieDetails has _id, not just 'id' for movieDetails.movieId
+        // if (!movieDetails || !movieDetails._id || !movieDetails.time || !movieDetails.cinema_room ||
+        //     !seats || seats.length === 0 || totalSeatPrice === undefined || totalSeatPrice < 0 ||
+        //     !userData || !userData._id || !userData.email) { // Ensure full userData is available
+        //     setError('Missing essential booking or user details. Please go back and re-select.');
+        //     message.error('Missing essential booking or user details. Please go back and re-select.');
         //     return;
         // }
 
         setIsProcessing(true);
-        setError(''); // Reset lỗi
+        setError('');
 
         try {
             const token = localStorage.getItem('token');
@@ -151,35 +162,42 @@ const ConfirmBooking = () => {
                 return;
             }
 
-            // Prepare payload for backend
             const bookingPayload = {
+                bookingId: null, // Will be set by backend
                 movieDetails: {
                     movieId: movieDetails._id, // Use _id from movieDetails
-                    name: movie.name,
-                    imageUrl: movie.image_url,
-                    version: movie.version,
-                    runningTime: movie.running_time,
-                    genres: movie.genres,
-                    time: movie.fullShowtime, // Send fullShowtime (ISO string)
-                    cinema_room: movie.cinema_room,
+                    name: movieDetails.name,
+                    imageUrl: movieDetails.image_url,
+                    version: movieDetails.version,
+                    runningTime: movieDetails.running_time,
+                    genres: movieDetails.genres,
+                    time: movieDetails.time,
+                    cinema_room: movieDetails.cinema_room,
                 },
                 selectedSeats: seats,
                 totalSeatPrice: calculatedTicketPrice,
-                // Only include combos if selectedCombos is not empty
                 ...(selectedCombos && selectedCombos.length > 0 && {
                     selectedCombos: selectedCombos.map(c => ({
-                        comboId: c._id, // Send combo _id for backend validation
+                        comboId: c._id,
                         name: c.name,
                         quantity: c.quantity,
                         price: c.price,
-                        imageUrl: c.imageUrl // Include image URL if your Booking model stores it
+                        imageUrl: c.image_url
                     })),
                     totalComboPrice: calculatedCombosTotal,
                 }),
-                serviceFee: calculatedServiceFee,
                 grandTotal: grandTotalAfterDiscount,
-                // user.userId is automatically picked up by backend from JWT
-                // No need to send user info in the body
+                // GỬI TOÀN BỘ THÔNG TIN NGƯỜI DÙNG TỪ REDUX
+                user: { // Đảm bảo cấu trúc này khớp với schema của bạn ở backend
+                    _id: userData._id, // _id của người dùng từ MongoDB
+                    name: userData.name,
+                    email: userData.email,
+                    phone: userData.phone,
+                    username: userData.username,
+                    gender: userData.gender,
+                    address: userData.address,
+                    id_card: userData.id_card,
+                }
             };
 
             const response = await axios.post('http://localhost:5000/api/booking/create', bookingPayload, {
@@ -189,11 +207,10 @@ const ConfirmBooking = () => {
                 },
             });
 
-            if (response.status === 201) { // 201 Created
+            if (response.status === 201) {
                 message.success('Booking created successfully! Redirecting to payment...');
                 const createdBooking = response.data.booking;
-                // Navigate to payment page, passing the _id of the created booking
-                navigate('/payment', { state: { bookingId: createdBooking._id, grandTotal: createdBooking.grandTotal } });
+                navigate('/payment', { state: { bookingId: createdBooking.bookingId, grandTotal: createdBooking.grandTotal } });
             } else {
                 setError(response.data.message || 'Failed to create booking.');
                 message.error(response.data.message || 'Failed to create booking.');
@@ -229,8 +246,8 @@ const ConfirmBooking = () => {
                                 <p className="text-gray-400">
                                     {movie.version || 'N/A'} • {movie.running_time} min • {movie.genres && movie.genres.length > 0 ? movie.genres.join(', ') : 'N/A'}
                                 </p>
-                                <p className="text-gray-400">{displayCinemaRoomName}</p>
-                                <p className="text-gray-400">{displayShowtime}</p>
+                                <p className="text-gray-400">{roomName}</p>
+                                <p className="text-gray-400">{formattedTime.display}</p>
                             </div>
                         </div>
 
@@ -275,9 +292,9 @@ const ConfirmBooking = () => {
                         {/* User info */}
                         <h3 className="text-red-500 font-semibold">Your Information</h3>
                         <div className="text-sm border-t border-gray-600 mt-1 pt-2 space-y-1">
-                            <p><span className="text-gray-400">Full Name:</span> {userData.fullName || userData.name}</p> {/* Use fullName or name */}
+                            <p><span className="text-gray-400">Full Name:</span> {userData.name}</p>
                             <p><span className="text-gray-400">Email:</span> {userData.email}</p>
-                            <p><span className="text-gray-400">ID Number:</span> {userData.id_card || userData.userId || userData.id}</p> {/* Prioritize id_card, then userId, then generic id */}
+                            <p><span className="text-gray-400">ID Number:</span> {userData.id_card || 'N/A'}</p>
                             <p><span className="text-gray-400">Phone:</span> {userData.phone}</p>
                             <p><span className="text-gray-400">Username:</span> {userData.username}</p>
                             <p><span className="text-gray-400">Gender:</span> {userData.gender}</p>
@@ -296,7 +313,6 @@ const ConfirmBooking = () => {
                             />
                             <button
                                 className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium"
-                                // Implement voucher application logic here, updating voucherDiscount state
                             >
                                 Apply
                             </button>
@@ -316,14 +332,10 @@ const ConfirmBooking = () => {
                                     <span>{calculatedCombosTotal.toLocaleString('vi-VN')} VND</span>
                                 </div>
                             )}
-                            <div className="flex justify-between">
-                                <span>Service Fee</span>
-                                <span>{calculatedServiceFee.toLocaleString('vi-VN')} VND</span>
-                            </div>
                             {voucherDiscount > 0 && (
                                 <div className="flex justify-between text-green-400">
                                     <span>Voucher Discount</span>
-                                    <span>-${voucherDiscount.toLocaleString('vi-VN')} VND</span>
+                                    <span>-{voucherDiscount.toLocaleString('vi-VN')} VND</span>
                                 </div>
                             )}
                             <hr className="my-2 border-gray-700" />

@@ -6,7 +6,6 @@ const initialState = {
   totalSeatPrice: 0,         // Total price for selected seats
   selectedCombos: [],        // Stores array of selected combo objects { id, name, price, quantity, image }
   totalComboPrice: 0,        // Total price for selected combos
-  serviceFee: 2.5,           // Static service fee (adjust if needed)
   grandTotal: 0,             // Calculated total including all costs
   bookingId: null,           // Generated after successful payment
   user: {                    // User data from database or mock data
