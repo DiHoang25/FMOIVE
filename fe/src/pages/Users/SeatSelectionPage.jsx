@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Monitor, Crown } from "lucide-react";
 import { useSelector, useDispatch } from 'react-redux';
-import { setSelectedSeats } from '../../redux/bookingSlice'; // Ensure this path is correct
+import { setSelectedSeats, setSelectedCombos } from '../../redux/bookingSlice'; // Ensure this path is correct
 
 // Helper function to format minutes into "Xh Ym"
 const formatMinutesToHoursMinutes = (minutes) => {
@@ -46,7 +46,12 @@ function SeatSelectionPage() {
   };
 
   const [roomData, setRoomDataState] = useState(null);
-  const [selectedSeatsState, setSelectedSeatsState] = useState([]);
+  const [selectedSeatsState, setSelectedSeatsState] = useState(bookingState.selectedSeats || []);
+
+
+  useEffect(() => {
+    dispatch(setSelectedCombos({ combos: [], totalPrice: 0 }));
+  }, [dispatch]);
 
   useEffect(() => {
     console.log("SeatSelectionPage useEffect: roomId from navigation state:", roomId);

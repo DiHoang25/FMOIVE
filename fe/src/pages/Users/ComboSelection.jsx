@@ -1,205 +1,207 @@
-  import { useState, useEffect } from 'react';
-  import { useNavigate } from 'react-router-dom';
-  import { Minus, Plus } from 'lucide-react';
-  import axios from 'axios';
-  import { Modal, message } from 'antd';
-  import { LoadingOutlined } from '@ant-design/icons';
-  import dayjs from 'dayjs';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Minus, Plus } from 'lucide-react';
+import axios from 'axios';
+import { Modal, message } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
 
-  // Redux imports
-  import { useSelector, useDispatch } from 'react-redux';
-  import { setSelectedCombos } from '../../redux/bookingSlice'; // Ensure this path is correct
+// Redux imports
+import { useSelector, useDispatch } from 'react-redux';
+import { setSelectedCombos } from '../../redux/bookingSlice'; // Ensure this path is correct
 
-  // Make sure this path is correct relative to where ComboSelection.jsx is located
-  import darkknight from '../../assets/darkknight.jpg';
+// Make sure this path is correct relative to where ComboSelection.jsx is located
+import darkknight from '../../assets/darkknight.jpg';
 
-  // Define your backend API base URL for combos
-  const API_COMBO_BASE_URL = 'http://localhost:5000/api/combo';
+// Define your backend API base URL for combos
+const API_COMBO_BASE_URL = 'http://localhost:5000/api/combo';
 
-  // Helper function to format minutes into "Xh Ym"
-  const formatMinutesToHoursMinutes = (minutes) => {
-    if (typeof minutes !== 'number' || minutes < 0) return 'N/A';
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    return `${hours}h ${remainingMinutes}m`;
+// Helper function to format minutes into "Xh Ym"
+const formatMinutesToHoursMinutes = (minutes) => {
+  if (typeof minutes !== 'number' || minutes < 0) return 'N/A';
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return `${hours}h ${remainingMinutes}m`;
+};
+
+// Helper function to format cinema room name (e.g., "ROOM000000016" to "Cinema 16")
+const formatCinemaRoomName = (roomName) => {
+  if (!roomName) return 'N/A';
+  const match = roomName.match(/ROOM0*(\d+)/);
+  if (match && match[1]) {
+    return `Cinema ${parseInt(match[1], 10)}`;
+  }
+  return roomName;
+};
+
+const ComboSelection = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  // Redux state
+  const bookingState = useSelector((state) => state.booking);
+  const { movieDetails, selectedSeats, totalSeatPrice, selectedCombos } = bookingState;
+  console.log("ComboSelection: Redux state.booking on render:", bookingState); // Debugging line
+
+  // Component states
+  const [combos, setCombos] = useState([]);
+  const [loadingCombos, setLoadingCombos] = useState(true);
+  const [quantities, setQuantities] = useState({});
+
+  // States for Combo Detail Modal
+  const [showComboDetailModal, setShowComboDetailModal] = useState(false);
+  const [selectedComboDetails, setSelectedComboDetails] = useState(null);
+  const [loadingComboDetails, setLoadingComboDetails] = useState(false);
+
+  // Fallback for movie details
+  const movie = movieDetails || {
+    name: 'Movie Title N/A',
+    image_url: darkknight,
+    version: 'N/A',
+    running_time: 'N/A',
+    time: 'N/A',
+    cinema_room: 'N/A',
+    genres: [],
   };
 
-  // Helper function to format cinema room name (e.g., "ROOM000000016" to "Cinema 16")
-  const formatCinemaRoomName = (roomName) => {
-    if (!roomName) return 'N/A';
-    const match = roomName.match(/ROOM0*(\d+)/);
-    if (match && match[1]) {
-      return `Cinema ${parseInt(match[1], 10)}`;
-    }
-    return roomName;
-  };
+  const formattedRunningTime = formatMinutesToHoursMinutes(movie.running_time);
+  const displayCinemaRoomName = formatCinemaRoomName(movie.cinema_room);
+  const [roomName, setRoomName] = useState('Loading...');
 
-  const ComboSelection = () => {
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
-
-    // Redux state
-    const bookingState = useSelector((state) => state.booking);
-    const { movieDetails, selectedSeats, totalSeatPrice } = bookingState;
-    console.log("ComboSelection: Redux state.booking on render:", bookingState); // Debugging line
-
-    // Component states
-    const [combos, setCombos] = useState([]);
-    const [loadingCombos, setLoadingCombos] = useState(true);
-    const [quantities, setQuantities] = useState({});
-
-    // States for Combo Detail Modal
-    const [showComboDetailModal, setShowComboDetailModal] = useState(false);
-    const [selectedComboDetails, setSelectedComboDetails] = useState(null);
-    const [loadingComboDetails, setLoadingComboDetails] = useState(false);
-
-    // Fallback for movie details
-    const movie = movieDetails || {
-      name: 'Movie Title N/A',
-      image_url: darkknight,
-      version: 'N/A',
-      running_time: 'N/A',
-      time: 'N/A',
-      cinema_room: 'N/A',
-      genres: [],
-    };
-
-    const formattedRunningTime = formatMinutesToHoursMinutes(movie.running_time);
-    const displayCinemaRoomName = formatCinemaRoomName(movie.cinema_room);
-    const [roomName, setRoomName] = useState('Loading...');
-
-    useEffect(() => {
-  const fetchRoomName = async () => {
-    if (!movie.cinema_room) return;
-
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/theater/rooms/${movie.cinema_room}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to fetch room');
-
-      setRoomName(data.room?.roomName || movie.cinema_room); // fallback to roomId
-    } catch (error) {
-      console.error('❌ Error fetching room name:', error.message);
-      setRoomName(movie.cinema_room); // fallback
-    }
-  };
-
-  fetchRoomName();
-}, [movie.cinema_room]);
-
-
-
-
-    // Fetch Combo Data from API on component mount
-    useEffect(() => {
-      console.log("ComboSelection useEffect (initial mount/re-render): movieDetails:", movieDetails, "selectedSeats:", selectedSeats, "totalSeatPrice:", totalSeatPrice); // Debugging line
-      const fetchCombos = async () => {
-        try {
-          setLoadingCombos(true);
-          const response = await axios.get(API_COMBO_BASE_URL);
-          const activeCombos = response.data.combos.filter(combo => combo.status === 'active');
-
-          const fetchedCombos = activeCombos.map(combo => {
-            const imageUrl = combo.image_url || darkknight;
-            return {
-              id: combo._id,
-              name: combo.comboName,
-              price: combo.price,
-              image: imageUrl,
-              description: combo.description,
-              startDate: combo.startDate,
-              endDate: combo.endDate,
-              items: combo.items,
-              status: combo.status
-            };
-          });
-          setCombos(fetchedCombos);
-
-          const initialQuantities = fetchedCombos.reduce((acc, combo) => {
-            acc[combo.id] = 0;
-            return acc;
-          }, {});
-          setQuantities(initialQuantities);
-
-        } catch (error) {
-          console.error('Error fetching combos:', error);
-          message.error('Failed to load combos. Please try again.');
-        } finally {
-          setLoadingCombos(false);
-        }
-      };
-
-      fetchCombos();
-    }, []); // Empty dependency array means this runs once on mount
-
-    // Update quantity handler
-    const updateQuantity = (id, delta) => {
-      setQuantities((prev) => ({
-        ...prev,
-        [id]: Math.max(0, prev[id] + delta),
-      }));
-    };
-
-    // Calculate total combo price
-    const totalComboPrice = combos.reduce((sum, combo) => sum + combo.price * (quantities[combo.id] || 0), 0);
-
-    // Redirect if essential data is missing (optional - keep for robustness)
-    useEffect(() => {
-      console.log("ComboSelection useEffect (data check): movieDetails:", movieDetails, "selectedSeats:", selectedSeats, "totalSeatPrice:", totalSeatPrice); // Debugging line before check
-      if (!movieDetails || !selectedSeats || totalSeatPrice === undefined) {
-        console.warn("ComboSelection: Missing essential booking details in Redux. Consider redirecting to a previous step.");
-        // navigate('/'); // Uncomment to redirect to home or an error page
-      }
-    }, [movieDetails, selectedSeats, totalSeatPrice, navigate]);
-
-    // Handle Continue button click
-    const handleContinue = () => {
-      const selectedCombosWithQuantity = combos.filter(combo => quantities[combo.id] > 0).map(combo => ({
-        id: combo.id,
-        name: combo.name,
-        price: combo.price,
-        image: combo.image,
-        quantity: quantities[combo.id]
-      }));
-
-      console.log("ComboSelection: Dispatching setSelectedCombos with combos:", selectedCombosWithQuantity, "totalPrice:", totalComboPrice); // Debugging line
-      dispatch(setSelectedCombos({
-        combos: selectedCombosWithQuantity,
-        totalPrice: totalComboPrice,
-      }));
-
-      navigate('/confirm-booking');
-    };
-
-    // Handle combo item click to show details modal
-    const handleComboClick = async (comboId) => {
-      setLoadingComboDetails(true);
-      setShowComboDetailModal(true);
-      setSelectedComboDetails(null);
+  useEffect(() => {
+    const fetchRoomName = async () => {
+      if (!movie.cinema_room) return;
 
       try {
-        const response = await axios.get(`${API_COMBO_BASE_URL}/${comboId}`);
-        setSelectedComboDetails(response.data.combo);
+        const token = localStorage.getItem('token');
+        const res = await fetch(`http://localhost:5000/api/theater/rooms/${movie.cinema_room}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to fetch room');
+
+        setRoomName(data.room?.roomName || movie.cinema_room); // fallback to roomId
       } catch (error) {
-        console.error('Error fetching combo details:', error);
-        message.error('Failed to load combo details.');
-        setShowComboDetailModal(false);
-      } finally {
-        setLoadingComboDetails(false);
+        console.error('❌ Error fetching room name:', error.message);
+        setRoomName(movie.cinema_room); // fallback
       }
     };
 
-    return (
-      <div className="min-h-screen bg-black text-white py-10 px-4">
-        {/* Custom styles for Ant Design Modal */}
-        <style>
-          {`
+    fetchRoomName();
+  }, [movie.cinema_room]);
+
+
+
+
+  // Fetch Combo Data from API on component mount
+  useEffect(() => {
+    console.log("ComboSelection useEffect (initial mount/re-render): movieDetails:", movieDetails, "selectedSeats:", selectedSeats, "totalSeatPrice:", totalSeatPrice); // Debugging line
+    const fetchCombos = async () => {
+      try {
+        setLoadingCombos(true);
+        const response = await axios.get(API_COMBO_BASE_URL);
+        const activeCombos = response.data.combos.filter(combo => combo.status === 'active');
+
+        const fetchedCombos = activeCombos.map(combo => {
+          const imageUrl = combo.image_url || darkknight;
+          return {
+            id: combo._id,
+            name: combo.comboName,
+            price: combo.price,
+            image: imageUrl,
+            description: combo.description,
+            startDate: combo.startDate,
+            endDate: combo.endDate,
+            items: combo.items,
+            status: combo.status
+          };
+        });
+        setCombos(fetchedCombos);
+
+        const initialQuantities = fetchedCombos.reduce((acc, combo) => {
+          const existing = selectedCombos?.find((c) => c.id === combo.id);
+          acc[combo.id] = existing ? existing.quantity : 0;
+          return acc;
+        }, {});
+        setQuantities(initialQuantities);
+
+
+      } catch (error) {
+        console.error('Error fetching combos:', error);
+        message.error('Failed to load combos. Please try again.');
+      } finally {
+        setLoadingCombos(false);
+      }
+    };
+
+    fetchCombos();
+  }, []); // Empty dependency array means this runs once on mount
+
+  // Update quantity handler
+  const updateQuantity = (id, delta) => {
+    setQuantities((prev) => ({
+      ...prev,
+      [id]: Math.max(0, prev[id] + delta),
+    }));
+  };
+
+  // Calculate total combo price
+  const totalComboPrice = combos.reduce((sum, combo) => sum + combo.price * (quantities[combo.id] || 0), 0);
+
+  // Redirect if essential data is missing (optional - keep for robustness)
+  useEffect(() => {
+    console.log("ComboSelection useEffect (data check): movieDetails:", movieDetails, "selectedSeats:", selectedSeats, "totalSeatPrice:", totalSeatPrice); // Debugging line before check
+    if (!movieDetails || !selectedSeats || totalSeatPrice === undefined) {
+      console.warn("ComboSelection: Missing essential booking details in Redux. Consider redirecting to a previous step.");
+      // navigate('/'); // Uncomment to redirect to home or an error page
+    }
+  }, [movieDetails, selectedSeats, totalSeatPrice, navigate]);
+
+  // Handle Continue button click
+  const handleContinue = () => {
+    const selectedCombosWithQuantity = combos.filter(combo => quantities[combo.id] > 0).map(combo => ({
+      id: combo.id,
+      name: combo.name,
+      price: combo.price,
+      image: combo.image,
+      quantity: quantities[combo.id]
+    }));
+
+    console.log("ComboSelection: Dispatching setSelectedCombos with combos:", selectedCombosWithQuantity, "totalPrice:", totalComboPrice); // Debugging line
+    dispatch(setSelectedCombos({
+      combos: selectedCombosWithQuantity,
+      totalPrice: totalComboPrice,
+    }));
+
+    navigate('/confirm-booking');
+  };
+
+  // Handle combo item click to show details modal
+  const handleComboClick = async (comboId) => {
+    setLoadingComboDetails(true);
+    setShowComboDetailModal(true);
+    setSelectedComboDetails(null);
+
+    try {
+      const response = await axios.get(`${API_COMBO_BASE_URL}/${comboId}`);
+      setSelectedComboDetails(response.data.combo);
+    } catch (error) {
+      console.error('Error fetching combo details:', error);
+      message.error('Failed to load combo details.');
+      setShowComboDetailModal(false);
+    } finally {
+      setLoadingComboDetails(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-black text-white py-10 px-4">
+      {/* Custom styles for Ant Design Modal */}
+      <style>
+        {`
             .ant-modal-content {
               border: none !important;
               box-shadow: none !important;
@@ -220,170 +222,170 @@
               outline: none !important;
             }
           `}
-        </style>
-        <div className="max-w-4xl mx-auto bg-neutral-900 rounded-xl p-6 shadow-lg relative">
+      </style>
+      <div className="max-w-4xl mx-auto bg-neutral-900 rounded-xl p-6 shadow-lg relative">
 
-          {/* Back Button */}
-          <button
-            onClick={() => navigate(-1)}
-            className="absolute top-4 left-4 text-white bg-gray-700 hover:bg-gray-600 px-4 py-1 rounded"
-          >
-            ← Back
-          </button>
+        {/* Back Button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="absolute top-4 left-4 text-white bg-gray-700 hover:bg-gray-600 px-4 py-1 rounded"
+        >
+          ← Back
+        </button>
 
-          {/* Movie Info */}
-          <h1 className="text-2xl font-bold text-center mb-6">COMBO POPCORN & DRINKS</h1>
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <img
-              src={movie.image_url}
-              alt={movie.name}
-              className="w-32 h-48 object-cover rounded-md"
-            />
-            <div className="text-sm flex flex-col justify-between">
-              <div>
-                <h2 className="text-3xl font-semibold">{movie.name}</h2>
-                <p className="text-gray-400 text-xl">
-                  {movie.version || 'N/A'} • {formattedRunningTime} • {movie.genres && movie.genres.length > 0 ? movie.genres.join(', ') : 'N/A'}
-                </p>
-              </div>
-              <div className="mt-2">
-                <p className="text-gray-200 text-2xl">{movie.time}</p>
-                <p className="text-gray-200 text-2xl">{roomName}</p>
-                <p className="text-gray-200 text-2xl">Seats: {selectedSeats && selectedSeats.length > 0 ? selectedSeats.join(', ') : 'N/A'}</p>
-                <p className="text-gray-200 text-2xl">Seat Price: {totalSeatPrice !== undefined ? totalSeatPrice.toLocaleString('vi-VN') : 'N/A'} VND</p>
-              </div>
+        {/* Movie Info */}
+        <h1 className="text-2xl font-bold text-center mb-6">COMBO POPCORN & DRINKS</h1>
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <img
+            src={movie.image_url}
+            alt={movie.name}
+            className="w-32 h-48 object-cover rounded-md"
+          />
+          <div className="text-sm flex flex-col justify-between">
+            <div>
+              <h2 className="text-3xl font-semibold">{movie.name}</h2>
+              <p className="text-gray-400 text-xl">
+                {movie.version || 'N/A'} • {formattedRunningTime} • {movie.genres && movie.genres.length > 0 ? movie.genres.join(', ') : 'N/A'}
+              </p>
             </div>
-          </div>
-
-          <hr className="border-gray-600 mb-6" />
-
-          <h3 className="text-white font-semibold mb-4">The List of popcorn and drinks</h3>
-          {loadingCombos ? (
-            <div className="text-center py-8">
-              <LoadingOutlined style={{ fontSize: '24px', color: '#fff' }} />
-              <p className="text-gray-400 mt-2">Loading combos...</p>
+            <div className="mt-2">
+              <p className="text-gray-200 text-2xl">{movie.time}</p>
+              <p className="text-gray-200 text-2xl">{roomName}</p>
+              <p className="text-gray-200 text-2xl">Seats: {selectedSeats && selectedSeats.length > 0 ? selectedSeats.join(', ') : 'N/A'}</p>
+              <p className="text-gray-200 text-2xl">Seat Price: {totalSeatPrice !== undefined ? totalSeatPrice.toLocaleString('vi-VN') : 'N/A'} VND</p>
             </div>
-          ) : combos.length === 0 ? (
-            <div className="text-center text-gray-400">No active combos available.</div>
-          ) : (
-            <div className="grid sm:grid-cols-2 gap-4 mb-6">
-              {combos.map((combo) => (
-                <div
-                  key={combo.id}
-                  className="bg-zinc-800 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:bg-zinc-700 transition-colors"
-                  onClick={() => handleComboClick(combo.id)}
-                >
-                  <img
-                    src={combo.image}
-                    alt={combo.name}
-                    className="w-24 h-24 object-cover rounded"
-                    onError={(e) => {
-                      console.error(`Failed to load image for combo ${combo.name}:`, combo.image);
-                      e.target.src = 'https://placehold.co/96x96/000000/FFFFFF?text=No+Image';
-                    }}
-                  />
-                  <div className="flex-1">
-                    <p className="font-semibold">{combo.name}</p>
-                    <p className="text-sm">{combo.price.toLocaleString('vi-VN')} VND</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); updateQuantity(combo.id, -1); }}
-                      className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center"
-                    >
-                      <Minus className="w-4 h-4 text-white" />
-                    </button>
-                    <span className="w-6 text-center">{quantities[combo.id] || 0}</span>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); updateQuantity(combo.id, 1); }}
-                      className="w-7 h-7 rounded-full bg-red-600 flex items-center justify-center hover:bg-red-700"
-                    >
-                      <Plus className="w-4 h-4 text-white" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Total and Continue */}
-          <div className="flex justify-between items-center mt-6">
-            <div className="bg-gray-700 text-white px-6 py-2 rounded text-sm">
-              COMBO PRICE: {totalComboPrice.toLocaleString('vi-VN')} VND
-            </div>
-            <button
-              className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded font-semibold"
-              onClick={handleContinue}
-            >
-              CONTINUE
-            </button>
           </div>
         </div>
 
-        {/* Combo Detail Modal */}
-        <Modal
-          title={<span className="text-white text-xl font-bold">Combo Details</span>}
-          open={showComboDetailModal}
-          onCancel={() => setShowComboDetailModal(false)}
-          footer={[
-            <button key="close" className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md" onClick={() => setShowComboDetailModal(false)}>
-              Close
-            </button>,
-          ]}
-          width={700}
-          bodyStyle={{ maxHeight: '70vh', overflowY: 'auto', backgroundColor: '#1f2937', color: 'white' }}
-          centered
-        >
-          {loadingComboDetails ? (
-            <div className="text-center py-8">
-              <LoadingOutlined style={{ fontSize: '24px', color: '#fff' }} />
-              <p className="text-gray-400 mt-2">Loading combo details...</p>
-            </div>
-          ) : selectedComboDetails ? (
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-4">
+        <hr className="border-gray-600 mb-6" />
+
+        <h3 className="text-white font-semibold mb-4">The List of popcorn and drinks</h3>
+        {loadingCombos ? (
+          <div className="text-center py-8">
+            <LoadingOutlined style={{ fontSize: '24px', color: '#fff' }} />
+            <p className="text-gray-400 mt-2">Loading combos...</p>
+          </div>
+        ) : combos.length === 0 ? (
+          <div className="text-center text-gray-400">No active combos available.</div>
+        ) : (
+          <div className="grid sm:grid-cols-2 gap-4 mb-6">
+            {combos.map((combo) => (
+              <div
+                key={combo.id}
+                className="bg-zinc-800 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:bg-zinc-700 transition-colors"
+                onClick={() => handleComboClick(combo.id)}
+              >
                 <img
-                  src={selectedComboDetails.image_url || darkknight}
-                  alt={selectedComboDetails.comboName}
-                  className="w-40 h-auto object-cover rounded-lg shadow-lg"
+                  src={combo.image}
+                  alt={combo.name}
+                  className="w-24 h-24 object-cover rounded"
                   onError={(e) => {
-                      console.error(`Failed to load image for modal combo ${selectedComboDetails.comboName}:`, selectedComboDetails.image_url);
-                      e.target.src = 'https://placehold.co/160x240/000000/FFFFFF?text=No+Image';
+                    console.error(`Failed to load image for combo ${combo.name}:`, combo.image);
+                    e.target.src = 'https://placehold.co/96x96/000000/FFFFFF?text=No+Image';
                   }}
                 />
-                <div className="flex-1 text-white text-center sm:text-left">
-                  <h2 className="text-3xl font-bold mb-2">{selectedComboDetails.comboName}</h2>
-                  <p className="text-gray-300 text-lg mb-1">Price: <span className="font-semibold">{selectedComboDetails.price?.toLocaleString('vi-VN')} VND</span></p>
-                  <p className="text-gray-300 text-lg mb-1">Start Date: {dayjs(selectedComboDetails.startDate).format('DD/MM/YYYY')}</p>
-                  <p className="text-gray-300 text-lg mb-1">End Date: {dayjs(selectedComboDetails.endDate).format('DD/MM/YYYY')}</p>
+                <div className="flex-1">
+                  <p className="font-semibold">{combo.name}</p>
+                  <p className="text-sm">{combo.price.toLocaleString('vi-VN')} VND</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); updateQuantity(combo.id, -1); }}
+                    className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center"
+                  >
+                    <Minus className="w-4 h-4 text-white" />
+                  </button>
+                  <span className="w-6 text-center">{quantities[combo.id] || 0}</span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); updateQuantity(combo.id, 1); }}
+                    className="w-7 h-7 rounded-full bg-red-600 flex items-center justify-center hover:bg-red-700"
+                  >
+                    <Plus className="w-4 h-4 text-white" />
+                  </button>
                 </div>
               </div>
-              
-              <h3 className="text-white font-semibold text-xl mt-4 mb-2 border-b border-gray-700 pb-2">Description:</h3>
-              <p className="text-gray-300 text-base">{selectedComboDetails.description || 'No description available.'}</p>
+            ))}
+          </div>
+        )}
 
-              <h3 className="text-white font-semibold text-xl mt-4 mb-2 border-b border-gray-700 pb-2">Items in Combo:</h3>
-              {selectedComboDetails.items && selectedComboDetails.items.length > 0 ? (
-                <ul className="list-disc list-inside text-gray-300 text-base space-y-1">
-                  {selectedComboDetails.items.map((item, index) => (
-                    <li key={index}>
-                      <span className="font-semibold">{item.quantity} x {item.productName}</span> 
-                      {item.productDetail && (
-                        ` (Category: ${item.productDetail.category || 'N/A'}, Price: ${item.productDetail.price?.toLocaleString('vi-VN') || 'N/A'} VND)`
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-400 text-base">No items defined for this combo.</p>
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-400">No combo details available.</div>
-          )}
-        </Modal>
+        {/* Total and Continue */}
+        <div className="flex justify-between items-center mt-6">
+          <div className="bg-gray-700 text-white px-6 py-2 rounded text-sm">
+            COMBO PRICE: {totalComboPrice.toLocaleString('vi-VN')} VND
+          </div>
+          <button
+            className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded font-semibold"
+            onClick={handleContinue}
+          >
+            CONTINUE
+          </button>
+        </div>
       </div>
-    );
-  };
 
-  export default ComboSelection;
+      {/* Combo Detail Modal */}
+      <Modal
+        title={<span className="text-white text-xl font-bold">Combo Details</span>}
+        open={showComboDetailModal}
+        onCancel={() => setShowComboDetailModal(false)}
+        footer={[
+          <button key="close" className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md" onClick={() => setShowComboDetailModal(false)}>
+            Close
+          </button>,
+        ]}
+        width={700}
+        bodyStyle={{ maxHeight: '70vh', overflowY: 'auto', backgroundColor: '#1f2937', color: 'white' }}
+        centered
+      >
+        {loadingComboDetails ? (
+          <div className="text-center py-8">
+            <LoadingOutlined style={{ fontSize: '24px', color: '#fff' }} />
+            <p className="text-gray-400 mt-2">Loading combo details...</p>
+          </div>
+        ) : selectedComboDetails ? (
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-4">
+              <img
+                src={selectedComboDetails.image_url || darkknight}
+                alt={selectedComboDetails.comboName}
+                className="w-40 h-auto object-cover rounded-lg shadow-lg"
+                onError={(e) => {
+                  console.error(`Failed to load image for modal combo ${selectedComboDetails.comboName}:`, selectedComboDetails.image_url);
+                  e.target.src = 'https://placehold.co/160x240/000000/FFFFFF?text=No+Image';
+                }}
+              />
+              <div className="flex-1 text-white text-center sm:text-left">
+                <h2 className="text-3xl font-bold mb-2">{selectedComboDetails.comboName}</h2>
+                <p className="text-gray-300 text-lg mb-1">Price: <span className="font-semibold">{selectedComboDetails.price?.toLocaleString('vi-VN')} VND</span></p>
+                <p className="text-gray-300 text-lg mb-1">Start Date: {dayjs(selectedComboDetails.startDate).format('DD/MM/YYYY')}</p>
+                <p className="text-gray-300 text-lg mb-1">End Date: {dayjs(selectedComboDetails.endDate).format('DD/MM/YYYY')}</p>
+              </div>
+            </div>
+
+            <h3 className="text-white font-semibold text-xl mt-4 mb-2 border-b border-gray-700 pb-2">Description:</h3>
+            <p className="text-gray-300 text-base">{selectedComboDetails.description || 'No description available.'}</p>
+
+            <h3 className="text-white font-semibold text-xl mt-4 mb-2 border-b border-gray-700 pb-2">Items in Combo:</h3>
+            {selectedComboDetails.items && selectedComboDetails.items.length > 0 ? (
+              <ul className="list-disc list-inside text-gray-300 text-base space-y-1">
+                {selectedComboDetails.items.map((item, index) => (
+                  <li key={index}>
+                    <span className="font-semibold">{item.quantity} x {item.productName}</span>
+                    {item.productDetail && (
+                      ` (Category: ${item.productDetail.category || 'N/A'}, Price: ${item.productDetail.price?.toLocaleString('vi-VN') || 'N/A'} VND)`
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-400 text-base">No items defined for this combo.</p>
+            )}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-400">No combo details available.</div>
+        )}
+      </Modal>
+    </div>
+  );
+};
+
+export default ComboSelection;

@@ -3,6 +3,7 @@ import MovieCard from '../../components/MovieCard';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { setSelectedSeats } from '../../redux/bookingSlice';
 
 // Redux imports
 import { useDispatch } from 'react-redux';
@@ -58,6 +59,10 @@ function ShowtimePage() {
     };
 
     useEffect(() => {
+        dispatch(setSelectedSeats({ seats: [], totalPrice: 0 }));
+    }, []);
+
+    useEffect(() => {
         axios.get('http://localhost:5000/api/movies')
             .then(response => {
                 const todayParts = selectedDate.split('/');
@@ -89,12 +94,12 @@ function ShowtimePage() {
         const formattedDate = formatDateForNavigation(fullDateObj);
 
         const payload = {
-            movieDetails: { 
+            movieDetails: {
                 name: movieDetailsFromCard.name,
                 image_url: movieDetailsFromCard.image_url,
                 version: movieDetailsFromCard.version || '2D',
                 running_time: movieDetailsFromCard.running_time,
-                cinema_room: movieDetailsFromCard.cinema_room, 
+                cinema_room: movieDetailsFromCard.cinema_room,
                 production_company: movieDetailsFromCard.production_company,
                 director: movieDetailsFromCard.director,
                 actors: movieDetailsFromCard.actors,
@@ -132,9 +137,8 @@ function ShowtimePage() {
                         <button
                             key={index}
                             onClick={() => setSelectedDate(label)}
-                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ease-in-out ${
-                                isSelected ? 'bg-red-600 text-white' : 'bg-gray-800 hover:bg-gray-700'
-                            }`}
+                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ease-in-out ${isSelected ? 'bg-red-600 text-white' : 'bg-gray-800 hover:bg-gray-700'
+                                }`}
                         >
                             {label}
                         </button>

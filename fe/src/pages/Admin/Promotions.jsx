@@ -1,7 +1,8 @@
+// Thêm vào đầu file
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaEye, FaEdit, FaTrash, FaSpinner } from 'react-icons/fa';
-import { Modal, message, Tag } from 'antd';
+import { Modal, message } from 'antd';
 import Pagination from '../../components/PaginationHomepage';
 import SidebarLayout from '../../components/Sidebar-Admin';
 import dayjs from 'dayjs';
@@ -12,24 +13,26 @@ const Promotions = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [promotionData, setPromotionData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sortByStartDate, setSortByStartDate] = useState(null); // 'asc' | 'desc' | null
-  const [sortByDiscount, setSortByDiscount] = useState(null);   // 'asc' | 'desc' | null
+  const [sortByDiscount, setSortByDiscount] = useState(null); // 'asc' | 'desc' | null
   const promotionsPerPage = 8;
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/promotions')
-      .then(res => res.json())
-      .then(data => {
-        const formatted = data.map(promo => ({
-          id: promo._id,
-          promotionCode: promo.promotion_code || '-',
-          title: promo.title,
-          startDate: new Date(promo.start_date).toLocaleDateString(),
-          endDate: new Date(promo.end_date).toLocaleDateString(),
-          rawStartDate: new Date(promo.start_date),
-          discountLevel: promo.discount ? `${promo.discount}%` : '-',
-          rawDiscount: promo.discount || 0
-        }));
+    axios.get('http://localhost:5000/api/promotions')
+      .then(res => {
+        const formatted = res.data
+          .map(promo => ({
+            id: promo._id,
+            promotionCode: promo.promotion_code || '-',
+            title: promo.title,
+            startDate: new Date(promo.start_date).toLocaleDateString(),
+            endDate: new Date(promo.end_date).toLocaleDateString(),
+            rawStartDate: new Date(promo.start_date),
+            discountLevel: promo.discount ? `${promo.discount}%` : '-',
+            rawDiscount: promo.discount || 0,
+            createdAt: new Date(promo.createdAt), // để sort mới nhất
+          }))
+          .sort((a, b) => b.createdAt - a.createdAt); // mới nhất lên đầu
+
         setPromotionData(formatted);
         setLoading(false);
       })
@@ -40,10 +43,9 @@ const Promotions = () => {
   }, []);
 
   const handleSearch = (e) => {
-  setSearchTerm(e.target.value);
-  setCurrentPage(0); // Reset về trang đầu khi tìm kiếm
-};
-
+    setSearchTerm(e.target.value);
+    setCurrentPage(0);
+  };
 
   const handlePageChange = page => {
     if (page < 0 || page >= Math.ceil(filtered.length / promotionsPerPage)) return;
@@ -73,33 +75,33 @@ const Promotions = () => {
   };
 
   const filtered = promotionData
-  .filter(p => {
-    const term = searchTerm.toLowerCase();
-    return (
-      p.title.toLowerCase().includes(term) ||
-      p.promotionCode.toLowerCase().includes(term)
-    );
-  })
-  .sort((a, b) => {
-    if (sortByStartDate) {
-      return sortByStartDate === 'asc'
-? a.rawStartDate - b.rawStartDate
-        : b.rawStartDate - a.rawStartDate;
-    }
-    if (sortByDiscount) {
-      return sortByDiscount === 'asc'
-        ? a.rawDiscount - b.rawDiscount
-        : b.rawDiscount - a.rawDiscount;
-    }
-    return 0;
-  });
-
+    .filter(p => {
+      const term = searchTerm.toLowerCase();
+      return (
+        p.title.toLowerCase().includes(term) ||
+        p.promotionCode.toLowerCase().includes(term)
+      );
+    })
+    .sort((a, b) => {
+      if (sortByDiscount) {
+        return sortByDiscount === 'asc'
+          ? a.rawDiscount - b.rawDiscount
+          : b.rawDiscount - a.rawDiscount;
+      }
+      return 0;
+    });
 
   const totalPages = Math.ceil(filtered.length / promotionsPerPage);
   const visible = filtered.slice(
     currentPage * promotionsPerPage,
     (currentPage + 1) * promotionsPerPage
   );
+
+  const toggleDiscountSort = () => {
+    if (!sortByDiscount) setSortByDiscount('asc');
+    else if (sortByDiscount === 'asc') setSortByDiscount('desc');
+    else setSortByDiscount(null);
+  };
 
   return (
     <SidebarLayout>
@@ -132,7 +134,10 @@ const Promotions = () => {
                 <th className="px-4 py-3 text-left">Title</th>
                 <th className="px-4 py-3 text-left">Start Date</th>
                 <th className="px-4 py-3 text-left">End Date</th>
-                {/* <th className="px-4 py-3 text-left">Discount</th> */}
+                <th className="px-4 py-3 text-left cursor-pointer" onClick={toggleDiscountSort}>
+                  Discount
+                  {sortByDiscount === 'asc' ? ' ↑' : sortByDiscount === 'desc' ? ' ↓' : ''}
+                </th>
                 <th className="px-4 py-3 text-center">Actions</th>
               </tr>
             </thead>
@@ -155,16 +160,16 @@ const Promotions = () => {
                     <td className="px-4 py-2">{p.title}</td>
                     <td className="px-4 py-2">{dayjs(p.rawStartDate).format('DD/MM/YYYY')}</td>
                     <td className="px-4 py-2">{p.endDate}</td>
-{/* <td className="px-4 py-2">{p.discountLevel}</td> */}
+                    <td className="px-4 py-2">{p.discountLevel}</td>
                     <td className="px-4 py-2 text-center">
                       <div className="flex justify-center gap-4">
-                        <button 
-                          onClick={() => window.location.href = `/admin/promotions/edit-promotion/${p.id}`} 
+                        <button
+                          onClick={() => window.location.href = `/admin/promotions/edit-promotion/${p.id}`}
                           className="text-yellow-400 hover:text-yellow-600 text-xl">
                           <FaEdit />
                         </button>
-                        <button 
-                          onClick={() => handleDelete(p)} 
+                        <button
+                          onClick={() => handleDelete(p)}
                           className="text-red-400 hover:text-red-600 text-xl">
                           <FaTrash />
                         </button>
