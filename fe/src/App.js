@@ -146,6 +146,7 @@ function AppContent() {
           <Route path="/combo-selection" element={<RequireRole allowedRoles={['customer']}><ComboSelection /></RequireRole>} />
           <Route path="/confirm-booking" element={<RequireRole allowedRoles={['customer']}><ConfirmBooking /></RequireRole>} />
           <Route path="/payment" element={<RequireRole allowedRoles={['customer']}><PaymentPage /></RequireRole>} />
+          <Route path="/payment-status" element={<RequireRole allowedRoles={['customer']}><PaymentStatusPage /></RequireRole>} /> 
           <Route path="/ticket-detail" element={<RequireRole allowedRoles={['customer']}><TicketDetail /></RequireRole>} />
 
 
