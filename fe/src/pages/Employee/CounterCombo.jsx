@@ -5,13 +5,16 @@ import axios from 'axios';
 import { message } from 'antd';
 import SidebarLayout from '../../components/Sidebar-Employee';
 import darkknight from '../../assets/darkknight.jpg';
+import { useSelector, useDispatch } from 'react-redux';
+import { setSelectedCombos } from '../../redux/bookingSlice';
 
 const API_COMBO_BASE_URL = 'http://localhost:5000/api/combo';
 const API_PRODUCT_BASE_URL = 'http://localhost:5000/api/product';
 
-const ComboSelection = () => {
+const CounterCombo = () => {
     const navigate = useNavigate();
     const { state } = useLocation();
+    const dispatch = useDispatch();
 
     const {
         movieDetails = {},
@@ -21,6 +24,9 @@ const ComboSelection = () => {
         ticketPrice = 0,
         userInformation = {},
     } = state || {};
+
+    const bookingState = useSelector((state) => state.booking);
+    const { selectedCombos } = bookingState;
 
     const [combos, setCombos] = useState([]);
     const [products, setProducts] = useState([]);
@@ -52,7 +58,8 @@ const ComboSelection = () => {
                 setCombos(fetchedCombos);
 
                 const initialQuantities = fetchedCombos.reduce((acc, combo) => {
-                    acc[combo.id] = 0;
+                    const existing = selectedCombos?.find((c) => c.id === combo.id);
+                    acc[combo.id] = existing ? existing.quantity : 0;
                     return acc;
                 }, {});
                 setQuantities(prev => ({ ...prev, ...initialQuantities }));
@@ -66,47 +73,42 @@ const ComboSelection = () => {
         };
 
         fetchCombos();
-    }, []);
+    }, [selectedCombos]);
 
     useEffect(() => {
-    const fetchProducts = async () => {
-        try {
-            setLoadingProducts(true);
-
-            const token = localStorage.getItem('token');
-            if (!token) {
-                message.error('Bạn chưa đăng nhập!');
-                return;
-            }
-
-            const response = await axios.get(API_PRODUCT_BASE_URL, {
-                headers: {
-                    Authorization: `Bearer ${token}`
+        const fetchProducts = async () => {
+            try {
+                setLoadingProducts(true);
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    message.error('Bạn chưa đăng nhập!');
+                    return;
                 }
-            });
 
-            const activeProducts = response.data.products.filter(p => !p.is_deleted);
+                const response = await axios.get(API_PRODUCT_BASE_URL, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
 
-            const initialQuantities = activeProducts.reduce((acc, product) => {
-                acc[product._id] = 0;
-                return acc;
-            }, {});
+                const activeProducts = response.data.products.filter(p => !p.is_deleted);
 
-            setProducts(activeProducts);
-            setQuantities(prev => ({ ...prev, ...initialQuantities }));
-        } catch (error) {
-            console.error('Error fetching products:', error);
-            message.error('Failed to load products.');
-        } finally {
-            setLoadingProducts(false);
+                const initialQuantities = activeProducts.reduce((acc, product) => {
+                    acc[product._id] = 0;
+                    return acc;
+                }, {});
+                setProducts(activeProducts);
+                setQuantities(prev => ({ ...prev, ...initialQuantities }));
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                message.error('Failed to load products.');
+            } finally {
+                setLoadingProducts(false);
+            }
+        };
+
+        if (showProducts && products.length === 0) {
+            fetchProducts();
         }
-    };
-
-    if (showProducts && products.length === 0) {
-        fetchProducts();
-    }
-}, [showProducts]);
-
+    }, [showProducts, products.length]);
 
     const updateQuantity = (id, delta) => {
         setQuantities(prev => ({
@@ -128,13 +130,20 @@ const ComboSelection = () => {
     const finalTotal = ticketPrice + combosTotal + productsTotal;
 
     const handleContinue = () => {
-        const selectedCombos = combos.map(combo => ({
+        const selectedComboList = combos.map(combo => ({
             id: combo.id,
             name: combo.name,
             price: combo.price,
             quantity: quantities[combo.id],
             image: combo.image
         })).filter(c => c.quantity > 0);
+
+        const totalComboPrice = selectedComboList.reduce((sum, c) => sum + c.price * c.quantity, 0);
+
+        dispatch(setSelectedCombos({
+            combos: selectedComboList,
+            totalPrice: totalComboPrice
+        }));
 
         const selectedProducts = products.map(p => ({
             id: p._id,
@@ -150,7 +159,6 @@ const ComboSelection = () => {
                 selectedShowtimeTime,
                 fullShowtimeDate,
                 selectedSeats,
-                selectedCombos,
                 selectedProducts,
                 ticketPrice,
                 combosTotal,
@@ -242,4 +250,4 @@ const ComboSelection = () => {
     );
 };
 
-export default ComboSelection;
+export default CounterCombo;

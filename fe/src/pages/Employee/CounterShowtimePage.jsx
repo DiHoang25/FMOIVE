@@ -3,6 +3,8 @@ import axios from 'axios';
 import darkknight from '../../assets/darkknight.jpg'; // fallback image
 import { useNavigate } from 'react-router-dom';
 import EmployeeSidebarLayout from '../../components/Sidebar-Employee';
+import { useDispatch } from 'react-redux';
+import { setSelectedSeats, setMovieAndDateTime } from '../../redux/bookingSlice';
 
 // Helper to format date
 function formatDateForNavigation(date) {
@@ -16,51 +18,53 @@ const CounterShowtimesPage = () => {
   const [error, setError] = useState(null);
   const [selected, setSelected] = useState({ movieId: null, time: null });
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   useEffect(() => {
-  const fetchMovies = async () => {
-    try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+    dispatch(setSelectedSeats({ seats: [], totalPrice: 0 }));
+    const fetchMovies = async () => {
+      try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-      const res = await axios.get('http://localhost:5000/api/movies');
-      const filtered = res.data.filter(movie => {
-        if (movie.is_deleted) return false;
-        const start = new Date(movie.start_date);
-        const end = new Date(movie.end_date);
-        start.setHours(0, 0, 0, 0);
-        end.setHours(0, 0, 0, 0);
-        return today >= start && today <= end;
-      });
+        const res = await axios.get('http://localhost:5000/api/movies');
+        const filtered = res.data.filter(movie => {
+          if (movie.is_deleted) return false;
+          const start = new Date(movie.start_date);
+          const end = new Date(movie.end_date);
+          start.setHours(0, 0, 0, 0);
+          end.setHours(0, 0, 0, 0);
+          return today >= start && today <= end;
+        });
 
-      const detailedMovies = await Promise.all(
-        filtered.map(async (movie) => {
-          const detailRes = await axios.get(`http://localhost:5000/api/movies/${movie._id}`);
-          return detailRes.data;
-        })
-      );
+        const detailedMovies = await Promise.all(
+          filtered.map(async (movie) => {
+            const detailRes = await axios.get(`http://localhost:5000/api/movies/${movie._id}`);
+            return detailRes.data;
+          })
+        );
 
-      const formatted = detailedMovies.map(movie => ({
-        id: movie._id,
-        title: movie.name,
-        image: movie.image_url || darkknight,
-        times: movie.showtimes || [],
-        genre: Array.isArray(movie.genres) ? movie.genres.join(', ') : 'Unknown',
-        duration: movie.running_time,
-        movieDetails: movie,
-      }));
+        const formatted = detailedMovies.map(movie => ({
+          id: movie._id,
+          title: movie.name,
+          image: movie.image_url || darkknight,
+          times: movie.showtimes || [],
+          genre: Array.isArray(movie.genres) ? movie.genres.join(', ') : 'Unknown',
+          duration: movie.running_time,
+          movieDetails: movie,
+        }));
 
-      setMovies(formatted);
-    } catch (err) {
-      console.error("❌ Error fetching movies:", err);
-      setError("Failed to fetch movie details.");
-    } finally {
-      setLoading(false);
-    }
-  };
+        setMovies(formatted);
+      } catch (err) {
+        console.error("❌ Error fetching movies:", err);
+        setError("Failed to fetch movie details.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  fetchMovies();
-}, []);
+    fetchMovies();
+  }, []);
 
 
   const handleSelect = (movieId, time) => {
@@ -73,6 +77,23 @@ const CounterShowtimesPage = () => {
     const formattedDate = formatDateForNavigation(today);
     const cinemaRoom = movie.movieDetails.cinema_room;
 
+    dispatch(setMovieAndDateTime({
+      movieDetails: {
+        name: movie.title,
+        image_url: movie.image,
+        version: movie.movieDetails.version || '2D',
+        running_time: movie.duration,
+        cinema_room: cinemaRoom,
+        production_company: movie.movieDetails.production_company,
+        director: movie.movieDetails.director,
+        actors: movie.movieDetails.actors,
+        genres: movie.movieDetails.genres,
+        rating: movie.movieDetails.rating,
+        description: movie.movieDetails.description,
+        time: `${formattedDate}, ${time}`
+      }
+    }));
+
     navigate(`/employee/counter-seat/${cinemaRoom}`, {
       state: {
         selectedMovieId: movieId,
@@ -83,6 +104,7 @@ const CounterShowtimesPage = () => {
       },
     });
   };
+
 
   if (loading) {
     return (
@@ -142,11 +164,10 @@ const CounterShowtimesPage = () => {
                       movie.times.map(time => (
                         <button
                           key={time}
-                          className={`px-3 py-1 rounded ${
-                            selected.movieId === movie.id && selected.time === time
-                              ? 'bg-yellow-500 text-black'
-                              : 'bg-red-600 hover:bg-red-700'
-                          }`}
+                          className={`px-3 py-1 rounded ${selected.movieId === movie.id && selected.time === time
+                            ? 'bg-yellow-500 text-black'
+                            : 'bg-red-600 hover:bg-red-700'
+                            }`}
                           onClick={() => handleSelect(movie.id, time)}
                         >
                           {time}
