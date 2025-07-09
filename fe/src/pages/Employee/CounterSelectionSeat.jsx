@@ -106,7 +106,7 @@ const SeatSelection = () => {
           <h2 className="text-2xl font-bold">{movieDetails.name || "Unknown Movie"}</h2>
           <p className="text-gray-400 text-sm">
             {fullShowtimeDate} • {selectedShowtimeTime} •{" "}
-            {movieDetails.cinema_room || "Screen N/A"}
+            {roomData?.roomName || 'Cinema N/A'}
           </p>
         </div>
 
