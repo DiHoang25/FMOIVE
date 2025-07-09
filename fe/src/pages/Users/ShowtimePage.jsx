@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 
 
 import { useDispatch } from 'react-redux';
-import { setMovieAndDateTime } from '../../redux/bookingSlice';
+import { setMovieAndDateTime, setSelectedSeats } from '../../redux/bookingSlice';
 
 function getWeekDates(startDate) {
     const dates = [];
@@ -63,6 +63,8 @@ function ShowtimePage() {
             behavior: 'smooth'
         });
     };
+
+    dispatch(setSelectedSeats({ seats: [], totalPrice: 0 }));
 
     useEffect(() => {
         const handleScroll = () => {
@@ -149,7 +151,7 @@ function ShowtimePage() {
     return (
         <div className="bg-black min-h-screen text-white">
             
-            <div className="pt-24 invisible">Spacer cho navbar</div>
+            <div className="pt-7 invisible">Spacer cho navbar</div>
 
            
             <div className="fixed top-[100px] left-0 right-0 z-20 bg-black shadow-md">
