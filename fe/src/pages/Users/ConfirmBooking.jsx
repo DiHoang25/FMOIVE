@@ -288,11 +288,8 @@ const ConfirmBooking = () => {
                         <div className="text-sm border-t border-gray-600 mt-1 pt-2 space-y-1">
                             <p><span className="text-gray-400">Full Name:</span> {userData.name}</p>
                             <p><span className="text-gray-400">Email:</span> {userData.email}</p>
-                            <p><span className="text-gray-400">ID Number:</span> {userData.id_card || 'N/A'}</p>
                             <p><span className="text-gray-400">Phone:</span> {userData.phone}</p>
                             <p><span className="text-gray-400">Username:</span> {userData.username}</p>
-                            <p><span className="text-gray-400">Gender:</span> {userData.gender}</p>
-                            <p><span className="text-gray-400">Address:</span> {userData.address}</p>
                         </div>
 
                         {/* Voucher Input */}
