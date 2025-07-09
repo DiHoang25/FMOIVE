@@ -141,41 +141,45 @@ router.post('/create_payment_url', authMiddleware, async (req, res) => {
  * @access Public (VNPAY gọi về)
  */
 router.get('/vnpay_return', async (req, res) => {
-    try {
-        let vnp_Params = req.query;
-        let secureHash = vnp_Params['vnp_SecureHash'];
+    let vnp_Params = req.query;
+    let secureHash = vnp_Params['vnp_SecureHash'];
 
-        let orderId = vnp_Params['vnp_TxnRef'];
-        let rspCode = vnp_Params['vnp_ResponseCode'];
-        let amount = vnp_Params['vnp_Amount'] / 100; // Số tiền đã trả (nhân 100)
+    let orderId = vnp_Params['vnp_TxnRef']; // Đây là bookingId của bạn
+    let rspCode = vnp_Params['vnp_ResponseCode'];
+    let transactionStatus = vnp_Params['vnp_TransactionStatus']; // Trạng thái giao dịch
+    let amountFromVNPAY = vnp_Params['vnp_Amount'] / 100; // Số tiền đã trả (nhân 100)
 
-        // Xóa các tham số không dùng để xác thực hash
-        delete vnp_Params['vnp_SecureHash'];
-        delete vnp_Params['vnp_SecureHashType']; // VNPAY có thể gửi thêm tham số này
+    // URL để redirect về frontend
+    let redirectUrl = `${VnPayConfig.vnp_ReturnUrlFrontend}?vnp_ResponseCode=${rspCode}&vnp_TransactionStatus=${transactionStatus}&vnp_TxnRef=${orderId}`;
 
-        // Sắp xếp các tham số nhận về để tạo chữ ký
-        vnp_Params = sortObject(vnp_Params);
+    // Xóa các tham số không dùng để xác thực hash
+    delete vnp_Params['vnp_SecureHash'];
+    delete vnp_Params['vnp_SecureHashType'];
 
-        const { vnp_HashSecret } = VnPayConfig; // Lấy HashSecret từ config
+    // Sắp xếp các tham số nhận về để tạo chữ ký
+    vnp_Params = sortObject(vnp_Params);
 
-        // Tạo chuỗi dữ liệu để băm (hashData) từ các tham số nhận về
-        let hashData = '';
-        let count = 0;
-        for (let key in vnp_Params) {
-            if (vnp_Params.hasOwnProperty(key)) {
-                let value = vnp_Params[key];
-                hashData += (count === 0 ? '' : '&') + key + '=' + encodeURIComponent(value).replace(/%20/g, '+');
-                count++;
-            }
+    const { vnp_HashSecret } = VnPayConfig;
+
+    // Tạo chuỗi dữ liệu để băm (hashData) từ các tham số nhận về
+    let hashData = '';
+    let count = 0;
+    for (let key in vnp_Params) {
+        if (vnp_Params.hasOwnProperty(key)) {
+            let value = vnp_Params[key];
+            hashData += (count === 0 ? '' : '&') + key + '=' + encodeURIComponent(value).replace(/%20/g, '+');
+            count++;
         }
+    }
 
-        // Tạo chữ ký từ dữ liệu nhận về và Hash Secret của bạn
-        const hmac = crypto.createHmac('sha512', vnp_HashSecret);
-        const signed = hmac.update(hashData).digest('hex');
+    // Tạo chữ ký từ dữ liệu nhận về và Hash Secret của bạn
+    const hmac = crypto.createHmac('sha512', vnp_HashSecret);
+    const signed = hmac.update(hashData).digest('hex');
 
-        // URL để redirect về frontend
-        let redirectUrl = `${VnPayConfig.vnp_ReturnUrlFrontend}?status=failed&message=${encodeURIComponent('Payment Failed. Invalid signature.')}&bookingId=${orderId}`;
+    let booking; // Khai báo biến booking ở scope ngoài try/catch
+    let invoiceData = null; // Khai báo biến invoiceData
 
+    try {
         console.log('--- VNPAY RETURN URL DEBUG ---');
         console.log('Received Query Params:', req.query);
         console.log('Received SecureHash:', secureHash);
@@ -185,67 +189,69 @@ router.get('/vnpay_return', async (req, res) => {
 
         if (secureHash === signed) {
             // Chữ ký hợp lệ, tiến hành xử lý kết quả giao dịch
-            const booking = await Booking.findOne({ bookingId: orderId });
+            booking = await Booking.findOne({ bookingId: orderId });
 
             if (booking) {
-                if (rspCode === '00') { // Giao dịch thành công
-                    // Kiểm tra số tiền: Đảm bảo số tiền VNPAY trả về khớp với số tiền booking
-                    if (booking.grandTotal === amount) {
-                        if (booking.status === 'PENDING_PAYMENT') {
+                if (booking.grandTotal === amountFromVNPAY) {
+                    // Kiểm tra trạng thái booking để tránh xử lý trùng lặp
+                    if (booking.status === 'PENDING_PAYMENT') {
+                        if (rspCode === '00' && transactionStatus === '00') {
                             booking.status = 'PAID'; // Cập nhật trạng thái booking
-                            booking.paymentDetails = { // Lưu chi tiết giao dịch
-                                vnp_Amount: amount,
-                                vnp_BankCode: vnp_Params['vnp_BankCode'],
-                                vnp_CardType: vnp_Params['vnp_CardType'],
-                                vnp_OrderInfo: vnp_Params['vnp_OrderInfo'],
-                                vnp_PayDate: vnp_Params['vnp_PayDate'],
-                                vnp_ResponseCode: rspCode,
-                                vnp_TmnCode: vnp_Params['vnp_TmnCode'],
-                                vnp_TransactionNo: vnp_Params['vnp_TransactionNo'],
-                                vnp_TransactionStatus: vnp_Params['vnp_TransactionStatus'], // '00'
-                                vnp_TxnRef: orderId,
-                                vnp_SecureHash: secureHash,
-                            };
-                            await booking.save();
-                            redirectUrl = `${VnPayConfig.vnp_ReturnUrlFrontend}?status=success&message=${encodeURIComponent('Payment Successful!')}&bookingId=${orderId}`;
                             console.log(`VNPAY Return: Booking ${orderId} updated to PAID.`);
                         } else {
-                            // Booking đã được xử lý trước đó (VD: IPN đã cập nhật)
-                            redirectUrl = `${VnPayConfig.vnp_ReturnUrlFrontend}?status=success&message=${encodeURIComponent('Payment already processed.')}&bookingId=${orderId}`;
-                            console.warn(`VNPAY Return: Booking ${orderId} already in status ${booking.status}.`);
+                            // Giao dịch không thành công hoặc lỗi khác từ VNPAY
+                            booking.status = 'FAILED';
+                            console.error(`VNPAY Return: Payment failed for booking ${orderId}. VNPAY Response Code: ${rspCode}.`);
+                            // redirectUrl đã là default fail message, không cần sửa thêm
                         }
+                        await booking.save();
+
+                        // Tạo và lưu Invoice
+                        invoiceData = {
+                            booking: booking._id,
+                            bookingId: booking.bookingId,
+                            userId: booking.user, // Giả định booking có trường user (ObjectId)
+                            amount: amountFromVNPAY,
+                            paymentMethod: 'VNPAY',
+                            paymentStatus: booking.status === 'PAID' ? 'success' : 'failed',
+                            vnpayDetails: vnp_Params, // Lưu toàn bộ params từ VNPAY
+                        };
+                        const newInvoice = new Invoice(invoiceData);
+                        await newInvoice.save();
+                        console.log(`VNPAY Return: Invoice created for booking ${orderId}. Status: ${newInvoice.paymentStatus}`);
+
                     } else {
-                        // Số tiền không khớp (có thể là lỗi hoặc gian lận)
-                        console.error(`VNPAY Return: Amount mismatch for booking ${orderId}. Expected ${booking.grandTotal}, got ${amount}.`);
-                        redirectUrl = `${VnPayConfig.vnp_ReturnUrlFrontend}?status=failed&message=${encodeURIComponent('Payment Failed. Amount mismatch.')}&bookingId=${orderId}`;
+                        // Booking đã được xử lý trước đó (VD: IPN đã cập nhật)
+                        console.warn(`VNPAY Return: Booking ${orderId} already in status ${booking.status}. No update needed.`);
+                        // Dù đã xử lý, vẫn đảm bảo redirect về trạng thái đúng
+                        if (booking.status === 'PAID') {
+                            redirectUrl = `${VnPayConfig.vnp_ReturnUrlFrontend}?vnp_ResponseCode=00&vnp_TransactionStatus=00&vnp_TxnRef=${orderId}`;
+                        } else {
+                            redirectUrl = `${VnPayConfig.vnp_ReturnUrlFrontend}?vnp_ResponseCode=${rspCode}&vnp_TransactionStatus=${transactionStatus}&vnp_TxnRef=${orderId}`;
+                        }
                     }
                 } else {
-                    // Giao dịch không thành công hoặc lỗi khác từ VNPAY
-                    console.error(`VNPAY Return: Payment failed for booking ${orderId}. VNPAY Response Code: ${rspCode}.`);
-                    redirectUrl = `${VnPayConfig.vnp_ReturnUrlFrontend}?status=failed&message=${encodeURIComponent(`Payment Failed. VNPAY Code: ${rspCode}.`)}&bookingId=${orderId}`;
-                    // Nếu IPN chưa xử lý, có thể cập nhật trạng thái booking tại đây
-                    if (booking.status === 'PENDING_PAYMENT') {
-                         booking.status = 'FAILED'; // Hoặc CANCELLED
-                         booking.paymentDetails = { vnp_ResponseCode: rspCode, vnp_TxnRef: orderId, message: `Payment failed with VNPAY code ${rspCode}` };
-                         await booking.save();
-                    }
+                    // Số tiền không khớp (có thể là lỗi hoặc gian lận)
+                    console.error(`VNPAY Return: Amount mismatch for booking ${orderId}. Expected ${booking.grandTotal}, got ${amountFromVNPAY}.`);
+                    redirectUrl = `${VnPayConfig.vnp_ReturnUrlFrontend}?vnp_ResponseCode=99&vnp_TransactionStatus=04&vnp_TxnRef=${orderId}`; // Mã lỗi giả định
                 }
             } else {
                 // Không tìm thấy booking
                 console.error(`VNPAY Return: Booking not found for orderId: ${orderId}`);
-                redirectUrl = `${VnPayConfig.vnp_ReturnUrlFrontend}?status=failed&message=${encodeURIComponent('Payment Failed. Booking not found in your system.')}&bookingId=${orderId}`;
+                redirectUrl = `${VnPayConfig.vnp_ReturnUrlFrontend}?vnp_ResponseCode=01&vnp_TransactionStatus=99&vnp_TxnRef=${orderId}`; // Mã lỗi giả định
             }
         } else {
             // Sai chữ ký - quan trọng để báo lỗi
             console.error('VNPAY Return: Invalid Secure Hash. Signature mismatch.');
-            // redirectUrl đã là default fail message
+            redirectUrl = `${VnPayConfig.vnp_ReturnUrlFrontend}?vnp_ResponseCode=97&vnp_TransactionStatus=97&vnp_TxnRef=${orderId}`; // Mã lỗi VNPAY 97
         }
 
         res.redirect(redirectUrl); // Chuyển hướng người dùng về frontend
 
     } catch (error) {
         console.error('Error handling VNPAY return:', error);
-        res.redirect(`${VnPayConfig.vnp_ReturnUrlFrontend}?status=error&message=${encodeURIComponent('Server error during payment processing.')}&bookingId=${req.query['vnp_TxnRef'] || ''}`);
+        // Chuyển hướng về trang lỗi chung nếu có lỗi server
+        res.redirect(`${VnPayConfig.vnp_ReturnUrlFrontend}?vnp_ResponseCode=99&vnp_TransactionStatus=99&vnp_TxnRef=${orderId || ''}`);
     }
 });
 
@@ -256,101 +262,100 @@ router.get('/vnpay_return', async (req, res) => {
  * @access Public (VNPAY gọi về, không phải người dùng)
  */
 router.get('/vnpay_ipn', async (req, res) => {
-    try {
-        let vnp_Params = req.query;
-        let secureHash = vnp_Params['vnp_SecureHash'];
+    let vnp_Params = req.query;
+    let secureHash = vnp_Params['vnp_SecureHash'];
 
-        let orderId = vnp_Params['vnp_TxnRef'];
-        let rspCode = vnp_Params['vnp_ResponseCode'];
-        let amount = vnp_Params['vnp_Amount'] / 100; // Số tiền đã trả (nhân 100)
+    let orderId = vnp_Params['vnp_TxnRef'];
+    let rspCode = vnp_Params['vnp_ResponseCode'];
+    let transactionStatus = vnp_Params['vnp_TransactionStatus'];
+    let amountFromVNPAY = vnp_Params['vnp_Amount'] / 100;
 
-        // Xóa các tham số không dùng để xác thực hash
-        delete vnp_Params['vnp_SecureHash'];
-        delete vnp_Params['vnp_SecureHashType']; // VNPAY có thể gửi thêm tham số này
+    delete vnp_Params['vnp_SecureHash'];
+    delete vnp_Params['vnp_SecureHashType'];
 
-        // Sắp xếp các tham số nhận về để tạo chữ ký
-        vnp_Params = sortObject(vnp_Params);
+    vnp_Params = sortObject(vnp_Params);
 
-        const { vnp_HashSecret } = VnPayConfig;
+    const { vnp_HashSecret } = VnPayConfig;
 
-        // Tạo chuỗi dữ liệu để băm (hashData) từ các tham số nhận về
-        let hashData = '';
-        let count = 0;
-        for (let key in vnp_Params) {
-            if (vnp_Params.hasOwnProperty(key)) {
-                let value = vnp_Params[key];
-                hashData += (count === 0 ? '' : '&') + key + '=' + encodeURIComponent(value).replace(/%20/g, '+');
-                count++;
-            }
+    let hashData = '';
+    let count = 0;
+    for (let key in vnp_Params) {
+        if (vnp_Params.hasOwnProperty(key)) {
+            let value = vnp_Params[key];
+            hashData += (count === 0 ? '' : '&') + key + '=' + encodeURIComponent(value).replace(/%20/g, '+');
+            count++;
         }
+    }
 
-        // Tạo chữ ký từ dữ liệu nhận về và Hash Secret của bạn
-        const hmac = crypto.createHmac('sha512', vnp_HashSecret);
-        const signed = hmac.update(hashData).digest('hex');
+    const hmac = crypto.createHmac('sha512', vnp_HashSecret);
+    const signed = hmac.update(hashData).digest('hex');
 
-        let responseCode = '99'; // Mặc định lỗi không xác định
-        let message = 'Unknown error';
+    let responseCode = '99'; // Mặc định lỗi không xác định
+    let message = 'Unknown error';
 
-        console.log('--- VNPAY IPN DEBUG ---');
-        console.log('Received Query Params:', req.query);
-        console.log('Received SecureHash:', secureHash);
-        console.log('Hash Secret Used:', vnp_HashSecret);
-        console.log('Raw Data String for Hashing (IPN):', hashData);
-        console.log('Calculated Secure Hash (IPN):', signed);
+    console.log('--- VNPAY IPN DEBUG ---');
+    console.log('Received Query Params:', req.query);
+    console.log('Received SecureHash:', secureHash);
+    console.log('Hash Secret Used:', vnp_HashSecret);
+    console.log('Raw Data String for Hashing (IPN):', hashData);
+    console.log('Calculated Secure Hash (IPN):', signed);
 
-
+    try {
         if (secureHash === signed) {
             const booking = await Booking.findOne({ bookingId: orderId });
 
             if (booking) {
-                if (booking.grandTotal === amount) { // Kiểm tra số tiền
+                if (booking.grandTotal === amountFromVNPAY) {
                     if (booking.status === 'PENDING_PAYMENT') { // Chỉ xử lý khi trạng thái còn PENDING_PAYMENT
-                        if (rspCode === '00') {
+                        if (rspCode === '00' && transactionStatus === '00') {
                             booking.status = 'PAID';
                             message = 'Confirm Success';
                             console.log(`VNPAY IPN: Booking ${orderId} updated to PAID.`);
                         } else {
-                            // VNPAY báo lỗi (không phải 00)
-                            booking.status = 'FAILED'; // Đánh dấu booking là FAILED
+                            booking.status = 'FAILED';
                             message = 'Confirm Failed';
                             console.log(`VNPAY IPN: Booking ${orderId} updated to FAILED (VNPAY response: ${rspCode}).`);
                         }
-                        // Cập nhật chi tiết giao dịch cho cả thành công và thất bại
-                        booking.paymentDetails = {
-                            vnp_Amount: amount,
-                            vnp_BankCode: vnp_Params['vnp_BankCode'],
-                            vnp_CardType: vnp_Params['vnp_CardType'],
-                            vnp_OrderInfo: vnp_Params['vnp_OrderInfo'],
-                            vnp_PayDate: vnp_Params['vnp_PayDate'],
-                            vnp_ResponseCode: rspCode,
-                            vnp_TmnCode: vnp_Params['vnp_TmnCode'],
-                            vnp_TransactionNo: vnp_Params['vnp_TransactionNo'],
-                            vnp_TransactionStatus: vnp_Params['vnp_TransactionStatus'],
-                            vnp_TxnRef: orderId,
-                            vnp_SecureHash: secureHash,
-                        };
-                        await booking.save();
+                        await booking.save(); // Lưu trạng thái booking đã cập nhật
+
+                        // Tạo và lưu Invoice (chỉ tạo khi IPN chưa có invoice hoặc cần cập nhật)
+                        // Trong IPN, bạn cần kiểm tra xem invoice đã tồn tại chưa để tránh tạo trùng
+                        let invoice = await Invoice.findOne({ booking: booking._id });
+                        if (!invoice) {
+                            invoice = new Invoice({
+                                booking: booking._id,
+                                bookingId: booking.bookingId,
+                                userId: booking.user,
+                                amount: amountFromVNPAY,
+                                paymentMethod: 'VNPAY',
+                                paymentStatus: booking.status === 'PAID' ? 'success' : 'failed',
+                                vnpayDetails: vnp_Params,
+                            });
+                        } else {
+                            // Nếu invoice đã tồn tại, cập nhật trạng thái và chi tiết
+                            invoice.paymentStatus = booking.status === 'PAID' ? 'success' : 'failed';
+                            invoice.vnpayDetails = vnp_Params;
+                        }
+                        await invoice.save();
+                        console.log(`VNPAY IPN: Invoice ${invoice._id} created/updated for booking ${orderId}. Status: ${invoice.paymentStatus}`);
+
                         responseCode = '00'; // Trả về 00 cho VNPAY biết đã nhận và xử lý
                     } else {
-                        // Số tiền không khớp
-                        responseCode = '04'; // Invalid amount
-                        message = 'Invalid amount';
-                        console.error(`VNPAY IPN: Amount mismatch for booking ${orderId}. Expected ${booking.grandTotal}, got ${amount}.`);
+                        responseCode = '02'; // Order already confirmed
+                        message = 'Order already confirmed';
+                        console.warn(`VNPAY IPN: Booking ${orderId} already in status ${booking.status}. No update needed via IPN.`);
                     }
                 } else {
-                    // Booking đã được cập nhật trước đó (ví dụ qua Return URL)
-                    responseCode = '02'; // Order already confirmed
-                    message = 'Order already confirmed';
-                    console.warn(`VNPAY IPN: Booking ${orderId} already in status ${booking.status}. No update needed.`);
+                    responseCode = '04'; // Invalid amount
+                    message = 'Invalid amount';
+                    console.error(`VNPAY IPN: Amount mismatch for booking ${orderId}. Expected ${booking.grandTotal}, got ${amountFromVNPAY}.`);
                 }
             } else {
-                // Không tìm thấy booking
                 responseCode = '01'; // Order not found
                 message = 'Order not found';
                 console.error(`VNPAY IPN: Booking not found for orderId: ${orderId}`);
             }
         } else {
-            // Sai chữ ký
             responseCode = '97'; // Invalid signature
             message = 'Invalid signature';
             console.error('VNPAY IPN: Invalid Secure Hash. Signature mismatch.');
