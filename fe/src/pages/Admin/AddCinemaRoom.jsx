@@ -9,35 +9,45 @@ const AddCinemaRoom = () => {
   const [loading, setLoading] = useState(false);
 
   const onFinish = async (values) => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
+  try {
+    setLoading(true);
+    const token = localStorage.getItem('token');
 
-      const response = await fetch('http://localhost:5000/api/theater/rooms/new_room', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(values),
-      });
+    // Ép kiểu rõ ràng
+    const payload = {
+      ...values,
+      rows: Number(values.rows),
+      columns: Number(values.columns),
+      normalPrice: Number(values.normalPrice),
+      vipPrice: Number(values.vipPrice),
+    };
 
-      const data = await response.json();
+    const response = await fetch('http://localhost:5000/api/theater/rooms/new_room', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
 
-      if (response.ok) {
-        message.success('Phòng chiếu đã được tạo thành công!');
-        form.resetFields();
-        navigate('/admin/cinema-rooms');
-      } else {
-        message.error(data.message || 'Tạo phòng thất bại!');
-      }
-    } catch (error) {
-      console.error('Error creating room:', error);
-      message.error('Đã xảy ra lỗi khi tạo phòng.');
-    } finally {
-      setLoading(false);
+    const data = await response.json();
+
+    if (response.ok) {
+      message.success('Phòng chiếu đã được tạo thành công!');
+      form.resetFields();
+      navigate('/admin/cinema-rooms');
+    } else {
+      message.error(data.message || 'Tạo phòng thất bại!');
     }
-  };
+  } catch (error) {
+    console.error('Error creating room:', error);
+    message.error('Đã xảy ra lỗi khi tạo phòng.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const labelClass = 'text-white font-medium';
   const inputClass = 'w-full bg-white text-black font-semibold border border-slate-600 rounded';

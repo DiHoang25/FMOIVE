@@ -138,7 +138,7 @@ const ComboSelection = () => {
 
         const selectedProducts = products.map(p => ({
             id: p._id,
-            name: p.name,
+            name: p.productName,
             price: p.price,
             quantity: quantities[p._id],
             image: p.image_url || ''

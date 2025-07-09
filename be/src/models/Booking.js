@@ -7,13 +7,13 @@ const BookingSchema = new mongoose.Schema({
         required: true // <--- Đảm bảo nó luôn có giá trị, không thể null
     },
     movieDetails: {
-        movieId: { type: mongoose.Schema.Types.ObjectId, ref: 'Movie', required: true },
+        movieId: { type: mongoose.Schema.Types.ObjectId, ref: 'Movie' },
         name: { type: String, required: true },
         image_url: { type: String },
         version: { type: String },
         running_time: { type: Number },
         genres: [{ type: String }],
-        time: { type: Date, required: true },
+        time: { type: Date },
         cinema_room: { type: String, required: true }
     },
     selectedSeats: [{ type: String, required: true }],
