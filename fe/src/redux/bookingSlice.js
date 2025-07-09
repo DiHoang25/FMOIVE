@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  movieDetails: { // Initialize as an object with default properties
+  movieDetails: {
     name: null,
     image_url: null,
     version: null,
@@ -19,6 +19,8 @@ const initialState = {
   totalSeatPrice: 0,
   selectedCombos: [],
   totalComboPrice: 0,
+  selectedProducts: [],           
+  totalProductPrice: 0,          
   serviceFee: 2.5,
   grandTotal: 0,
   bookingId: null,
@@ -44,21 +46,25 @@ export const bookingSlice = createSlice({
         ...state.movieDetails,
         ...action.payload.movieDetails,
       };
-      // REMOVED: Lines that reset selectedSeats, totalSeatPrice, selectedCombos, etc.
-      // These should ONLY be reset when starting a completely new booking.
       console.log("bookingSlice: movieDetails updated to:", state.movieDetails);
     },
     setSelectedSeats: (state, action) => {
       state.selectedSeats = action.payload.seats;
       state.totalSeatPrice = action.payload.totalPrice;
-      state.grandTotal = state.totalSeatPrice + state.totalComboPrice + state.serviceFee;
+      state.grandTotal = state.totalSeatPrice + state.totalComboPrice + state.totalProductPrice + state.serviceFee;
       console.log("bookingSlice: selectedSeats updated to:", state.selectedSeats, "totalSeatPrice:", state.totalSeatPrice);
     },
     setSelectedCombos: (state, action) => {
       state.selectedCombos = action.payload.combos;
       state.totalComboPrice = action.payload.totalPrice;
-      state.grandTotal = state.totalSeatPrice + state.totalComboPrice + state.serviceFee;
+      state.grandTotal = state.totalSeatPrice + state.totalComboPrice + state.totalProductPrice + state.serviceFee;
       console.log("bookingSlice: selectedCombos updated to:", state.selectedCombos, "totalComboPrice:", state.totalComboPrice);
+    },
+    setSelectedProducts: (state, action) => {
+      state.selectedProducts = action.payload.products;
+      state.totalProductPrice = action.payload.totalPrice;
+      state.grandTotal = state.totalSeatPrice + state.totalComboPrice + state.totalProductPrice + state.serviceFee;
+      console.log("bookingSlice: selectedProducts updated to:", state.selectedProducts, "totalProductPrice:", state.totalProductPrice);
     },
     updateGrandTotal: (state, action) => {
       state.grandTotal = action.payload;
@@ -87,6 +93,7 @@ export const {
   setMovieAndDateTime,
   setSelectedSeats,
   setSelectedCombos,
+  setSelectedProducts,
   updateGrandTotal,
   finalizeBooking,
   resetBooking,

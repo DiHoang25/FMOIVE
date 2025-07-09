@@ -1,10 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import SidebarLayout from '../../components/Sidebar-Employee';
+import { useSelector, useDispatch } from 'react-redux';
+import { setSelectedSeats } from '../../redux/bookingSlice';
+
 
 const SeatSelection = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
+  const dispatch = useDispatch();
+  const selectedSeats = useSelector((state) => state.booking.selectedSeats);
+
 
   const {
     movieDetails = {},
@@ -15,7 +21,6 @@ const SeatSelection = () => {
   } = state || {};
 
   const [roomData, setRoomData] = useState(null);
-  const [selectedSeats, setSelectedSeats] = useState([]);
 
   useEffect(() => {
     const fetchRoomData = async () => {
@@ -39,12 +44,16 @@ const SeatSelection = () => {
   }, [roomId]);
 
   const toggleSeat = (seatLabel) => {
-    setSelectedSeats((prev) =>
-      prev.includes(seatLabel)
-        ? prev.filter((s) => s !== seatLabel)
-        : [...prev, seatLabel]
-    );
+    const updated = selectedSeats.includes(seatLabel)
+      ? selectedSeats.filter((s) => s !== seatLabel)
+      : [...selectedSeats, seatLabel];
+
+    const selectedSeatObjects = roomData.seats.filter(seat => updated.includes(seat.label));
+    const totalPrice = selectedSeatObjects.reduce((sum, s) => sum + s.price, 0);
+
+    dispatch(setSelectedSeats({ seats: updated, totalPrice }));
   };
+
 
   const getSeatClass = (seat) => {
     const isSelected = selectedSeats.includes(seat.label);
@@ -63,7 +72,6 @@ const SeatSelection = () => {
       .reduce((total, seat) => total + seat.price, 0);
   };
 
-  const SERVICE_FEE = 2.5;
 
   const handleContinue = () => {
     if (selectedSeats.length === 0) {
@@ -81,9 +89,8 @@ const SeatSelection = () => {
         movieDetails,
         selectedShowtimeTime,
         fullShowtimeDate,
-        selectedSeats: selectedSeatObjects,
-        ticketPrice: totalPrice,
-        serviceFee: SERVICE_FEE,
+        selectedSeats: roomData.seats.filter(seat => selectedSeats.includes(seat.label)),
+        ticketPrice: calculateTotalTicketPrice(),
         userInformation,
       },
     });

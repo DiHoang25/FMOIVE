@@ -6,7 +6,7 @@ import { message } from 'antd';
 import SidebarLayout from '../../components/Sidebar-Employee';
 import darkknight from '../../assets/darkknight.jpg';
 import { useSelector, useDispatch } from 'react-redux';
-import { setSelectedCombos } from '../../redux/bookingSlice';
+import { setSelectedCombos, setSelectedProducts } from '../../redux/bookingSlice';
 
 const API_COMBO_BASE_URL = 'http://localhost:5000/api/combo';
 const API_PRODUCT_BASE_URL = 'http://localhost:5000/api/product';
@@ -15,6 +15,7 @@ const CounterCombo = () => {
     const navigate = useNavigate();
     const { state } = useLocation();
     const dispatch = useDispatch();
+
 
     const {
         movieDetails = {},
@@ -26,7 +27,8 @@ const CounterCombo = () => {
     } = state || {};
 
     const bookingState = useSelector((state) => state.booking);
-    const { selectedCombos } = bookingState;
+    const { selectedCombos, totalSeatPrice, selectedProducts } = bookingState;
+    console.log("ComboSelection: Redux state.booking on render:", bookingState);
 
     const [combos, setCombos] = useState([]);
     const [products, setProducts] = useState([]);
@@ -37,6 +39,7 @@ const CounterCombo = () => {
     const [showProducts, setShowProducts] = useState(false);
 
     useEffect(() => {
+        console.log("ComboSelection useEffect (initial mount/re-render): movieDetails:", movieDetails, "selectedSeats:", selectedSeats, "totalSeatPrice:", totalSeatPrice);
         const fetchCombos = async () => {
             try {
                 setLoadingCombos(true);
@@ -71,9 +74,9 @@ const CounterCombo = () => {
                 setLoadingCombos(false);
             }
         };
-
+        dispatch(setSelectedCombos({ combos: [], totalPrice: 0 }));
         fetchCombos();
-    }, [selectedCombos]);
+    }, []);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -92,7 +95,8 @@ const CounterCombo = () => {
                 const activeProducts = response.data.products.filter(p => !p.is_deleted);
 
                 const initialQuantities = activeProducts.reduce((acc, product) => {
-                    acc[product._id] = 0;
+                    const existing = selectedProducts?.find((p) => p.id === product._id);
+                    acc[product._id] = existing ? existing.quantity : 0;
                     return acc;
                 }, {});
                 setProducts(activeProducts);
@@ -104,11 +108,11 @@ const CounterCombo = () => {
                 setLoadingProducts(false);
             }
         };
+        fetchProducts();
+        dispatch(setSelectedProducts({ products: [], totalPrice: 0 }));
+    }, []);
 
-        if (showProducts && products.length === 0) {
-            fetchProducts();
-        }
-    }, [showProducts, products.length]);
+
 
     const updateQuantity = (id, delta) => {
         setQuantities(prev => ({
@@ -145,6 +149,7 @@ const CounterCombo = () => {
             totalPrice: totalComboPrice
         }));
 
+
         const selectedProducts = products.map(p => ({
             id: p._id,
             name: p.productName,
@@ -153,12 +158,19 @@ const CounterCombo = () => {
             image: p.image_url || ''
         })).filter(p => p.quantity > 0);
 
+        dispatch(setSelectedProducts({
+            products: selectedProducts,
+            totalPrice: productsTotal
+        }));
+
+
         navigate('/employee/counter-confirm', {
             state: {
                 movieDetails,
                 selectedShowtimeTime,
                 fullShowtimeDate,
                 selectedSeats,
+                selectedCombos: selectedComboList,
                 selectedProducts,
                 ticketPrice,
                 combosTotal,

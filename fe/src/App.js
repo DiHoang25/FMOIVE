@@ -126,7 +126,6 @@ function AppContent() {
           <Route path="/movienews/:slug" element={<PublicRouteGuard><MovieNewsDetails /></PublicRouteGuard>} />
           <Route path="/showtimes" element={<PublicRouteGuard><ShowtimePage /></PublicRouteGuard>} />
 
-
           {/* Customer */}
           {/* <Route path="/Users" element={<RequireRole allowedRoles={['customer']}><UsersDashboard /></RequireRole>} /> */}
           <Route path="/viewbookedticket" element={<RequireRole allowedRoles={['customer']}><ViewBookedTickets /></RequireRole>} />
