@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { message } from 'antd'; // Import Ant Design message for notifications
+
+// Path to your VNPAY icon (replace with actual path)
+import VnpayIcon from '../../assets/vnpay-icon.png'; // Example: Assuming you have an icon in assets
 
 const PaymentPage = () => {
     const navigate = useNavigate();
@@ -8,23 +12,25 @@ const PaymentPage = () => {
 
     const [selectedMethod, setSelectedMethod] = useState('vnpay'); // Mặc định VNPAY
     const [isProcessingPayment, setIsProcessingPayment] = useState(false); // Ngăn chặn nhấp đúp
-    const [paymentError, setPaymentError] = useState(''); // Hiển thị lỗi từ backend
+    // const [paymentError, setPaymentError] = useState(''); // Thay bằng Ant Design message
 
+    // Lấy bookingId và grandTotal đã được tạo từ trang ConfirmBooking thông qua location.state
+    const { bookingId: confirmedBookingId, grandTotal: grandTotalFromLocation } = location.state || {};
+
+    // Lấy thông tin booking từ Redux để hiển thị chi tiết đơn hàng
+    // Dữ liệu này dùng để hiển thị lại thông tin booking cho người dùng xem
     const {
-        grandTotal,
+        grandTotal: grandTotalFromRedux, // Redux grandTotal for display
         totalSeatPrice,
         totalComboPrice,
-        serviceFee,
         selectedSeats,
         selectedCombos,
-        movieDetails,
+        serviceFee, // Ensure serviceFee is available in Redux bookingSlice
     } = useSelector((state) => state.booking);
 
-    // Lấy bookingId đã được tạo từ trang ConfirmBooking thông qua location.state
-    const { bookingId: confirmedBookingId } = location.state || {};
-
-    // Sử dụng grandTotal từ Redux là nguồn chính
-    const finalDisplayGrandTotal = grandTotal || 0;
+    // Sử dụng grandTotal từ location.state làm nguồn chính cho số tiền thanh toán
+    // Nếu không có trong location.state (trường hợp hiếm, ví dụ refresh trang), fallback về Redux
+    const finalPaymentAmount = grandTotalFromLocation || grandTotalFromRedux || 0;
 
     const ticketCount = selectedSeats ? selectedSeats.length : 0;
     const comboCount = selectedCombos ? selectedCombos.reduce((sum, combo) => sum + combo.quantity, 0) : 0;
@@ -34,24 +40,39 @@ const PaymentPage = () => {
             id: 'vnpay',
             label: 'VN Pay',
             desc: 'Scan to pay with VN Pay (Sandbox)',
-            icon: 'path/to/vnpay-icon.png' // Thêm icon nếu có
+            icon: VnpayIcon // Use the imported icon
         },
         // Thêm các phương thức khác (ví dụ: MoMo, Credit Card)
     ];
+
+    // Optional: useEffect để kiểm tra nếu không có bookingId
+    useEffect(() => {
+        if (!confirmedBookingId) {
+            message.error('Booking details missing. Please go back to confirm your booking.');
+            // Có thể navigate người dùng trở lại trang ConfirmBooking
+            // navigate('/confirm-booking'); // Uncomment this if you want to force redirect
+        }
+    }, [confirmedBookingId, navigate]);
+
 
     const handleInitiatePayment = async () => {
         if (isProcessingPayment) return;
 
         if (!confirmedBookingId) {
-            setPaymentError('Booking ID is missing. Please go back to confirm your booking.');
+            message.error('Booking ID is missing. Please go back to confirm your booking.');
             return;
         }
 
         setIsProcessingPayment(true);
-        setPaymentError(''); // Reset lỗi
+        // setPaymentError(''); // No need if using Ant Design message
 
         try {
             const token = localStorage.getItem('token'); // Lấy JWT token
+            if (!token) {
+                message.error('Authentication required. Please log in.');
+                setIsProcessingPayment(false);
+                return;
+            }
 
             const response = await fetch('http://localhost:5000/api/payment/create_payment_url', {
                 method: 'POST',
@@ -61,7 +82,7 @@ const PaymentPage = () => {
                 },
                 body: JSON.stringify({
                     bookingId: confirmedBookingId,
-                    grandTotal: finalDisplayGrandTotal,
+                    grandTotal: finalPaymentAmount, // Gửi số tiền cuối cùng để thanh toán
                     bankCode: selectedMethod === 'vnpay' ? '' : '', // Để trống nếu VNPAY sẽ hiển thị danh sách bank
                     language: 'vn'
                 }),
@@ -70,20 +91,20 @@ const PaymentPage = () => {
             const data = await response.json();
 
             if (response.ok) {
+                message.loading('Redirecting to VNPAY...', 1.5); // Show loading message
                 // Chuyển hướng người dùng đến URL VNPAY
                 window.location.href = data.vnpUrl;
             } else {
-                setPaymentError(data.message || 'Failed to initiate payment.');
+                message.error(data.message || 'Failed to initiate payment.');
                 console.error('Payment initiation failed:', data.message);
             }
         } catch (error) {
             console.error('Error initiating payment:', error);
-            setPaymentError('An unexpected error occurred. Please try again.');
+            message.error('An unexpected error occurred. Please try again.');
         } finally {
             setIsProcessingPayment(false);
         }
     };
-
 
     return (
         <div className="min-h-screen bg-black text-white flex items-center justify-center py-10 px-4">
@@ -101,11 +122,7 @@ const PaymentPage = () => {
                     <h1 className="text-xl font-bold text-center">Complete Your Payment</h1>
                 </div>
 
-                {paymentError && (
-                    <div className="bg-red-800 text-white p-3 rounded text-center">
-                        {paymentError}
-                    </div>
-                )}
+                {/* Removed paymentError display here, Ant Design message handles it */}
 
                 {/* Payment Methods */}
                 <div className="space-y-3">
@@ -158,7 +175,7 @@ const PaymentPage = () => {
                     <hr className="border-gray-700" />
                     <div className="flex justify-between font-bold text-base">
                         <span>Total Amount</span>
-                        <span>{finalDisplayGrandTotal.toLocaleString('vi-VN')} VND</span>
+                        <span>{finalPaymentAmount.toLocaleString('vi-VN')} VND</span> {/* Display final amount */}
                     </div>
                 </div>
 
@@ -174,7 +191,7 @@ const PaymentPage = () => {
                                 ${isProcessingPayment ? 'opacity-50 cursor-not-allowed' : ''}`}
                     disabled={isProcessingPayment}
                 >
-                    {isProcessingPayment ? 'Redirecting...' : `Pay ${finalDisplayGrandTotal.toLocaleString('vi-VN')} VND`}
+                    {isProcessingPayment ? 'Redirecting...' : `Pay ${finalPaymentAmount.toLocaleString('vi-VN')} VND`}
                 </button>
             </div>
         </div>
