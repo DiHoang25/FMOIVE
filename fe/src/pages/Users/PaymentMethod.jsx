@@ -93,7 +93,7 @@ const PaymentPage = () => {
             if (response.ok) {
                 message.loading('Redirecting to VNPAY...', 1.5); // Show loading message
                 // Chuyển hướng người dùng đến URL VNPAY
-                window.location.href = data.vnpUrl;
+                window.location.href = data.paymentUrl;
             } else {
                 message.error(data.message || 'Failed to initiate payment.');
                 console.error('Payment initiation failed:', data.message);

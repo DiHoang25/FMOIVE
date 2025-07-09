@@ -65,7 +65,7 @@ function ResetPasswordPage() {
       
       setVerificationCode(newVerificationCode);
       
-      // Focus on last filled field or next field
+      
       const focusIndex = Math.min(digits.length, 4);
       inputRefs[focusIndex].current.focus();
     }
