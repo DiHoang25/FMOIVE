@@ -42,7 +42,7 @@ const PaymentStatusPage = () => {
     }, [location.search, dispatch]);
 
     const handleGoToBookings = () => {
-        navigate('/user-bookings'); // Chuyển đến trang lịch sử booking của người dùng
+        navigate('/viewbookedticket'); // Chuyển đến trang lịch sử booking của người dùng
     };
 
     const handleGoHome = () => {
