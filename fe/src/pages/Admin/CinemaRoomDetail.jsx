@@ -129,7 +129,7 @@ const CinemaRoomDetail = () => {
     okType: 'primary',
     okButtonProps: {
       style: {
-        backgroundColor: '#f59e0b', // amber-500
+        backgroundColor: '#f59e0b',
         color: 'white',
         borderColor: '#f59e0b',
       },
@@ -137,6 +137,16 @@ const CinemaRoomDetail = () => {
     onOk: async () => {
       try {
         const token = localStorage.getItem("token");
+
+        // ✅ Tìm giá ghế thường (lấy từ 1 ghế bất kỳ)
+        const currentNormalPrice = roomData.seats.find(s => s.type === "Normal")?.price || 90000;
+
+        // ✅ Tìm giá ghế VIP từ `roomData` nếu có
+        // Nếu chưa có ghế VIP, dùng fallback `roomData.seats[0].vipPrice` nếu bạn đã lưu theo dạng này
+        const currentVIPPrice =
+          roomData.seats.find(s => s.type === "VIP")?.price ||
+          roomData.vipPrice || 600000; // fallback cuối nếu không có gì
+
         const currentVIP = roomData.seats.filter(s => s.type === "VIP").map(s => s.label);
         const newVIP = roomData.seats.filter(s => selectedRows.includes(s.row)).map(s => s.label);
         const updatedVIP = Array.from(new Set([...currentVIP, ...newVIP]));
@@ -151,8 +161,8 @@ const CinemaRoomDetail = () => {
           body: JSON.stringify({
             vipSeats: updatedVIP,
             normalSeats: updatedNormal,
-            vipPrice: 150000,
-            normalPrice: 90000,
+            vipPrice: currentVIPPrice,
+            normalPrice: currentNormalPrice,
           }),
         });
 
@@ -171,124 +181,131 @@ const CinemaRoomDetail = () => {
 
 
 
+
   const handleSave = async () => {
+  try {
+    const token = localStorage.getItem("token");
 
-    try {
-      const token = localStorage.getItem("token");
+    const vipSeats = roomData.seats
+      .filter((seat) => selectedRows.includes(seat.row))
+      .map((seat) => seat.label);
 
-      // Danh sách ghế thuộc các hàng đã chọn
-      const vipSeats = roomData.seats
-        .filter((seat) => selectedRows.includes(seat.row))
-        .map((seat) => seat.label);
+    const normalSeats = roomData.seats
+      .filter((seat) => !selectedRows.includes(seat.row))
+      .map((seat) => seat.label);
 
-      const normalSeats = roomData.seats
-        .filter((seat) => !selectedRows.includes(seat.row))
-        .map((seat) => seat.label);
+    // 👇 Lấy giá từ roomData thay vì hardcode
+    const currentNormalPrice = roomData.seats.find(s => s.type === "Normal")?.price || 90000;
+    const currentVIPPrice = roomData.seats.find(s => s.type === "VIP")?.price || 150000;
 
-      const res = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}/update-seat-types`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          vipSeats,
-          normalSeats,
-          vipPrice: 150000,
-          normalPrice: 90000,
-        }),
-      });
+    const res = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}/update-seat-types`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        vipSeats,
+        normalSeats,
+        vipPrice: currentVIPPrice,
+        normalPrice: currentNormalPrice,
+      }),
+    });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Lưu thất bại");
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Lưu thất bại");
 
-      alert("Đã lưu lựa chọn ghế VIP thành công!");
-      setSelectedRows([]);
+    alert("Đã lưu lựa chọn ghế VIP thành công!");
+    setSelectedRows([]);
 
-      // Refetch lại room
-      const updated = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const updatedData = await updated.json();
-      setRoomData(updatedData.room);
-    } catch (err) {
-      console.error("❌ Lỗi khi lưu:", err.message);
-      alert("Lưu thất bại!");
-    }
-  };
+    // Refetch lại dữ liệu phòng
+    const updated = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const updatedData = await updated.json();
+    setRoomData(updatedData.room);
+  } catch (err) {
+    console.error("❌ Lỗi khi lưu:", err.message);
+    alert("Lưu thất bại!");
+  }
+};
+
 
   const handleConvertToNormal = () => {
-  const selectedRowLabels = selectedRows.map(r => String.fromCharCode(64 + Number(r))).join(", ");
+    const selectedRowLabels = selectedRows.map(r => String.fromCharCode(64 + Number(r))).join(", ");
+    const currentNormalPrice = roomData.seats.find(s => s.type === "Normal")?.price || 90000;
+    const currentVIPPrice = roomData.seats.find(s => s.type === "VIP")?.price || 150000;
 
-  Modal.confirm({
-    title: 'Xác nhận chuyển về ghế thường',
-    icon: <ExclamationCircleFilled />,
-    content: `Bạn có chắc muốn chuyển hàng [${selectedRowLabels}] thành ghế thường không?`,
-    okText: 'Xác nhận',
-    cancelText: 'Hủy',
-    okType: 'danger',
-    okButtonProps: {
-      style: {
-        backgroundColor: '#dc2626', // Tailwind red-600
-        color: 'white',
-        borderColor: '#dc2626',
+    Modal.confirm({
+      title: 'Xác nhận chuyển về ghế thường',
+      icon: <ExclamationCircleFilled />,
+      content: `Bạn có chắc muốn chuyển hàng [${selectedRowLabels}] thành ghế thường không?`,
+      okText: 'Xác nhận',
+      cancelText: 'Hủy',
+      okType: 'danger',
+      okButtonProps: {
+        style: {
+          backgroundColor: '#dc2626', // Tailwind red-600
+          color: 'white',
+          borderColor: '#dc2626',
+        },
       },
-    },
-    onOk: async () => {
-      try {
-        const token = localStorage.getItem("token");
+      onOk: async () => {
+        try {
+          const token = localStorage.getItem("token");
 
-        // Lấy danh sách ghế VIP hiện tại từ dữ liệu
-        const currentVIPSeats = roomData.seats
-          .filter((s) => s.type === "VIP")
-          .map((s) => s.label);
+          // Lấy danh sách ghế VIP hiện tại từ dữ liệu
+          const currentVIPSeats = roomData.seats
+            .filter((s) => s.type === "VIP")
+            .map((s) => s.label);
 
-        // Lấy danh sách ghế thuộc hàng đang chọn (muốn gỡ khỏi VIP)
-        const toBeNormalSeats = roomData.seats
-          .filter((s) => selectedRows.includes(s.row))
-          .map((s) => s.label);
+          // Lấy danh sách ghế thuộc hàng đang chọn (muốn gỡ khỏi VIP)
+          const toBeNormalSeats = roomData.seats
+            .filter((s) => selectedRows.includes(s.row))
+            .map((s) => s.label);
 
-        // Danh sách VIP sau khi loại bỏ các ghế chuyển về thường
-        const updatedVIPSeats = currentVIPSeats.filter(
-          (label) => !toBeNormalSeats.includes(label)
-        );
+          // Danh sách VIP sau khi loại bỏ các ghế chuyển về thường
+          const updatedVIPSeats = currentVIPSeats.filter(
+            (label) => !toBeNormalSeats.includes(label)
+          );
 
-        const res = await fetch(
-          `http://localhost:5000/api/theater/rooms/${roomId}/update-seat-types`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
+          const res = await fetch(
+            `http://localhost:5000/api/theater/rooms/${roomId}/update-seat-types`,
+            {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
             body: JSON.stringify({
               vipSeats: updatedVIPSeats,
               normalSeats: toBeNormalSeats,
-              vipPrice: 150000,
-              normalPrice: 90000,
+              vipPrice: currentVIPPrice,     // ✅ dùng giá hiện tại
+              normalPrice: currentNormalPrice, // ✅ dùng giá hiện tại
             }),
-          }
-        );
+              
+            }
+          );
 
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Cập nhật thất bại");
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message || "Cập nhật thất bại");
 
-        message.success("Đã chuyển thành công hàng sang ghế thường.");
-        setSelectedRows([]);
+          message.success("Đã chuyển thành công hàng sang ghế thường.");
+          setSelectedRows([]);
 
-        // Refetch lại dữ liệu phòng
-        const updated = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const updatedData = await updated.json();
-        setRoomData(updatedData.room);
-      } catch (err) {
-        console.error("❌ Lỗi:", err.message);
-        message.error(`Cập nhật thất bại: ${err.message}`);
-      }
-    },
-  });
-};
+          // Refetch lại dữ liệu phòng
+          const updated = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const updatedData = await updated.json();
+          setRoomData(updatedData.room);
+        } catch (err) {
+          console.error("❌ Lỗi:", err.message);
+          message.error(`Cập nhật thất bại: ${err.message}`);
+        }
+      },
+    });
+  };
 
 
 

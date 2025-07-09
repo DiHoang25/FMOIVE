@@ -3,10 +3,11 @@ import MovieCard from '../../components/MovieCard';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { setSelectedSeats } from '../../redux/bookingSlice';
 
 // Redux imports
 import { useDispatch } from 'react-redux';
-import { setMovieAndDateTime } from '../../redux/bookingSlice'; // Keeping your specified path
+import { setMovieAndDateTime } from '../../redux/bookingSlice'; // Adjusted path to match your structure
 
 
 function getWeekDates(startDate) {
@@ -32,6 +33,7 @@ function formatDateForNavigation(date) {
     return date.toLocaleDateString('en-US', options);
 }
 
+
 function ShowtimePage() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -55,6 +57,10 @@ function ShowtimePage() {
         setStartDate(newStart);
         setSelectedDate(formatDateLabel(newStart));
     };
+
+    useEffect(() => {
+        dispatch(setSelectedSeats({ seats: [], totalPrice: 0 }));
+    }, []);
 
     useEffect(() => {
         axios.get('http://localhost:5000/api/movies')
@@ -82,49 +88,37 @@ function ShowtimePage() {
     }, [selectedDate]);
 
     const handleMovieCardShowtimeClick = (movieDetailsFromCard, timeClicked) => {
-  const todayParts = selectedDate.split('/');
-  const currentYear = new Date().getFullYear();
-  const fullDateObj = new Date(currentYear, parseInt(todayParts[1]) - 1, parseInt(todayParts[0]));
-  const formattedDate = formatDateForNavigation(fullDateObj);
+        const todayParts = selectedDate.split('/');
+        const currentYear = new Date().getFullYear();
+        const fullDateObj = new Date(currentYear, parseInt(todayParts[1]) - 1, parseInt(todayParts[0]));
+        const formattedDate = formatDateForNavigation(fullDateObj);
 
-  const cinemaRoom = movieDetailsFromCard.cinema_room;
+        const payload = {
+            movieDetails: {
+                name: movieDetailsFromCard.name,
+                image_url: movieDetailsFromCard.image_url,
+                version: movieDetailsFromCard.version || '2D',
+                running_time: movieDetailsFromCard.running_time,
+                cinema_room: movieDetailsFromCard.cinema_room,
+                production_company: movieDetailsFromCard.production_company,
+                director: movieDetailsFromCard.director,
+                actors: movieDetailsFromCard.actors,
+                genres: movieDetailsFromCard.genres,
+                rating: movieDetailsFromCard.rating,
+                description: movieDetailsFromCard.description,
+                time: `${formattedDate}, ${timeClicked}`, // Full date and selected time
+            }
+        };
+        console.log("ShowtimePage: Dispatching setMovieAndDateTime with payload:", payload);
+        dispatch(setMovieAndDateTime(payload));
 
-  const parsedGenres = Array.isArray(movieDetailsFromCard.genres) 
-    ? movieDetailsFromCard.genres.flatMap(genre => 
-        typeof genre === 'string' ? genre.split(',').map(s => s.trim()) : []
-      )
-    : [];
-
-  dispatch(setMovieAndDateTime({
-    movieDetails: { 
-      name: movieDetailsFromCard.name,
-      image_url: movieDetailsFromCard.image_url,
-      version: movieDetailsFromCard.version || '2D',
-      running_time: movieDetailsFromCard.running_time,
-      cinema_room: cinemaRoom,
-      genres: parsedGenres,
-      rating: movieDetailsFromCard.rating,
-      time: `${formattedDate}, ${timeClicked}`, 
-    }
-  }));
-
-  navigate(`/select-seats`, {
-  state: {
-    roomId: cinemaRoom,
-    movieDetails: {
-      name: movieDetailsFromCard.name,
-      image_url: movieDetailsFromCard.image_url,
-      version: movieDetailsFromCard.version || '2D',
-      running_time: movieDetailsFromCard.running_time,
-      cinema_room: cinemaRoom,
-      genres: parsedGenres,
-      rating: movieDetailsFromCard.rating,
-      time: `${formattedDate}, ${timeClicked}`,
-    }
-  }
-});
-
-};
+        // Pass roomId via navigation state
+        navigate('/select-seats', {
+            state: {
+                roomId: movieDetailsFromCard.cinema_room // Assuming cinema_room directly provides the room ID
+            }
+        });
+    };
 
 
     return (
@@ -143,9 +137,8 @@ function ShowtimePage() {
                         <button
                             key={index}
                             onClick={() => setSelectedDate(label)}
-                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ease-in-out ${
-                                isSelected ? 'bg-red-600 text-white' : 'bg-gray-800 hover:bg-gray-700'
-                            }`}
+                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ease-in-out ${isSelected ? 'bg-red-600 text-white' : 'bg-gray-800 hover:bg-gray-700'
+                                }`}
                         >
                             {label}
                         </button>

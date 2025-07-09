@@ -40,9 +40,9 @@ const Promotions = () => {
   }, []);
 
   const handleSearch = (e) => {
-  setSearchTerm(e.target.value);
-  setCurrentPage(0); // Reset về trang đầu khi tìm kiếm
-};
+    setSearchTerm(e.target.value);
+    setCurrentPage(0); // Reset về trang đầu khi tìm kiếm
+  };
 
 
   const handlePageChange = page => {
@@ -73,26 +73,26 @@ const Promotions = () => {
   };
 
   const filtered = promotionData
-  .filter(p => {
-    const term = searchTerm.toLowerCase();
-    return (
-      p.title.toLowerCase().includes(term) ||
-      p.promotionCode.toLowerCase().includes(term)
-    );
-  })
-  .sort((a, b) => {
-    if (sortByStartDate) {
-      return sortByStartDate === 'asc'
-? a.rawStartDate - b.rawStartDate
-        : b.rawStartDate - a.rawStartDate;
-    }
-    if (sortByDiscount) {
-      return sortByDiscount === 'asc'
-        ? a.rawDiscount - b.rawDiscount
-        : b.rawDiscount - a.rawDiscount;
-    }
-    return 0;
-  });
+    .filter(p => {
+      const term = searchTerm.toLowerCase();
+      return (
+        p.title.toLowerCase().includes(term) ||
+        p.promotionCode.toLowerCase().includes(term)
+      );
+    })
+    .sort((a, b) => {
+      if (sortByStartDate) {
+        return sortByStartDate === 'asc'
+          ? a.rawStartDate - b.rawStartDate
+          : b.rawStartDate - a.rawStartDate;
+      }
+      if (sortByDiscount) {
+        return sortByDiscount === 'asc'
+          ? a.rawDiscount - b.rawDiscount
+          : b.rawDiscount - a.rawDiscount;
+      }
+      return 0;
+    });
 
 
   const totalPages = Math.ceil(filtered.length / promotionsPerPage);
@@ -127,12 +127,12 @@ const Promotions = () => {
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-gray-900 text-gray-300 text-sm uppercase">
               <tr>
-                <th className="px-4 py-3 text-left">#</th>
+                <th className="px-4 py-3 text-left">ID</th>
                 <th className="px-4 py-3 text-left">Promotion Code</th>
                 <th className="px-4 py-3 text-left">Title</th>
                 <th className="px-4 py-3 text-left">Start Date</th>
                 <th className="px-4 py-3 text-left">End Date</th>
-                <th className="px-4 py-3 text-left">Discount</th>
+                {/* <th className="px-4 py-3 text-left">Discount</th> */}
                 <th className="px-4 py-3 text-center">Actions</th>
               </tr>
             </thead>
@@ -155,16 +155,16 @@ const Promotions = () => {
                     <td className="px-4 py-2">{p.title}</td>
                     <td className="px-4 py-2">{dayjs(p.rawStartDate).format('DD/MM/YYYY')}</td>
                     <td className="px-4 py-2">{p.endDate}</td>
-<td className="px-4 py-2">{p.discountLevel}</td>
+{/* <td className="px-4 py-2">{p.discountLevel}</td> */}
                     <td className="px-4 py-2 text-center">
                       <div className="flex justify-center gap-4">
-                        <button 
-                          onClick={() => window.location.href = `/admin/promotions/edit-promotion/${p.id}`} 
+                        <button
+                          onClick={() => window.location.href = `/admin/promotions/edit-promotion/${p.id}`}
                           className="text-yellow-400 hover:text-yellow-600 text-xl">
                           <FaEdit />
                         </button>
-                        <button 
-                          onClick={() => handleDelete(p)} 
+                        <button
+                          onClick={() => handleDelete(p)}
                           className="text-red-400 hover:text-red-600 text-xl">
                           <FaTrash />
                         </button>

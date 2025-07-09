@@ -13,17 +13,17 @@ import defaultPoster from '../../assets/batman.png'; // Make sure this path is c
 
 // Helper function to format cinema room name (e.g., "ROOM000000016" to "Cinema 16")
 const formatCinemaRoomName = (roomName) => {
-    if (!roomName) return 'N/A';
-    const match = roomName.match(/ROOM0*(\d+)/);
-    if (match && match[1]) {
-        return `Cinema ${parseInt(match[1], 10)}`;
-    }
-    return roomName;
+  if (!roomName) return 'N/A';
+  const match = roomName.match(/ROOM0*(\d+)/);
+  if (match && match[1]) {
+    return `Cinema ${parseInt(match[1], 10)}`;
+  }
+  return roomName;
 };
 
 const ConfirmBooking = () => {
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
     const [voucherCode, setVoucherCode] = useState('');
     const [voucherDiscount, setVoucherDiscount] = useState(0);
@@ -224,16 +224,10 @@ const ConfirmBooking = () => {
         }
     };
 
-    return (
-        <div className="min-h-screen bg-black text-white py-10 px-4">
-            <div className="max-w-5xl mx-auto bg-neutral-900 rounded-xl p-6 shadow-lg relative">
-                <h1 className="text-2xl font-bold text-center mb-8">CONFIRM YOUR BOOKING</h1>
-
-                {error && (
-                    <div className="bg-red-800 text-white p-3 rounded mb-4 text-center">
-                        {error}
-                    </div>
-                )}
+  return (
+    <div className="min-h-screen bg-black text-white py-10 px-4">
+      <div className="max-w-5xl mx-auto bg-neutral-900 rounded-xl p-6 shadow-lg relative">
+        <h1 className="text-2xl font-bold text-center mb-8">CONFIRM YOUR BOOKING</h1>
 
                 <div className="grid md:grid-cols-2 gap-6">
                     {/* Left: Movie + Seats + Combos */}
@@ -251,41 +245,41 @@ const ConfirmBooking = () => {
                             </div>
                         </div>
 
-                        {/* Seat selection */}
-                        <h3 className="text-red-500 font-semibold mt-6">Seat Selection</h3>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                            {seats.length > 0 ? (
-                                seats.map((seat) => (
-                                    <span
-                                        key={seat}
-                                        className="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-semibold"
-                                    >
-                                        {seat}
-                                    </span>
-                                ))
-                            ) : (
-                                <p className="text-gray-400 text-sm">No seats selected.</p>
-                            )}
-                        </div>
+            {/* Seat selection */}
+            <h3 className="text-red-500 font-semibold mt-6">Seat Selection</h3>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {seats.length > 0 ? (
+                seats.map((seat) => (
+                  <span
+                    key={seat}
+                    className="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-semibold"
+                  >
+                    {seat}
+                  </span>
+                ))
+              ) : (
+                <p className="text-gray-400 text-sm">No seats selected.</p>
+              )}
+            </div>
 
-                        {/* Popcorn & Drinks */}
-                        {combos.length > 0 && (
-                            <>
-                                <h3 className="text-red-500 font-semibold mt-6">Popcorn & Drinks</h3>
-                                <ul className="mt-2 space-y-2 text-sm">
-                                    {combos.map((combo) => (
-                                        <li
-                                            key={combo._id}
-                                            className="flex justify-between bg-zinc-800 px-4 py-2 rounded"
-                                        >
-                                            <span>{combo.name} x{combo.quantity}</span>
-                                            <span>{(combo.price * combo.quantity).toLocaleString('vi-VN')} VND</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </>
-                        )}
-                    </div>
+            {/* Popcorn & Drinks */}
+            {combos.length > 0 && (
+              <>
+                <h3 className="text-red-500 font-semibold mt-6">Popcorn & Drinks</h3>
+                <ul className="mt-2 space-y-2 text-sm">
+                  {combos.map((combo) => (
+                    <li
+                      key={combo.id}
+                      className="flex justify-between bg-zinc-800 px-4 py-2 rounded"
+                    >
+                      <span>{combo.name} x{combo.quantity}</span>
+                      <span>{(combo.price * combo.quantity).toLocaleString('vi-VN')} VND</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
 
                     {/* Right: Info + Summary */}
                     <div>
@@ -345,32 +339,30 @@ const ConfirmBooking = () => {
                             </div>
                         </div>
 
-                        <p className="text-xs text-gray-300 mt-2 bg-zinc-800 rounded p-3">
-                            You will be redirected to our secure payment gateway after confirmation
-                        </p>
-                    </div>
-                </div>
-
-                {/* Buttons */}
-                <div className="flex justify-center gap-4 mt-10">
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded"
-                    >
-                        BACK
-                    </button>
-                    <button
-                        onClick={handleProceedToPayment}
-                        className={`bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded font-semibold
-                                    ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        disabled={isProcessing}
-                    >
-                        {isProcessing ? 'Processing...' : 'PROCEED TO PAYMENT'}
-                    </button>
-                </div>
-            </div>
+            <p className="text-xs text-gray-300 mt-2 bg-zinc-800 rounded p-3">
+              You will be redirected to our secure payment gateway after confirmation
+            </p>
+          </div>
         </div>
-    );
+
+        {/* Buttons */}
+        <div className="flex justify-center gap-4 mt-10">
+          <button
+            onClick={() => navigate(-1)}
+            className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded"
+          >
+            BACK
+          </button>
+          <button
+            onClick={handleProceedToPayment}
+            className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded font-semibold"
+          >
+            PROCEED TO PAYMENT
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default ConfirmBooking;
