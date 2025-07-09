@@ -57,53 +57,81 @@ const AddMovie = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!formData.cinemaRoom || formData.cinemaRoom.length === 0) {
-            alert('Vui lòng chọn ít nhất một phòng chiếu!');
-            return;
-        }
+        const {
+            movieName,
+            trailerLink,
+            fromDate,
+            toDate,
+            actors,
+            productionCompany,
+            director,
+            runningTime,
+            moviePoster,
+            movieBanner,
+            movieDescription,
+            genres,
+            cinemaRoom,
+            showTimes,
+        } = formData;
 
         const selectedVersions = Object.keys(formData.version).filter(v => formData.version[v]);
 
+        // === VALIDATION CHECKS ===
+        if (!movieName.trim()) return message.error("Vui lòng nhập tên phim.");
+        if (!fromDate || !toDate) return message.error("Vui lòng chọn ngày chiếu.");
+        if (!actors.trim()) return message.error("Vui lòng nhập tên diễn viên.");
+        if (!productionCompany.trim()) return message.error("Vui lòng nhập hãng sản xuất.");
+        if (!director.trim()) return message.error("Vui lòng nhập tên đạo diễn.");
+        if (!runningTime || isNaN(runningTime) || runningTime <= 0) return message.error("Vui lòng nhập thời lượng phim hợp lệ.");
+        if (dayjs(fromDate).isAfter(dayjs(toDate))) return message.error("Ngày bắt đầu không thể sau ngày kết thúc.");
+        if (selectedVersions.length === 0) return message.error("Vui lòng chọn ít nhất một định dạng phim.");
+        if (!showTimes || showTimes.length === 0) return message.error("Vui lòng chọn ít nhất một suất chiếu.");
+        if (!cinemaRoom || cinemaRoom.length === 0) return message.error("Vui lòng chọn phòng chiếu.");
+        if (!trailerLink.trim()) return message.error("Vui lòng nhập link trailer.");
+        if (!genres || genres.length === 0) return message.error("Vui lòng chọn ít nhất một thể loại.");
+        if (!moviePoster) return message.error("Vui lòng chọn poster phim.");
+        if (!movieBanner) return message.error("Vui lòng chọn banner phim.");
+        if (!movieDescription.trim()) return message.error("Vui lòng nhập mô tả phim.");
+
+        if (!cinemaRoom || cinemaRoom.length === 0) return message.error("Vui lòng chọn phòng chiếu.");
+        if (!showTimes || showTimes.length === 0) return message.error("Vui lòng chọn ít nhất một suất chiếu.");
+
+        // === STATUS CALCULATION ===
         const today = dayjs().startOf('day');
-        const movieStart = dayjs(formData.fromDate).startOf('day');
+        const movieStart = dayjs(fromDate).startOf('day');
         const updatedStatus = movieStart.isSameOrBefore(today) ? 'now_showing' : 'coming_soon';
 
         const formDataToSend = new FormData();
-        formDataToSend.append('name', formData.movieName);
-        formDataToSend.append('trailer_link', formData.trailerLink);
-        formDataToSend.append('start_date', formData.fromDate.toISOString());
-        formDataToSend.append('end_date', formData.toDate.toISOString());
-        formDataToSend.append('actors', formData.actors);
-        formDataToSend.append('production_company', formData.productionCompany);
-        formDataToSend.append('director', formData.director);
-        formDataToSend.append('running_time', formData.runningTime);
-        formDataToSend.append('description', formData.movieDescription);
+        formDataToSend.append('name', movieName);
+        formDataToSend.append('trailer_link', trailerLink);
+        formDataToSend.append('start_date', fromDate.toISOString());
+        formDataToSend.append('end_date', toDate.toISOString());
+        formDataToSend.append('actors', actors);
+        formDataToSend.append('production_company', productionCompany);
+        formDataToSend.append('director', director);
+        formDataToSend.append('running_time', runningTime);
+        formDataToSend.append('description', movieDescription);
         formDataToSend.append('status', updatedStatus);
         formDataToSend.append('version', selectedVersions.join(', '));
-        formDataToSend.append('genres', formData.genres.join(', '));
-        formDataToSend.append('cinema_room', formData.cinemaRoom[0]?.value); // chỉ lấy ID
-        formDataToSend.append('showtimes', formData.showTimes.join(', '));
+        formDataToSend.append('genres', genres.join(', '));
+        formDataToSend.append('cinema_room', cinemaRoom[0]?.value);
+        formDataToSend.append('showtimes', showTimes.join(', '));
 
-        if (formData.moviePoster) {
-            formDataToSend.append('image', formData.moviePoster);
-        }
-        if (formData.movieBanner) {
-            formDataToSend.append('banner', formData.movieBanner);
-        }
+        if (moviePoster) formDataToSend.append('image', moviePoster);
+        if (movieBanner) formDataToSend.append('banner', movieBanner);
 
-        const hide = message.loading('Adding movie...', 0);
+        const hide = message.loading('Đang thêm phim...', 0);
 
         try {
-            const response = await axios.post('http://localhost:5000/api/movies', formDataToSend);
+            await axios.post('http://localhost:5000/api/movies', formDataToSend);
             hide();
             setSuccess(true);
         } catch (error) {
             hide();
             console.error('Error:', error);
-            message.error('Error adding movie');
+            message.error('Lỗi khi thêm phim.');
         }
     };
-
 
     useEffect(() => {
         const fetchRooms = async () => {
@@ -177,7 +205,6 @@ const AddMovie = () => {
                                         value={formData.movieName}
                                         onChange={handleInputChange}
                                         className="w-full p-2 rounded bg-slate-700 text-white"
-                                        required
                                     />
                                 </div>
 
@@ -216,7 +243,6 @@ const AddMovie = () => {
                                         value={formData.actors}
                                         onChange={handleInputChange}
                                         className="w-full p-2 rounded bg-slate-700 text-white"
-                                        required
                                     />
                                 </div>
 
@@ -230,7 +256,6 @@ const AddMovie = () => {
                                         value={formData.productionCompany}
                                         onChange={handleInputChange}
                                         className="w-full p-2 rounded bg-slate-700 text-white"
-                                        required
                                     />
                                 </div>
 
@@ -244,7 +269,6 @@ const AddMovie = () => {
                                         value={formData.director}
                                         onChange={handleInputChange}
                                         className="w-full p-2 rounded bg-slate-700 text-white"
-                                        required
                                     />
                                 </div>
 
@@ -259,7 +283,6 @@ const AddMovie = () => {
                                             value={formData.runningTime}
                                             onChange={handleInputChange}
                                             className="w-full p-2 rounded bg-slate-700 text-white"
-                                            required
                                         />
                                     </div>
 
@@ -312,9 +335,6 @@ const AddMovie = () => {
                                             options={filteredRooms}
                                             disabled={selectedVersions.length === 0}
                                         />
-
-
-
                                     </div>
 
                                     <div>
@@ -340,7 +360,6 @@ const AddMovie = () => {
                                         value={formData.trailerLink}
                                         onChange={handleInputChange}
                                         className="w-full p-2 rounded bg-slate-700 text-white"
-                                        required
                                     />
                                 </div>
 
@@ -374,7 +393,6 @@ const AddMovie = () => {
                                                 });
                                             }
                                         }}
-                                        required
                                     />
                                     <label htmlFor="poster-upload" className="block cursor-pointer">
                                         {formData.moviePosterPreview ? (
@@ -413,7 +431,6 @@ const AddMovie = () => {
                                                 });
                                             }
                                         }}
-                                        required
                                     />
                                     <label htmlFor="banner-upload" className="block cursor-pointer">
                                         {formData.movieBannerPreview ? (
@@ -440,7 +457,6 @@ const AddMovie = () => {
                                         value={formData.movieDescription}
                                         onChange={handleInputChange}
                                         className="w-full p-2 rounded bg-slate-700 text-white"
-                                        required
                                     ></textarea>
                                 </div>
                             </div>

@@ -146,70 +146,69 @@ const CounterBookingList = () => {
             <div className="text-xs text-gray-400 mb-2">
               Showing {currentBookings.length} bookings
             </div>
-            <div className="bg-gray-800 rounded-md overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-700 text-xs">
-                <thead>
-                  <tr className="bg-gray-800">
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+            <div className="overflow-x-auto bg-gray-800 rounded-lg shadow">
+              <table className="min-w-full divide-y divide-gray-700">
+                <thead className="bg-gray-900 text-gray-300 text-sm uppercase">
+                  <tr>
+                    <th className="px-4 py-3 text-left">
                       #
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left">
                       Booking ID
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left">
                       Full name
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left">
                       Phone number
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left">
                       Movie
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left">
                       Time
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left">
                       Seat
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left">
                       Action
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-gray-800 divide-y divide-gray-700">
+                <tbody className="divide-y divide-gray-700 text-gray-300 text-sm">
                   {currentBookings.map((booking, index) => (
                     <tr key={booking.id} className="hover:bg-gray-700">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      <td className="px-4 py-2">
                         {indexOfFirstBooking + index + 1}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      <td className="px-4 py-2">
                         {booking.id}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      <td className="px-4 py-2">
                         {booking.fullName}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      <td className="px-4 py-2">
                         {booking.phoneNumber}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-300 whitespace-normal break-words max-w-xs">
                         {booking.movie}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      <td className="px-4 py-2">
                         {booking.time}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      <td className="px-4 py-2">
                         {booking.seat}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
-                          className={`px-3 py-1 rounded-md text-sm font-medium ${
-                            booking.status === true
-                              ? "bg-green-500 text-white"
-                              : "bg-red-500 text-white"
-                          }`}
+                          className={`px-3 py-1 rounded-md text-sm font-medium ${booking.status === true
+                            ? "bg-green-500 text-white"
+                            : "bg-red-500 text-white"
+                            }`}
                         >
                           {booking.status === true ? "Successful" : "Failed"}
                         </span>
