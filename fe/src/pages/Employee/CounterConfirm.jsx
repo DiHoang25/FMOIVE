@@ -1,40 +1,88 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
+// Helper function to format cinema room name (e.g., "ROOM000000016" to "Cinema 16")
+const formatCinemaRoomName = (roomName) => {
+  if (!roomName) return 'N/A';
+  const match = roomName.match(/ROOM0*(\d+)/);
+  if (match && match[1]) {
+    return `Cinema ${parseInt(match[1], 10)}`;
+  }
+  return roomName;
+};
+
+// Helper function to format the movie time string for display (adapted from ConfirmBooking)
+const formatMovieTime = (timeString) => {
+    if (!timeString || timeString === 'N/A') return { display: 'N/A' };
+
+    const dateObj = new Date(timeString);
+
+    if (isNaN(dateObj.getTime())) {
+        // Fallback for unparseable strings (e.g., "Monday, May 26, 2025, 7:30 PM")
+        const parts = timeString.split(', ');
+        const timePart = parts[parts.length - 1].trim(); // Get the last part as time
+        // Reconstruct date part, excluding year if present
+        const datePartArray = parts.slice(0, parts.length - 1).filter(part => !/\d{4}/.test(part.trim()));
+        const datePart = datePartArray.join(', ').trim();
+        return { display: `${timePart}, ${datePart}` };
+    }
+
+    // Options for date formatting (excluding year)
+    const dateOptions = { weekday: 'long', month: 'long', day: 'numeric' };
+    const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
+
+    const formattedDate = dateObj.toLocaleDateString('en-US', dateOptions); // e.g., "Monday, June 30"
+    const formattedTime = dateObj.toLocaleTimeString('en-US', timeOptions); // e.g., "3:00 PM"
+
+    // Construct the desired display string: "TIME, DATE"
+    return { display: `${formattedTime}, ${formattedDate}` };
+};
+
+
 const CounterConfirmBooking = () => {
     const navigate = useNavigate();
     const { state } = useLocation();
 
     const [voucherCode, setVoucherCode] = useState('');
+    const [voucherDiscount, setVoucherDiscount] = useState(0); // Add state for voucher discount
 
     const {
         movieDetails = {},
-        selectedShowtimeTime = '',
-        fullShowtimeDate = '',
-        selectedSeats = [],
+        selectedSeats = [],        // Expecting an array of seat objects {label, price, type, ...}
         selectedCombos = [],
-        ticketPrice = 0,
-        serviceFee = 0,
+        ticketPrice = 0,           // This should be the total calculated ticket price
+        serviceFee = 0, // Keep for destructuring, but won't be displayed or used in total
         combosTotal = 0,
-        finalTotal = 0,
-        userInformation = {},
+        finalTotal = 0,            // This should be the grand total before voucher
+        userInformation = {}, // Keep for destructuring, but won't be displayed
     } = state || {};
 
-    const movieDisplay = {
-        title: movieDetails.name || 'Unknown Movie',
-        poster: movieDetails.image_url || 'path/to/default/poster.png',
-        time: fullShowtimeDate,
-        hour: selectedShowtimeTime,
-        screen: movieDetails.cinema_room || 'Screen N/A',
+    // Fallback for movie details
+    const movie = movieDetails || {
+        name: 'Unknown Movie',
+        image_url: 'https://placehold.co/120x180/000000/FFFFFF?text=No+Poster', // Default poster
+        version: 'N/A',
+        running_time: 'N/A',
+        time: 'N/A', // Assuming this holds the full date and time string
+        cinema_room: 'N/A',
+        genres: [],
     };
 
-    const seatsDisplay = selectedSeats;
+    // Format movie time and cinema room for display
+    const formattedMovieTimeDisplay = formatMovieTime(movie.time);
+    const displayCinemaRoomName = formatCinemaRoomName(movie.cinema_room);
+
+    // Ensure seatsDisplay and combosDisplay are arrays for mapping
+    const seatsDisplay = selectedSeats; // Now expecting array of seat objects
     const combosDisplay = selectedCombos;
 
+    // Use the passed totals directly, as they should be pre-calculated
     const currentTicketPrice = ticketPrice;
-    const currentServiceFee = serviceFee;
+    // currentServiceFee is removed from display and total calculation
     const currentCombosTotal = combosTotal;
-    const currentTotal = finalTotal;
+    
+    // Calculate the actual grand total, applying voucher discount, and excluding serviceFee
+    const currentGrandTotal = (ticketPrice + combosTotal) - voucherDiscount;
 
     useEffect(() => {
         if (!state) {
@@ -48,17 +96,14 @@ const CounterConfirmBooking = () => {
     const handleProceedToPayment = () => {
         navigate('/employee/counter-payment', {
             state: {
-                movieDetails,
-                selectedShowtimeTime,
-                fullShowtimeDate,
-                selectedSeats,
-                selectedCombos,
-                ticketPrice: currentTicketPrice, // Pass the total ticket price
-                serviceFee: currentServiceFee,
+                movieDetails: movie, // Pass the possibly fallback movie object
+                selectedSeats: seatsDisplay, // Pass the seat objects
+                selectedCombos: combosDisplay,
+                ticketPrice: currentTicketPrice,
+                serviceFee: 0, // Pass 0 for service fee as it's removed
                 combosTotal: currentCombosTotal,
-                finalTotal: currentTotal, // Pass the grand total
-                userInformation, // Pass user information if available
-                // Any other relevant data you might want to pass
+                finalTotal: currentGrandTotal, // Pass the grand total after voucher
+                userInformation, // Still pass userInformation even if not displayed
             },
         });
     };
@@ -75,11 +120,12 @@ const CounterConfirmBooking = () => {
 
                         {/* Movie Info */}
                         <div className="flex gap-4 items-center">
-                            <img src={movieDisplay.poster} alt="Movie Poster" className="w-28 h-40 rounded-lg object-cover" />
+                            <img src={movie.image_url} alt="Movie Poster" className="w-28 h-40 rounded-lg object-cover" />
                             <div>
-                                <h2 className="text-xl font-bold">{movieDisplay.title}</h2>
-                                <p className="text-gray-400 mt-1 text-base">{movieDisplay.screen}</p>
-                                <p className="text-gray-400">{movieDisplay.time} • {movieDisplay.hour}</p>
+                                <h2 className="text-xl font-bold">{movie.name}</h2>
+                                <p className="text-gray-400 mt-1 text-base">{displayCinemaRoomName}</p> {/* Use formatted cinema room name */}
+                                <p className="text-gray-400">{formattedMovieTimeDisplay.display}</p> {/* Use formatted time display */}
+                                <p className="text-gray-400">{movie.version || 'N/A'} • {movie.running_time} min • {movie.genres && movie.genres.length > 0 ? movie.genres.join(', ') : 'N/A'}</p>
                             </div>
                         </div>
 
@@ -90,10 +136,10 @@ const CounterConfirmBooking = () => {
                                 {seatsDisplay.length > 0 ? (
                                     seatsDisplay.map(seat => (
                                         <span
-                                            key={seat}
+                                            key={seat.label} // Use seat.label for the key
                                             className="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-medium"
                                         >
-                                            {seat}
+                                            {seat.label} {/* Render seat.label instead of the entire object */}
                                         </span>
                                     ))
                                 ) : (
@@ -120,44 +166,58 @@ const CounterConfirmBooking = () => {
 
                     {/* Right Column */}
                     <div className="space-y-8">
+                        {/* User Information section removed */}
+
                         {/* Voucher Input */}
-                        <h3 className="text-red-700 font-semibold ">Voucher Code</h3>
-                        <div className="flex mt-1 gap-2">
-                            <input
-                                type="text"
-                                placeholder="Enter voucher code"
-                                value={voucherCode}
-                                onChange={(e) => setVoucherCode(e.target.value)}
-                                className="bg-zinc-800 text-white px-4 py-2 rounded w-full text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
-                            />
-                            <button
-                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium"
-                            >
-                                Apply
-                            </button>
+                        <div>
+                            <h3 className="text-lg font-semibold text-red-500 mb-2">🏷️ Voucher Code</h3>
+                            <div className="flex mt-1 gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="Enter voucher code"
+                                    value={voucherCode}
+                                    onChange={(e) => setVoucherCode(e.target.value)}
+                                    className="bg-zinc-800 text-white px-4 py-2 rounded w-full text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
+                                />
+                                <button
+                                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium"
+                                    // You'll need to implement the actual voucher application logic here
+                                    // This would typically involve an API call to validate the voucher
+                                    // and then update the `voucherDiscount` state.
+                                >
+                                    Apply
+                                </button>
+                            </div>
+                            {voucherDiscount > 0 && (
+                                <p className="text-green-400 text-sm mt-2">Discount applied: {voucherDiscount.toLocaleString('vi-VN')} VND</p>
+                            )}
                         </div>
+
                         {/* Payment Summary */}
                         <div>
                             <h3 className="text-lg font-semibold text-red-500 mb-2">💳 Payment Summary</h3>
                             <div className="bg-zinc-800 rounded-lg p-4 space-y-2 text-base">
                                 <div className="flex justify-between">
-                                    <span>Standard Ticket × {seatsDisplay.length}</span>
+                                    <span>Tickets ({seatsDisplay.length})</span>
                                     <span>{currentTicketPrice.toLocaleString('vi-VN')} VND</span>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span>Service Fee</span>
-                                    <span>{currentServiceFee.toLocaleString('vi-VN')} VND</span>
-                                </div>
+                                {/* Service Fee line removed */}
                                 {combosDisplay.length > 0 && (
                                     <div className="flex justify-between">
                                         <span>Combos</span>
-                                        <span>${currentCombosTotal.toFixed(2)}</span>
+                                        <span>{currentCombosTotal.toLocaleString('vi-VN')} VND</span>
+                                    </div>
+                                )}
+                                {voucherDiscount > 0 && (
+                                    <div className="flex justify-between text-green-400">
+                                        <span>Voucher Discount</span>
+                                        <span>-{voucherDiscount.toLocaleString('vi-VN')} VND</span>
                                     </div>
                                 )}
                                 <hr className="border-gray-700" />
                                 <div className="flex justify-between font-bold text-xl">
                                     <span>Total</span>
-                                    <span>{currentTotal.toLocaleString('vi-VN')} VND</span>
+                                    <span>{currentGrandTotal.toLocaleString('vi-VN')} VND</span>
                                 </div>
                             </div>
 
@@ -177,7 +237,7 @@ const CounterConfirmBooking = () => {
                         ← Back
                     </button>
                     <button
-                        onClick={handleProceedToPayment} // Changed to call the new handler
+                        onClick={handleProceedToPayment}
                         className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded text-base font-semibold"
                     >
                         Proceed to Payment →

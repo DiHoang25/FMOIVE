@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Monitor, Crown } from "lucide-react";
 import { useSelector, useDispatch } from 'react-redux';
-import { setSelectedSeats } from '../../redux/bookingSlice';
+import { setSelectedSeats } from '../../redux/bookingSlice'; // Ensure this path is correct
 
+// Helper function to format minutes into "Xh Ym"
 const formatMinutesToHoursMinutes = (minutes) => {
   if (typeof minutes !== 'number' || minutes < 0) return 'N/A';
   const hours = Math.floor(minutes / 60);
@@ -11,6 +12,7 @@ const formatMinutesToHoursMinutes = (minutes) => {
   return `${hours}h ${remainingMinutes}m`;
 };
 
+// Helper function to format cinema room name (e.g., "ROOM000000016" to "Cinema 16")
 const formatCinemaRoomName = (roomName) => {
   if (!roomName) return 'N/A';
   const match = roomName.match(/ROOM0*(\d+)/);
@@ -25,9 +27,12 @@ function SeatSelectionPage() {
   const dispatch = useDispatch();
   const { state } = useLocation();
 
-  // ✅ Lấy dữ liệu từ state
-  const roomId = state?.roomId;
-  const movieDetails = useSelector((state) => state.booking.movieDetails);
+  const roomId = state?.roomId; // Get roomId from navigation state
+
+  const bookingState = useSelector((state) => state.booking);
+  const movieDetails = bookingState.movieDetails;
+  console.log("SeatSelectionPage: Full booking state from Redux on render:", bookingState); // Debugging line
+  console.log("SeatSelectionPage: movieDetails from Redux on render:", movieDetails); // Debugging line
 
   const movie = movieDetails || {
     name: 'Movie Title N/A',
@@ -44,8 +49,12 @@ function SeatSelectionPage() {
   const [selectedSeatsState, setSelectedSeatsState] = useState([]);
 
   useEffect(() => {
+    console.log("SeatSelectionPage useEffect: roomId from navigation state:", roomId);
     const fetchRoomData = async () => {
-      if (!roomId) return;
+      if (!roomId) {
+        console.warn("SeatSelectionPage: No roomId found in navigation state. Cannot fetch room data.");
+        return;
+      }
 
       try {
         const token = localStorage.getItem('token');
@@ -58,8 +67,9 @@ function SeatSelectionPage() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Failed to load seat data");
         setRoomDataState(data.room);
+        console.log("SeatSelectionPage: Fetched room data:", data.room);
       } catch (err) {
-        console.error("❌ Error fetching room:", err.message);
+        console.error("❌ SeatSelectionPage: Error fetching room:", err.message);
       }
     };
 
@@ -98,9 +108,12 @@ function SeatSelectionPage() {
   };
 
   const handleSeatSelectionContinue = () => {
+    const seatsToDispatch = selectedSeatsState;
+    const totalPriceToDispatch = getTotalPrice();
+    console.log("SeatSelectionPage: Dispatching setSelectedSeats with seats:", seatsToDispatch, "totalPrice:", totalPriceToDispatch);
     dispatch(setSelectedSeats({
-      seats: selectedSeatsState,
-      totalPrice: getTotalPrice(),
+      seats: seatsToDispatch,
+      totalPrice: totalPriceToDispatch,
     }));
 
     navigate('/combo-selection');
@@ -117,7 +130,10 @@ function SeatSelectionPage() {
     <div className="bg-black min-h-screen text-white px-6 py-10">
       <div className="bg-[#1a1a1a] max-w-4xl mx-auto p-6 rounded">
         <div className="mb-6">
-          <button onClick={handleBack} className="text-sm text-white bg-gray-700 hover:bg-gray-600 px-4 py-1 rounded">
+          <button
+            onClick={handleBack}
+            className="text-sm text-white bg-gray-700 hover:bg-gray-600 px-4 py-1 rounded"
+          >
             ← Back
           </button>
         </div>
@@ -125,11 +141,15 @@ function SeatSelectionPage() {
         <h1 className="text-2xl font-bold text-center mb-8">SELECT YOUR SEATS</h1>
 
         <div className="flex gap-4 mb-6 items-center">
-          <img src={movie.image_url} alt={movie.name} className="w-[120px] h-[180px] object-cover rounded" />
+          <img
+            src={movie.image_url}
+            alt={movie.name}
+            className="w-[120px] h-[180px] object-cover rounded"
+          />
           <div className="flex-1 space-y-1">
             <h2 className="text-2xl font-bold text-white">{movie.name}</h2>
             <p className="text-gray-300 text-sm">
-              {movie.version} • {formattedRunningTime} • {movie.genres?.join(', ') || 'N/A'}
+              {movie.version} • {formattedRunningTime} • {movie.genres && movie.genres.length > 0 ? movie.genres.join(', ') : 'N/A'}
             </p>
             <p className="text-gray-300 text-sm">
               {movie.time} • {displayCinemaRoomName}
@@ -155,6 +175,7 @@ function SeatSelectionPage() {
                     <div className="w-8 flex items-center justify-center">
                       <span className="text-slate-400 font-bold text-sm">{rowLetter}</span>
                     </div>
+
                     <div className="flex gap-2 justify-center">
                       {[...Array(roomData.columns)].map((_, cIdx) => {
                         const seat = rowSeats.find((s) => Number(s.column) === cIdx + 1);
@@ -172,6 +193,7 @@ function SeatSelectionPage() {
                         );
                       })}
                     </div>
+
                     <div className="w-8 flex items-center justify-center">
                       <span className="text-slate-400 font-bold text-sm">{rowLetter}</span>
                     </div>
@@ -195,7 +217,7 @@ function SeatSelectionPage() {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-lg border-2 border-amber-300 flex items-center justify-center">
-                  <Crown className="w-3 h-3 text-gray-900" />
+                  <Crown className="w-3 h-3" />
                 </div>
                 <span className="text-slate-300 text-sm font-medium">VIP</span>
               </div>

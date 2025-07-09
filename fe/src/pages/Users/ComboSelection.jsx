@@ -8,7 +8,7 @@
 
   // Redux imports
   import { useSelector, useDispatch } from 'react-redux';
-  import { setSelectedCombos } from '../../redux/bookingSlice';
+  import { setSelectedCombos } from '../../redux/bookingSlice'; // Ensure this path is correct
 
   // Make sure this path is correct relative to where ComboSelection.jsx is located
   import darkknight from '../../assets/darkknight.jpg';
@@ -39,7 +39,9 @@
     const dispatch = useDispatch();
 
     // Redux state
-    const { movieDetails, selectedSeats, totalSeatPrice } = useSelector((state) => state.booking);
+    const bookingState = useSelector((state) => state.booking);
+    const { movieDetails, selectedSeats, totalSeatPrice } = bookingState;
+    console.log("ComboSelection: Redux state.booking on render:", bookingState); // Debugging line
 
     // Component states
     const [combos, setCombos] = useState([]);
@@ -68,6 +70,7 @@
 
     // Fetch Combo Data from API on component mount
     useEffect(() => {
+      console.log("ComboSelection useEffect (initial mount/re-render): movieDetails:", movieDetails, "selectedSeats:", selectedSeats, "totalSeatPrice:", totalSeatPrice); // Debugging line
       const fetchCombos = async () => {
         try {
           setLoadingCombos(true);
@@ -105,7 +108,7 @@
       };
 
       fetchCombos();
-    }, []);
+    }, []); // Empty dependency array means this runs once on mount
 
     // Update quantity handler
     const updateQuantity = (id, delta) => {
@@ -120,9 +123,10 @@
 
     // Redirect if essential data is missing (optional - keep for robustness)
     useEffect(() => {
+      console.log("ComboSelection useEffect (data check): movieDetails:", movieDetails, "selectedSeats:", selectedSeats, "totalSeatPrice:", totalSeatPrice); // Debugging line before check
       if (!movieDetails || !selectedSeats || totalSeatPrice === undefined) {
-        console.warn("Missing essential booking details in Redux. Consider redirecting to a previous step.");
-        // navigate('/');
+        console.warn("ComboSelection: Missing essential booking details in Redux. Consider redirecting to a previous step.");
+        // navigate('/'); // Uncomment to redirect to home or an error page
       }
     }, [movieDetails, selectedSeats, totalSeatPrice, navigate]);
 
@@ -136,6 +140,7 @@
         quantity: quantities[combo.id]
       }));
 
+      console.log("ComboSelection: Dispatching setSelectedCombos with combos:", selectedCombosWithQuantity, "totalPrice:", totalComboPrice); // Debugging line
       dispatch(setSelectedCombos({
         combos: selectedCombosWithQuantity,
         totalPrice: totalComboPrice,
