@@ -207,7 +207,7 @@ comingSoonInterval = setInterval(() => {
 
       {/* Now Showing */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">The movie : <span className="text-red-500">Currently showing</span></h2>
+        <h2 className="text-xl font-semibold mb-4">The movie : <span className="text-red-500">Now showing</span></h2>
         {renderSlidingMovieList(nowShowingMovies, nowShowingIndex, setNowShowingIndex)}
       </div>
 
