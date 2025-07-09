@@ -133,6 +133,7 @@ function ShowtimePage() {
 
         navigate(`/select-seats`, {
             state: {
+                movieId: movieDetailsFromCard._id,
                 roomId: cinemaRoom,
                 movieDetails: {
                     name: movieDetailsFromCard.name,
@@ -150,7 +151,7 @@ function ShowtimePage() {
 
     return (
         <div className="bg-black min-h-screen text-white">
-
+            
             <div className="pt-24 invisible">Spacer cho navbar</div>
 
 
@@ -184,7 +185,7 @@ function ShowtimePage() {
                 </div>
             </div>
 
-
+            
             <div className="pt-44 px-6 pb-10" style={{ zIndex: 10 }}> {/* Giảm z-index của phần nội dung */}
                 <div className="grid grid-cols-1 gap-6">
                     {movies.length > 0 ? (
