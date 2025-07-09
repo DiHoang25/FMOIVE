@@ -47,19 +47,21 @@ export const fetchAllMovies = createAsyncThunk(
 
 
 function escapeRegExp(string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
 }
 
-const movieSearchSlice = createSlice({
-  name: 'movieSearch',
-  initialState: {
+const initialState = {
     movies: [],
     filteredMovies: [],
     loading: false,
     error: null,
     searchTerm: '',
     currentPage: 0,
-  },
+};
+
+const movieSearchSlice = createSlice({
+  name: 'movieSearch',
+  initialState,
   reducers: {
     setSearchTerm: (state, action) => {
       state.searchTerm = action.payload;
@@ -85,10 +87,13 @@ const movieSearchSlice = createSlice({
     setCurrentPage: (state, action) => {
       state.currentPage = action.payload;
     },
+    resetSearchState: (state) => {
+      return initialState; 
+    }
   },
   extraReducers: (builder) => {
     builder
-      // Xử lý searchMovies
+      
       .addCase(searchMovies.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -119,5 +124,5 @@ const movieSearchSlice = createSlice({
   },
 });
 
-export const { setSearchTerm, setCurrentPage } = movieSearchSlice.actions;
+export const { setSearchTerm, setCurrentPage, resetSearchState } = movieSearchSlice.actions;
 export default movieSearchSlice.reducer;
