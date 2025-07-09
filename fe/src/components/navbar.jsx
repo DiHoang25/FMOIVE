@@ -1,11 +1,14 @@
 import { useState, useRef, useEffect } from "react"
 import { ChevronDown } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 import { FaHome } from 'react-icons/fa'
 
 const Navbar = () => {
+  const location = useLocation();
+  const isShowtimePage = location.pathname === '/showtimes';
+
   return (
-    <div className="flex items-center justify-center bg-white shadow px-4 py-2">
+    <div className={`fixed top-[60px] left-0 right-0 ${isShowtimePage ? 'z-40' : 'z-20'} flex items-center justify-center bg-white shadow px-4 py-2`}>
   <div className="flex space-x-6">
     <NavItem label="Home" icon={<FaHome className="w-4 h-4 text-black" />} showArrow={false} link="/" />
     <NavItem label="Showtimes" showArrow={false} link="/showtimes" />
@@ -15,6 +18,7 @@ const Navbar = () => {
         { label: "Movie Search", href: "/moviesearch" },
         { label: "Movie News", href: "/movienews" },
       ]}
+          isShowtimePage={isShowtimePage}
     />
     <NavItem label="Promotions" showArrow={false} link="/promotions" />
     <NavItem label="Contact" showArrow={false} link="/contact" />
@@ -24,10 +28,10 @@ const Navbar = () => {
         { label: "Account", href: "/viewaccount" },
         { label: "Customer benefits", href: "/customer-benefits" },
       ]}
+          isShowtimePage={isShowtimePage}
     />
   </div>
 </div>
-
   )
 }
 
@@ -42,7 +46,7 @@ const NavItem = ({ label, showArrow = true, link = "#", icon = null }) => (
   </Link>
 )
 
-const DropdownItem = ({ label, items }) => {
+const DropdownItem = ({ label, items, isShowtimePage }) => {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef(null)
   const timeoutRef = useRef(null)
@@ -81,7 +85,7 @@ const DropdownItem = ({ label, items }) => {
       </div>
 
       {isOpen && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-44 bg-white text-black shadow-lg rounded-md border border-gray-200 z-50 animate-in fade-in-0 zoom-in-95 duration-200">
+        <div className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 w-44 bg-white text-black shadow-lg rounded-md border border-gray-200 ${isShowtimePage ? 'z-50' : 'z-30'} animate-in fade-in-0 zoom-in-95 duration-200`}>
           <ul className="py-2">
             {items.map((item, index) => (
               <li key={index}>
@@ -102,3 +106,4 @@ const DropdownItem = ({ label, items }) => {
 }
 
 export default Navbar
+
