@@ -1,8 +1,7 @@
-// src/pages/Users/PaymentStatusPage.jsx
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { resetBooking } from '../../redux/bookingSlice'; // Cần thêm action này vào bookingSlice
+import { resetBooking } from '../../redux/bookingSlice'; // Đảm bảo action này được định nghĩa
 
 const PaymentStatusPage = () => {
     const location = useLocation();
@@ -14,28 +13,32 @@ const PaymentStatusPage = () => {
 
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search);
-        const vnp_ResponseCode = queryParams.get('vnp_ResponseCode');
-        const vnp_TransactionStatus = queryParams.get('vnp_TransactionStatus');
-        const vnp_TxnRef = queryParams.get('vnp_TxnRef'); // Mã giao dịch của bạn
+        const statusParam = queryParams.get('vnp_ResponseCode'); // Lấy vnp_ResponseCode
+        const transactionStatusParam = queryParams.get('vnp_TransactionStatus'); // Lấy vnp_TransactionStatus
+        const txnRefParam = queryParams.get('vnp_TxnRef'); // Lấy vnp_TxnRef (chính là bookingId của bạn)
 
-        // Trong một hệ thống thực tế, bạn sẽ gửi vnp_TxnRef (hoặc bookingId từ OrderInfo)
-        // và vnp_Amount, v.v. trở lại backend để xác nhận cuối cùng
-        // bằng API truy vấn của VNPAY (vnp_Api).
-        // Tuy nhiên, vì VNPAY IPN đã xử lý cập nhật trạng thái,
-        // trang này chỉ cần hiển thị kết quả từ URL.
+        setBookingRef(txnRefParam || 'N/A');
 
-        setBookingRef(vnp_TxnRef || 'N/A');
-
-        if (vnp_ResponseCode === '00' && vnp_TransactionStatus === '00') {
+        // Logic hiển thị trạng thái dựa trên VNPAY Response Code và Transaction Status
+        if (statusParam === '00' && transactionStatusParam === '00') {
             setPaymentStatus('Payment Successful!');
-            setMessage('Your booking has been confirmed.');
+            setMessage('Your booking has been successfully confirmed and paid.');
             // Reset booking state trong Redux sau khi thanh toán thành công
             dispatch(resetBooking());
         } else {
             setPaymentStatus('Payment Failed or Cancelled');
-            // Bạn có thể parse các mã lỗi VNPAY chi tiết hơn ở đây
-            setMessage(`Payment could not be completed. Response Code: ${vnp_ResponseCode}. Transaction Status: ${vnp_TransactionStatus}.`);
+            let errorMessage = `Payment could not be completed.`;
+            if (statusParam) errorMessage += ` VNPAY Response Code: ${statusParam}.`;
+            if (transactionStatusParam) errorMessage += ` Transaction Status: ${transactionStatusParam}.`;
+            // Bạn có thể thêm các thông báo chi tiết hơn dựa vào bảng mã lỗi VNPAY nếu muốn
+            setMessage(errorMessage);
         }
+
+        // Tùy chọn: Sau khi hiển thị trạng thái, bạn có thể chuyển hướng sau một thời gian
+        // setTimeout(() => {
+        //     navigate('/user-bookings');
+        // }, 5000); // Ví dụ: chuyển hướng sau 5 giây
+        
     }, [location.search, dispatch]);
 
     const handleGoToBookings = () => {
