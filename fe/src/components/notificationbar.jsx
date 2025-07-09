@@ -18,7 +18,7 @@ const NotificationBar = () => {
 
   return (
     <div
-      className="static top-0 left-0 right-0 z-50 shadow-lg px-0"
+      className="fixed top-0 left-0 right-0 z-30 shadow-lg px-0"
       style={{
         backgroundImage: `url(${bgImage})`,
         backgroundSize: 'cover',
@@ -32,7 +32,7 @@ const NotificationBar = () => {
           <img src={logo} alt="Logo" className="h-12 object-contain" />
         </Link>
 
-        {/* User section */}
+        
         <div className="flex items-center space-x-4">
           {user ? (
             <>
