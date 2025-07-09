@@ -1,20 +1,16 @@
 const mongoose = require('mongoose');
 
-const BookingSchema = new mongoose.Schema({
-     bookingId: {
-        type: String,
-        unique: true, // <--- Giữ unique
-        required: true // <--- Đảm bảo nó luôn có giá trị, không thể null
-    },
+const bookingSchema = new mongoose.Schema({
+    bookingId: { type: String}, // Đảm bảo trường này có
     movieDetails: {
-        movieId: { type: mongoose.Schema.Types.ObjectId, ref: 'Movie', required: true },
+        movieId: { type: String },
         name: { type: String, required: true },
         image_url: { type: String },
         version: { type: String },
         running_time: { type: Number },
         genres: [{ type: String }],
         time: { type: Date, required: true },
-        cinema_room: { type: String, required: true }
+        cinema_room: { type: String, required: true },
     },
     selectedSeats: [{ type: String, required: true }],
     totalSeatPrice: { type: Number, required: true },
@@ -24,21 +20,50 @@ const BookingSchema = new mongoose.Schema({
             name: { type: String },
             quantity: { type: Number },
             price: { type: Number },
-            image_url: { type: String }
+            imageUrl: { type: String }
         }
     ],
     totalComboPrice: { type: Number, default: 0 },
     grandTotal: { type: Number, required: true },
+
     user: {
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+        _id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        name: { type: String, required: true },
+        email: { type: String, required: true },
+        phone: { type: String },
+        username: { type: String },
+        gender: { type: String },
+        address: { type: String },
+        id_card: { type: String }
     },
-    bookingStatus: { type: String, default: 'pending', enum: ['pending', 'confirmed', 'cancelled'] },
-    paymentStatus: { type: String, default: 'pending', enum: ['pending', 'paid', 'failed'] },
-    paymentMethod: { type: String, enum: ['VNPAY', 'MoMo', 'Credit Card', null], default: null },
-    paymentTransactionId: { type: String, default: null },
-    bookingDate: { type: Date, default: Date.now }
-}, {
-    timestamps: true
+    status: {
+        type: String,
+        enum: ['PENDING_PAYMENT', 'PAID', 'CANCELLED', 'COMPLETED', 'FAILED'], // Thêm 'FAILED'
+        default: 'PENDING_PAYMENT',
+    },
+    // Thêm trường paymentDetails để lưu thông tin từ VNPAY
+    paymentDetails: {
+        vnp_Amount: { type: Number },
+        vnp_BankCode: { type: String },
+        vnp_CardType: { type: String },
+        vnp_OrderInfo: { type: String },
+        vnp_PayDate: { type: String }, // YYYYMMDDHHmmss
+        vnp_ResponseCode: { type: String },
+        vnp_TmnCode: { type: String },
+        vnp_TransactionNo: { type: String },
+        vnp_TransactionStatus: { type: String },
+        vnp_TxnRef: { type: String },
+        vnp_SecureHash: { type: String },
+        message: { type: String }, // Trường để lưu thêm thông tin lỗi nếu có
+    },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model('Booking', BookingSchema);
+bookingSchema.pre('save', function (next) {
+    this.updatedAt = Date.now();
+    next();
+});
+
+const Booking = mongoose.model('Booking', bookingSchema);
+module.exports = Booking;

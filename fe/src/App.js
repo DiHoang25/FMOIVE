@@ -5,6 +5,8 @@ import RequireRole from './components/RequireRole';
 
 import { Provider } from 'react-redux';
 import { store } from './redux/store'; // Adjust the path to your store file
+import {  persistor } from './redux/store'; // Import the persistor
+import { PersistGate } from 'redux-persist/integration/react'; 
 
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import UsersDashboard from './pages/Users/UsersDashboard';
@@ -79,6 +81,7 @@ import AddProduct from './pages/Employee/AddProduct';
 import ViewProduct from './pages/Employee/ViewProduct';
 import EditProduct from './pages/Employee/EditProduct';
 import PublicRouteGuard from './components/PublicRouteGuard';
+import EditCinemaRoom from './pages/Admin/EditCinemaRoom';
 
 
 function AppContent() {
@@ -165,6 +168,8 @@ function AppContent() {
           <Route path="/admin/add-movienews" element={<RequireRole allowedRoles={['admin']}><AddMovieNews /></RequireRole>} />
           <Route path="/admin/movienews-list" element={<RequireRole allowedRoles={['admin']}><MovieNewsList /></RequireRole>} />
           <Route path="/admin/edit-movienews/:id" element={<RequireRole allowedRoles={['admin']}><EditMovieNews /></RequireRole>} />
+          <Route path="/admin/edit-cinema-room/:roomId" element={<RequireRole allowedRoles={['admin']}><EditCinemaRoom /></RequireRole>} />
+
           {/* Employee */}
           <Route path="/employee" element={<RequireRole allowedRoles={['employee']}><EmployeeDashboard /></RequireRole>} />
           <Route path="/employee/employee-profile" element={<RequireRole allowedRoles={['employee']}><EmployeeProfile /></RequireRole>} />
@@ -192,14 +197,31 @@ function AppContent() {
     </>
   );
 }
+
 function App() {
+  console.log("App.js: Rendering App component.");
+
   return (
     <Provider store={store}> {/* Wrap your entire application with the Redux Provider */}
-      <BrowserRouter>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </BrowserRouter>
+      {/* PersistGate delays rendering your app's UI until your persisted state has been rehydrated.
+          'loading={null}' means no loading component is shown while rehydrating.
+          You could replace 'null' with a <LoadingSpinner /> component if you want. */}
+      <PersistGate
+        loading={null}
+        persistor={persistor}
+        onBeforeLift={() => {
+          console.log("App.js: PersistGate onBeforeLift - State is about to be rehydrated.");
+        }}
+        onRehydrated={() => {
+          console.log("App.js: PersistGate onRehydrated - State has been rehydrated.");
+        }}
+      >
+        <BrowserRouter>
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
+        </BrowserRouter>
+      </PersistGate>
     </Provider>
   );
 }

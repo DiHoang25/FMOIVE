@@ -5,8 +5,8 @@ import { message } from 'antd'; // Import message for notifications
 
 // Redux imports
 import { useSelector, useDispatch } from 'react-redux';
-import { updateGrandTotal } from '../../redux/bookingSlice'; // Keeping your specified path
-import { setUser } from '../../redux/bookingSlice'; // Assuming you add a setUser action to your bookingSlice
+import { updateGrandTotal } from '../../redux/bookingSlice';
+import { setUser } from '../../redux/bookingSlice';
 
 // Use a placeholder image if movie.image_url is not available
 import defaultPoster from '../../assets/batman.png'; // Make sure this path is correct
@@ -25,172 +25,225 @@ const ConfirmBooking = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [voucherCode, setVoucherCode] = useState('');
-  const [voucherDiscount, setVoucherDiscount] = useState(0); // State for voucher discount
+    const [voucherCode, setVoucherCode] = useState('');
+    const [voucherDiscount, setVoucherDiscount] = useState(0);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [error, setError] = useState('');
 
-  // Destructure all the data from Redux store
-  const {
-    movieDetails,
-    selectedSeats,
-    totalSeatPrice,
-    selectedCombos,
-    totalComboPrice,
-    user, // Get user from Redux
-  } = useSelector((state) => state.booking);
+    const {
+        movieDetails,
+        selectedSeats,
+        totalSeatPrice,
+        selectedCombos,
+        totalComboPrice,
+        user, // Get user from Redux
+    } = useSelector((state) => state.booking);
 
-  // Set up variables for display, with fallbacks for direct page access or missing data
-  const movie = movieDetails || {
-    name: 'Movie Title N/A',
-    image_url: defaultPoster,
-    version: 'N/A',
-    running_time: 'N/A',
-    time: 'N/A',
-    cinema_room: 'N/A',
-    genres: [],
-  };
-
-  const seats = selectedSeats || [];
-  const combos = selectedCombos || [];
-  const userData = user || {
-    name: 'N/A',
-    email: 'N/A',
-    id: 'N/A',
-    phone: 'N/A',
-    // Add other user fields from your database if needed
-    username: 'N/A',
-    gender: 'N/A',
-    address: 'N/A',
-    id_card: 'N/A',
-  };
-
-  // Calculate the grand total on this page, considering potential voucher discounts
-  const calculatedTicketPrice = totalSeatPrice || 0;
-  const calculatedCombosTotal = totalComboPrice || 0;
-
-
-  const grandTotalAfterDiscount = (calculatedTicketPrice +  calculatedCombosTotal - voucherDiscount);
-
-  // Update Redux store's grandTotal whenever the calculation changes
-  useEffect(() => {
-    dispatch(updateGrandTotal(grandTotalAfterDiscount));
-  }, [grandTotalAfterDiscount, dispatch]);
-
-  // Helper function to format the movie time string for display (Updated)
-  const formatMovieTime = (timeString) => {
-      if (!timeString || timeString === 'N/A') return { display: 'N/A' };
-
-      const dateObj = new Date(timeString);
-
-      if (isNaN(dateObj.getTime())) {
-          const parts = timeString.split(', ');
-          const timePart = parts[parts.length - 1].trim();
-          const datePartArray = parts.slice(0, parts.length - 1).filter(part => !/\d{4}/.test(part.trim()));
-          const datePart = datePartArray.join(', ').trim();
-          return { display: `${timePart}, ${datePart}` };
-      }
-
-      const dateOptions = { weekday: 'long', month: 'long', day: 'numeric' };
-      const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
-
-      const formattedDate = dateObj.toLocaleDateString('en-US', dateOptions);
-      const formattedTime = dateObj.toLocaleTimeString('en-US', timeOptions);
-
-      return { display: `${formattedTime}, ${formattedDate}` };
-  };
-  const formattedTime = formatMovieTime(movie.time);
-  const displayCinemaRoomName = formatCinemaRoomName(movie.cinema_room); // Formatted cinema room name
-
-  // Simulate fetching user data from a backend or local storage and dispatching to Redux
-  // In a real app, this might happen on login or a dedicated user profile page
-  useEffect(() => {
-    const fetchAndSetUserData = async () => {
-      const token = localStorage.getItem('token'); // Get token if available
-      if (token) {
-        try {
-          // Replace with your actual API endpoint for fetching user details
-          const response = await axios.get('http://localhost:5000/api/user/profile', {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          const fetchedUser = response.data.user; // Assuming user data is in response.data.user
-
-          // Dispatch the fetched user data to Redux
-          dispatch(setUser({
-            name: fetchedUser.fullname,
-            email: fetchedUser.email,
-            id: fetchedUser.id_card, // Using id_card as ID
-            phone: fetchedUser.phone,
-            username: fetchedUser.username,
-            gender: fetchedUser.gender,
-            address: fetchedUser.address,
-            // Add other necessary fields
-          }));
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-          // message.error('Failed to load user data.');
-        }
-      }
+    const movie = movieDetails || {
+        name: 'Movie Title N/A',
+        image_url: defaultPoster,
+        version: 'N/A',
+        running_time: 'N/A',
+        time: 'N/A',
+        cinema_room: 'N/A',
+        genres: [],
     };
-    fetchAndSetUserData();
-  }, [dispatch]); // Only run once on component mount
 
-  const handleProceedToPayment = async () => {
-    // Simulate updating user info in the database
-    // This is a placeholder for your actual backend API call to update user profile
-    try {
-      const token = localStorage.getItem('token');
-      if (token && user && user.id) { // Ensure user data and ID are available
-        const userId = user.id; // Or user.userId if that's the ID for your user update endpoint
+    const seats = selectedSeats || [];
+    const combos = selectedCombos || [];
+    const userData = user || { // Make sure userData always has a structure, even if default
+        name: 'N/A',
+        email: 'N/A',
+        phone: 'N/A',
+        username: 'N/A',
+        gender: 'N/A',
+        address: 'N/A',
+        id_card: 'N/A',
+        _id: null, // It's crucial that user._id is available if you want to include it.
+    };
 
-        // Example: Only update fields that might change or need to be consistent
-        const userUpdatePayload = {
-          fullname: userData.name,
-          email: userData.email,
-          phone: userData.phone,
-          address: userData.address,
-          // Add other fields you want to update
+    const calculatedTicketPrice = totalSeatPrice || 0;
+    const calculatedCombosTotal = totalComboPrice || 0;
+    const grandTotalAfterDiscount = (calculatedTicketPrice + calculatedCombosTotal - voucherDiscount);
+
+    useEffect(() => {
+        dispatch(updateGrandTotal(grandTotalAfterDiscount));
+    }, [grandTotalAfterDiscount, dispatch]);
+
+    const formatMovieTime = (timeString) => {
+        if (!timeString || timeString === 'N/A') return { display: 'N/A' };
+        const dateObj = new Date(timeString);
+        if (isNaN(dateObj.getTime())) {
+            const parts = timeString.split(', ');
+            const timePart = parts[parts.length - 1].trim();
+            const datePartArray = parts.slice(0, parts.length - 1).filter(part => !/\d{4}/.test(part.trim()));
+            const datePart = datePartArray.join(', ').trim();
+            return { display: `${timePart}, ${datePart}` };
+        }
+        const dateOptions = { weekday: 'long', month: 'long', day: 'numeric' };
+        const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
+        const formattedDate = dateObj.toLocaleDateString('en-US', dateOptions);
+        const formattedTime = dateObj.toLocaleTimeString('en-US', timeOptions);
+        return { display: `${formattedTime}, ${formattedDate}` };
+    };
+    const formattedTime = formatMovieTime(movie.time);
+
+    const [roomName, setRoomName] = useState('Loading...');
+    useEffect(() => {
+        const fetchRoomName = async () => {
+            if (!movie.cinema_room) return;
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`http://localhost:5000/api/theater/rooms/${movie.cinema_room}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Failed to fetch room');
+                setRoomName(data.room?.roomName || movie.cinema_room);
+            } catch (error) {
+                console.error('❌ Error fetching room name:', error.message);
+                setRoomName(movie.cinema_room);
+            }
         };
+        fetchRoomName();
+    }, [movie.cinema_room]);
 
-        // Replace with your actual user update API endpoint
-        // Assuming your user update endpoint is something like /api/users/{userId}
-        await axios.patch(`http://localhost:5000/api/users/${userId}`, userUpdatePayload, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        message.success('User information updated successfully in database!');
-      }
-    } catch (error) {
-      console.error('Error updating user info in database:', error);
-      message.error('Failed to update user information in database.');
-      // Decide if you want to stop the payment process here or allow it to continue
-      // For now, it will continue to payment page even if user update fails.
-    }
+    useEffect(() => {
+        const fetchAndSetUserData = async () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const response = await axios.get('http://localhost:5000/api/user/profile', {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    const fetchedUser = response.data.user;
 
-    // Navigate to payment page
-    navigate('/payment');
-  };
+                    dispatch(setUser({
+                        name: fetchedUser.fullname,
+                        email: fetchedUser.email,
+                        _id: fetchedUser._id, // Quan trọng: lấy _id của user từ backend
+                        phone: fetchedUser.phone,
+                        username: fetchedUser.username,
+                        gender: fetchedUser.gender,
+                        address: fetchedUser.address,
+                        id_card: fetchedUser.id_card,
+                    }));
+                } catch (error) {
+                    console.error('Error fetching user data:', error);
+                }
+            }
+        };
+        fetchAndSetUserData();
+    }, [dispatch]);
+
+    const handleProceedToPayment = async () => {
+        if (isProcessing) return;
+
+        // Ensure movieDetails has _id, not just 'id' for movieDetails.movieId
+        // if (!movieDetails || !movieDetails._id || !movieDetails.time || !movieDetails.cinema_room ||
+        //     !seats || seats.length === 0 || totalSeatPrice === undefined || totalSeatPrice < 0 ||
+        //     !userData || !userData._id || !userData.email) { // Ensure full userData is available
+        //     setError('Missing essential booking or user details. Please go back and re-select.');
+        //     message.error('Missing essential booking or user details. Please go back and re-select.');
+        //     return;
+        // }
+
+        setIsProcessing(true);
+        setError('');
+
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setError('Authentication token missing. Please log in again.');
+                message.error('Authentication token missing. Please log in again.');
+                setIsProcessing(false);
+                return;
+            }
+
+            const bookingPayload = {
+                bookingId: null, // Will be set by backend
+                movieDetails: {
+                    movieId: movieDetails._id, // Use _id from movieDetails
+                    name: movieDetails.name,
+                    imageUrl: movieDetails.image_url,
+                    version: movieDetails.version,
+                    runningTime: movieDetails.running_time,
+                    genres: movieDetails.genres,
+                    time: movieDetails.time,
+                    cinema_room: movieDetails.cinema_room,
+                },
+                selectedSeats: seats,
+                totalSeatPrice: calculatedTicketPrice,
+                ...(selectedCombos && selectedCombos.length > 0 && {
+                    selectedCombos: selectedCombos.map(c => ({
+                        comboId: c._id,
+                        name: c.name,
+                        quantity: c.quantity,
+                        price: c.price,
+                        imageUrl: c.image_url
+                    })),
+                    totalComboPrice: calculatedCombosTotal,
+                }),
+                grandTotal: grandTotalAfterDiscount,
+                // GỬI TOÀN BỘ THÔNG TIN NGƯỜI DÙNG TỪ REDUX
+                user: { // Đảm bảo cấu trúc này khớp với schema của bạn ở backend
+                    _id: userData._id, // _id của người dùng từ MongoDB
+                    name: userData.name,
+                    email: userData.email,
+                    phone: userData.phone,
+                    username: userData.username,
+                    gender: userData.gender,
+                    address: userData.address,
+                    id_card: userData.id_card,
+                }
+            };
+
+            const response = await axios.post('http://localhost:5000/api/booking/create', bookingPayload, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.status === 201) {
+                message.success('Booking created successfully! Redirecting to payment...');
+                const createdBooking = response.data.booking;
+                navigate('/payment', { state: { bookingId: createdBooking.bookingId, grandTotal: createdBooking.grandTotal } });
+            } else {
+                setError(response.data.message || 'Failed to create booking.');
+                message.error(response.data.message || 'Failed to create booking.');
+            }
+        } catch (err) {
+            console.error('Error during booking creation:', err);
+            setError(err.response?.data?.message || 'An unexpected error occurred. Please try again.');
+            message.error(err.response?.data?.message || 'An unexpected error occurred. Please try again.');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
 
   return (
     <div className="min-h-screen bg-black text-white py-10 px-4">
       <div className="max-w-5xl mx-auto bg-neutral-900 rounded-xl p-6 shadow-lg relative">
         <h1 className="text-2xl font-bold text-center mb-8">CONFIRM YOUR BOOKING</h1>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Left: Movie + Seats + Combos */}
-          <div>
-            {/* Movie info */}
-            <div className="flex gap-4">
-              <img src={movie.image_url} alt={movie.name} className="w-32 h-48 rounded-md object-cover" />
-              <div>
-                <h2 className="text-xl font-semibold">{movie.name}</h2>
-                <p className="text-gray-400">
-                  {movie.version || 'N/A'} • {movie.running_time} min • {movie.genres && movie.genres.length > 0 ? movie.genres.join(', ') : 'N/A'}
-                </p>
-                <p className="text-gray-400">{displayCinemaRoomName}</p> {/* Using formatted cinema room name */}
-                <p className="text-gray-400">{formattedTime.display}</p>
-              </div>
-            </div>
+                <div className="grid md:grid-cols-2 gap-6">
+                    {/* Left: Movie + Seats + Combos */}
+                    <div>
+                        {/* Movie info */}
+                        <div className="flex gap-4">
+                            <img src={movie.image_url || defaultPoster} alt={movie.name} className="w-32 h-48 rounded-md object-cover" />
+                            <div>
+                                <h2 className="text-xl font-semibold">{movie.name}</h2>
+                                <p className="text-gray-400">
+                                    {movie.version || 'N/A'} • {movie.running_time} min • {movie.genres && movie.genres.length > 0 ? movie.genres.join(', ') : 'N/A'}
+                                </p>
+                                <p className="text-gray-400">{roomName}</p>
+                                <p className="text-gray-400">{formattedTime.display}</p>
+                            </div>
+                        </div>
 
             {/* Seat selection */}
             <h3 className="text-red-500 font-semibold mt-6">Seat Selection</h3>
@@ -228,65 +281,63 @@ const ConfirmBooking = () => {
             )}
           </div>
 
-          {/* Right: Info + Summary */}
-          <div>
-            {/* User info */}
-            <h3 className="text-red-500 font-semibold">Your Information</h3>
-            <div className="text-sm border-t border-gray-600 mt-1 pt-2 space-y-1">
-              <p><span className="text-gray-400">Full Name:</span> {userData.name}</p>
-              <p><span className="text-gray-400">Email:</span> {userData.email}</p>
-              <p><span className="text-gray-400">ID Number:</span> {userData.id}</p>
-              <p><span className="text-gray-400">Phone:</span> {userData.phone}</p>
-              {/* Add other user details from Redux/fetched data */}
-              <p><span className="text-gray-400">Username:</span> {userData.username}</p>
-              <p><span className="text-gray-400">Gender:</span> {userData.gender}</p>
-              <p><span className="text-gray-400">Address:</span> {userData.address}</p>
-            </div>
+                    {/* Right: Info + Summary */}
+                    <div>
+                        {/* User info */}
+                        <h3 className="text-red-500 font-semibold">Your Information</h3>
+                        <div className="text-sm border-t border-gray-600 mt-1 pt-2 space-y-1">
+                            <p><span className="text-gray-400">Full Name:</span> {userData.name}</p>
+                            <p><span className="text-gray-400">Email:</span> {userData.email}</p>
+                            <p><span className="text-gray-400">ID Number:</span> {userData.id_card || 'N/A'}</p>
+                            <p><span className="text-gray-400">Phone:</span> {userData.phone}</p>
+                            <p><span className="text-gray-400">Username:</span> {userData.username}</p>
+                            <p><span className="text-gray-400">Gender:</span> {userData.gender}</p>
+                            <p><span className="text-gray-400">Address:</span> {userData.address}</p>
+                        </div>
 
-            {/* Voucher Input */}
-            <h3 className="text-red-500 font-semibold mt-6">Voucher Code</h3>
-            <div className="flex mt-2 gap-2">
-              <input
-                type="text"
-                placeholder="Enter voucher code"
-                value={voucherCode}
-                onChange={(e) => setVoucherCode(e.target.value)}
-                className="bg-zinc-800 text-white px-4 py-2 rounded w-full text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
-              />
-              <button
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium"
-                // Implement voucher application logic here, updating voucherDiscount state
-              >
-                Apply
-              </button>
-            </div>
+                        {/* Voucher Input */}
+                        <h3 className="text-red-500 font-semibold mt-6">Voucher Code</h3>
+                        <div className="flex mt-2 gap-2">
+                            <input
+                                type="text"
+                                placeholder="Enter voucher code"
+                                value={voucherCode}
+                                onChange={(e) => setVoucherCode(e.target.value)}
+                                className="bg-zinc-800 text-white px-4 py-2 rounded w-full text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
+                            />
+                            <button
+                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium"
+                            >
+                                Apply
+                            </button>
+                        </div>
 
-            {/* Payment summary */}
-            <h3 className="text-red-500 font-semibold mt-6">Payment Summary</h3>
-            <div className="bg-zinc-800 rounded p-4 mt-2 text-sm space-y-1">
-              <div className="flex justify-between">
-                <span>Tickets ({seats.length} {seats.length === 1 ? 'ticket' : 'tickets'})</span>
-                <span>{calculatedTicketPrice.toLocaleString('vi-VN')} VND</span>
-              </div>
-            
-              {combos.length > 0 && (
-                <div className="flex justify-between">
-                  <span>Combos</span>
-                  <span>{calculatedCombosTotal.toLocaleString('vi-VN')} VND</span>
-                </div>
-              )}
-              {voucherDiscount > 0 && (
-                <div className="flex justify-between text-green-400">
-                  <span>Voucher Discount</span>
-                  <span>-{voucherDiscount.toLocaleString('vi-VN')} VND</span>
-                </div>
-              )}
-              <hr className="my-2 border-gray-700" />
-              <div className="flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span>{grandTotalAfterDiscount.toLocaleString('vi-VN')} VND</span>
-              </div>
-            </div>
+                        {/* Payment summary */}
+                        <h3 className="text-red-500 font-semibold mt-6">Payment Summary</h3>
+                        <div className="bg-zinc-800 rounded p-4 mt-2 text-sm space-y-1">
+                            <div className="flex justify-between">
+                                <span>Tickets ({seats.length} {seats.length === 1 ? 'ticket' : 'tickets'})</span>
+                                <span>{calculatedTicketPrice.toLocaleString('vi-VN')} VND</span>
+                            </div>
+
+                            {combos.length > 0 && (
+                                <div className="flex justify-between">
+                                    <span>Combos</span>
+                                    <span>{calculatedCombosTotal.toLocaleString('vi-VN')} VND</span>
+                                </div>
+                            )}
+                            {voucherDiscount > 0 && (
+                                <div className="flex justify-between text-green-400">
+                                    <span>Voucher Discount</span>
+                                    <span>-{voucherDiscount.toLocaleString('vi-VN')} VND</span>
+                                </div>
+                            )}
+                            <hr className="my-2 border-gray-700" />
+                            <div className="flex justify-between font-bold text-lg">
+                                <span>Total</span>
+                                <span>{grandTotalAfterDiscount.toLocaleString('vi-VN')} VND</span>
+                            </div>
+                        </div>
 
             <p className="text-xs text-gray-300 mt-2 bg-zinc-800 rounded p-3">
               You will be redirected to our secure payment gateway after confirmation

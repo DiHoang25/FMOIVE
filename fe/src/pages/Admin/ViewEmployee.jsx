@@ -301,7 +301,7 @@ const ViewEmployees = () => {
                                     <table className="min-w-full divide-y divide-zinc-700">
                                         <thead className="bg-gray-900">
                                             <tr>
-                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">ID #</th>
+                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">ID</th>
                                                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">Username</th>
                                                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">Full Name</th>
                                                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">Email</th>
