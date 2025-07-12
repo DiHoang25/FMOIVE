@@ -18,9 +18,6 @@ const PaymentStatusPage = () => {
 
     const [hasCalledBackend, setHasCalledBackend] = useState(false);
     useEffect(() => {
-        console.count('useEffect triggered'); //debug lỏd
-        if (hasCalledBackend) return; // Gọi 1 lần thôi
-        setHasCalledBackend(true);
         const queryParams = new URLSearchParams(location.search);
         const txnRefParam = queryParams.get('vnp_TxnRef');
         setBookingRef(txnRefParam || 'N/A');
@@ -80,7 +77,7 @@ const PaymentStatusPage = () => {
     }, [location.search, dispatch, navigate]);
 
     const handleGoToBookings = () => {
-        navigate('/user-bookings');
+        navigate('/viewbookedticket'); // Chuyển đến trang lịch sử booking của người dùng
     };
 
     const handleGoHome = () => {

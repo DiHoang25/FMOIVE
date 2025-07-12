@@ -82,7 +82,7 @@ import ViewProduct from './pages/Employee/ViewProduct';
 import EditProduct from './pages/Employee/EditProduct';
 import PublicRouteGuard from './components/PublicRouteGuard';
 import EditCinemaRoom from './pages/Admin/EditCinemaRoom';
-
+import MovieNews from './pages/Movie/MovieNews';
 
 function AppContent() {
   const location = useLocation();
@@ -125,6 +125,7 @@ function AppContent() {
           <Route path="/returns-refunds" element={<PublicRouteGuard><InspectionReturns /></PublicRouteGuard>} />
           <Route path="/movienews/:slug" element={<PublicRouteGuard><MovieNewsDetails /></PublicRouteGuard>} />
           <Route path="/showtimes" element={<PublicRouteGuard><ShowtimePage /></PublicRouteGuard>} />
+          <Route path="/movienews" element={<PublicRouteGuard><MovieNews /></PublicRouteGuard>} />
 
           {/* Customer */}
           {/* <Route path="/Users" element={<RequireRole allowedRoles={['customer']}><UsersDashboard /></RequireRole>} /> */}

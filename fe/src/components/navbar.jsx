@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, Fragment } from "react"
 import { ChevronDown } from "lucide-react"
 import { Link, useLocation } from "react-router-dom"
 import { FaHome } from 'react-icons/fa'
@@ -8,30 +8,36 @@ const Navbar = () => {
   const isShowtimePage = location.pathname === '/showtimes';
 
   return (
-    <div className={`fixed top-[60px] left-0 right-0 ${isShowtimePage ? 'z-40' : 'z-20'} flex items-center justify-center bg-white shadow px-4 py-2`}>
-  <div className="flex space-x-6">
-    <NavItem label="Home" icon={<FaHome className="w-4 h-4 text-black" />} showArrow={false} link="/" />
-    <NavItem label="Showtimes" showArrow={false} link="/showtimes" />
-    <DropdownItem
-      label="Movies"
-      items={[
-        { label: "Movie Search", href: "/moviesearch" },
-        { label: "Movie News", href: "/movienews" },
-      ]}
-          isShowtimePage={isShowtimePage}
-    />
-    <NavItem label="Promotions" showArrow={false} link="/promotions" />
-    <NavItem label="Contact" showArrow={false} link="/contact" />
-    <DropdownItem
-      label="Member"
-      items={[
-        { label: "Account", href: "/viewaccount" },
-        { label: "Customer benefits", href: "/customer-benefits" },
-      ]}
-          isShowtimePage={isShowtimePage}
-    />
-  </div>
-</div>
+    <Fragment>
+      {/* Navbar fixed */}
+      <div className={`fixed top-[60px] left-0 right-0 ${isShowtimePage ? 'z-40' : 'z-20'} flex items-center justify-center bg-white shadow px-4 py-2`}>
+        <div className="flex space-x-6">
+          <NavItem label="Home" icon={<FaHome className="w-4 h-4 text-black" />} showArrow={false} link="/" />
+          <NavItem label="Showtimes" showArrow={false} link="/showtimes" />
+          <DropdownItem
+            label="Movies"
+            items={[
+              { label: "Movie Search", href: "/moviesearch" },
+              { label: "Movie News", href: "/movienews" },
+            ]}
+            isShowtimePage={isShowtimePage}
+          />
+          <NavItem label="Promotions" showArrow={false} link="/promotions" />
+          <NavItem label="Contact" showArrow={false} link="/contact" />
+          <DropdownItem
+            label="Member"
+            items={[
+              { label: "Account", href: "/viewaccount" },
+              { label: "Customer benefits", href: "/customer-benefits" },
+            ]}
+            isShowtimePage={isShowtimePage}
+          />
+        </div>
+      </div>
+
+      {/* Spacer để đẩy nội dung bên dưới xuống, tránh bị đè */}
+      <div className="h-[80px]" />
+    </Fragment>
   )
 }
 
@@ -106,4 +112,3 @@ const DropdownItem = ({ label, items, isShowtimePage }) => {
 }
 
 export default Navbar
-

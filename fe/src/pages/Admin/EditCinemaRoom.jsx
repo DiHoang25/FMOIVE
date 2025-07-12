@@ -62,32 +62,32 @@ const EditCinemaRoom = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}/update-seat-types`, {
+      const res = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}/update-prices`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          vipSeats: [],
-          normalSeats: [],
           normalPrice: formValues.normalPrice,
           vipPrice: formValues.vipPrice
         })
       });
+
       const data = await res.json();
       if (res.ok) {
-        message.success('Cinema room updated successfully.');
+        message.success('Cập nhật giá ghế thành công.');
         navigate('/admin/cinema-rooms');
       } else {
-        message.error(data.message || 'Failed to update room.');
+        message.error(data.message || 'Cập nhật thất bại.');
       }
     } catch (err) {
-      message.error('Error submitting update.');
+      message.error('Lỗi máy chủ khi gửi yêu cầu.');
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <SidebarAdmin>
@@ -118,9 +118,13 @@ const EditCinemaRoom = () => {
                   value={formValues.normalPrice}
                   onChange={value => setFormValues(prev => ({ ...prev, normalPrice: value }))}
                   min={0}
+                  max={1000000}
                   className="w-full"
                   formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
+                  parser={value => value.replace(/\./g, '')}  // 👈 thêm parser xử lý dấu chấm
                 />
+
+
               ) : (
                 <div className="flex justify-between items-center bg-white text-black px-3 py-2 rounded">
                   <span>{formatCurrency(formValues.normalPrice)}</span>
@@ -135,9 +139,12 @@ const EditCinemaRoom = () => {
                   value={formValues.vipPrice}
                   onChange={value => setFormValues(prev => ({ ...prev, vipPrice: value }))}
                   min={0}
+                  max={1000000}
                   className="w-full"
                   formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
+                  parser={value => value.replace(/\./g, '')}
                 />
+
               ) : (
                 <div className="flex justify-between items-center bg-white text-black px-3 py-2 rounded">
                   <span>{formatCurrency(formValues.vipPrice)}</span>

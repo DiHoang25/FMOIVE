@@ -2,9 +2,12 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Monitor, Crown } from "lucide-react";
 import { useSelector, useDispatch } from 'react-redux';
-import { setSelectedSeats, setSelectedCombos } from '../../redux/bookingSlice'; // Ensure this path is correct
+import {
+  setSelectedSeats,
+  setSelectedCombos,
+  setMovieDetails, // ✅ Đã thêm đúng action creator từ slice
+} from '../../redux/bookingSlice';
 
-// Helper function to format minutes into "Xh Ym"
 const formatMinutesToHoursMinutes = (minutes) => {
   if (typeof minutes !== 'number' || minutes < 0) return 'N/A';
   const hours = Math.floor(minutes / 60);
@@ -12,7 +15,6 @@ const formatMinutesToHoursMinutes = (minutes) => {
   return `${hours}h ${remainingMinutes}m`;
 };
 
-// Helper function to format cinema room name (e.g., "ROOM000000016" to "Cinema 16")
 const formatCinemaRoomName = (roomName) => {
   if (!roomName) return 'N/A';
   const match = roomName.match(/ROOM0*(\d+)/);
@@ -27,37 +29,57 @@ function SeatSelectionPage() {
   const dispatch = useDispatch();
   const { state } = useLocation();
 
-  const roomId = state?.roomId; // Get roomId from navigation state
+  const roomId = state?.roomId;
+  const movieId = state?.movieId;
 
   const bookingState = useSelector((state) => state.booking);
   const movieDetails = bookingState.movieDetails;
-  console.log("SeatSelectionPage: Full booking state from Redux on render:", bookingState); // Debugging line
-  console.log("SeatSelectionPage: movieDetails from Redux on render:", movieDetails); // Debugging line
 
-  const movie = movieDetails || {
-    name: 'Movie Title N/A',
-    image_url: 'https://placehold.co/120x180/000000/FFFFFF?text=No+Poster',
-    version: 'N/A',
-    running_time: 'N/A',
-    time: 'N/A',
-    cinema_room: 'N/A',
-    rating: 'N/A',
-    genres: [],
-  };
+  const movie = movieDetails?.name
+    ? movieDetails
+    : {
+      name: 'Movie Title N/A',
+      image_url: 'https://placehold.co/120x180/000000/FFFFFF?text=No+Poster',
+      version: 'N/A',
+      running_time: 'N/A',
+      time: 'N/A',
+      cinema_room: 'N/A',
+      rating: 'N/A',
+      genres: [],
+    };
 
   const [roomData, setRoomDataState] = useState(null);
   const [selectedSeatsState, setSelectedSeatsState] = useState(bookingState.selectedSeats || []);
-
 
   useEffect(() => {
     dispatch(setSelectedCombos({ combos: [], totalPrice: 0 }));
   }, [dispatch]);
 
   useEffect(() => {
-    console.log("SeatSelectionPage useEffect: roomId from navigation state:", roomId);
+    const fetchMovieDetails = async () => {
+      if (!movieId) return;
+
+      try {
+        const res = await fetch(`http://localhost:5000/api/movies/${movieId}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Không thể lấy thông tin phim");
+
+        dispatch(setMovieDetails(data)); // ✅ đúng action creator
+        console.log("🎬 Movie details fetched and stored in Redux:", data);
+      } catch (err) {
+        console.error("❌ Lỗi khi fetch thông tin phim:", err.message);
+      }
+    };
+
+    if (!movieDetails?.name) {
+      fetchMovieDetails();
+    }
+  }, [movieId, movieDetails?.name, dispatch]);
+
+  useEffect(() => {
     const fetchRoomData = async () => {
       if (!roomId) {
-        console.warn("SeatSelectionPage: No roomId found in navigation state. Cannot fetch room data.");
+        console.warn("No roomId provided.");
         return;
       }
 
@@ -72,9 +94,9 @@ function SeatSelectionPage() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Failed to load seat data");
         setRoomDataState(data.room);
-        console.log("SeatSelectionPage: Fetched room data:", data.room);
+        console.log("🎭 Room data fetched:", data.room);
       } catch (err) {
-        console.error("❌ SeatSelectionPage: Error fetching room:", err.message);
+        console.error("❌ Lỗi khi fetch thông tin phòng chiếu:", err.message);
       }
     };
 
@@ -91,18 +113,12 @@ function SeatSelectionPage() {
 
   const getSeatClass = (seat) => {
     const isSelected = selectedSeatsState.includes(seat.label);
-    const baseClasses =
-      "w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-200 transform hover:scale-110 hover:shadow-lg border-2";
+    const base = "w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-200 transform hover:scale-110 hover:shadow-lg border-2";
 
-    if (isSelected) {
-      return `${baseClasses} bg-gradient-to-br from-red-500 to-red-600 text-white border-red-400 shadow-lg scale-105`;
-    }
+    if (isSelected) return `${base} bg-gradient-to-br from-red-500 to-red-600 text-white border-red-400 shadow-lg scale-105`;
+    if (seat.type === "VIP") return `${base} bg-gradient-to-br from-amber-400 to-yellow-500 text-gray-900 border-amber-300`;
 
-    if (seat.type === "VIP") {
-      return `${baseClasses} bg-gradient-to-br from-amber-400 to-yellow-500 text-gray-900 border-amber-300`;
-    }
-
-    return `${baseClasses} bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 border-gray-300`;
+    return `${base} bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 border-gray-300`;
   };
 
   const getTotalPrice = () => {
@@ -113,30 +129,27 @@ function SeatSelectionPage() {
   };
 
   const handleSeatSelectionContinue = () => {
-    const seatsToDispatch = selectedSeatsState;
-    const totalPriceToDispatch = getTotalPrice();
-    console.log("SeatSelectionPage: Dispatching setSelectedSeats with seats:", seatsToDispatch, "totalPrice:", totalPriceToDispatch);
     dispatch(setSelectedSeats({
-      seats: seatsToDispatch,
-      totalPrice: totalPriceToDispatch,
+      seats: selectedSeatsState,
+      totalPrice: getTotalPrice(),
     }));
+    localStorage.setItem('selectedSeats', JSON.stringify(selectedSeatsState));
+    localStorage.setItem('totalSeatPrice', getTotalPrice.toString());
 
-    navigate('/combo-selection');
-  };
-
-  const handleBack = () => {
-    navigate(-1);
+    navigate(`/combo-selection`);
   };
 
   const formattedRunningTime = formatMinutesToHoursMinutes(movie.running_time);
   const displayCinemaRoomName = formatCinemaRoomName(movie.cinema_room);
+
+
 
   return (
     <div className="bg-black min-h-screen text-white px-6 py-10">
       <div className="bg-[#1a1a1a] max-w-4xl mx-auto p-6 rounded">
         <div className="mb-6">
           <button
-            onClick={handleBack}
+            onClick={() => navigate(-1)}
             className="text-sm text-white bg-gray-700 hover:bg-gray-600 px-4 py-1 rounded"
           >
             ← Back
@@ -145,20 +158,16 @@ function SeatSelectionPage() {
 
         <h1 className="text-2xl font-bold text-center mb-8">SELECT YOUR SEATS</h1>
 
-        <div className="flex gap-4 mb-6 items-center">
+        <div className="flex items-center justify-center gap-4 mb-6 p-4 rounded-md">
           <img
             src={movie.image_url}
             alt={movie.name}
-            className="w-[120px] h-[180px] object-cover rounded"
+            className="w-28 h-40 object-cover rounded shadow"
           />
-          <div className="flex-1 space-y-1">
-            <h2 className="text-2xl font-bold text-white">{movie.name}</h2>
-            <p className="text-gray-300 text-sm">
-              {movie.version} • {formattedRunningTime} • {movie.genres && movie.genres.length > 0 ? movie.genres.join(', ') : 'N/A'}
-            </p>
-            <p className="text-gray-300 text-sm">
-              {movie.time} • {roomData?.roomName || 'Cinema N/A'}
-            </p>
+          <div>
+            <h2 className="text-2xl font-bold mb-1">{movie.name}</h2>
+            <p className="text-gray-400 text-sm">{movie.time}  {roomData?.roomName || 'Cinema N/A'}</p>
+            <p className="text-gray-400 text-sm">{movie.version} • {formattedRunningTime} • {movie.genres?.join(', ') || 'N/A'}</p>
           </div>
         </div>
 
@@ -180,7 +189,6 @@ function SeatSelectionPage() {
                     <div className="w-8 flex items-center justify-center">
                       <span className="text-slate-400 font-bold text-sm">{rowLetter}</span>
                     </div>
-
                     <div className="flex gap-2 justify-center">
                       {[...Array(roomData.columns)].map((_, cIdx) => {
                         const seat = rowSeats.find((s) => Number(s.column) === cIdx + 1);
@@ -188,8 +196,8 @@ function SeatSelectionPage() {
                           <button
                             key={seat.label}
                             onClick={() => handleToggleSeat(seat)}
-                            title={`Seat ${seat.label} - ${seat.type} - ${seat.price.toLocaleString('vi-VN')} VND`}
                             className={getSeatClass(seat)}
+                            title={`Seat ${seat.label} - ${seat.type} - ${seat.price.toLocaleString('vi-VN')} VND`}
                           >
                             {seat.type === "VIP" ? <Crown className="w-3 h-3" /> : seat.label}
                           </button>
@@ -198,7 +206,6 @@ function SeatSelectionPage() {
                         );
                       })}
                     </div>
-
                     <div className="w-8 flex items-center justify-center">
                       <span className="text-slate-400 font-bold text-sm">{rowLetter}</span>
                     </div>
@@ -229,7 +236,9 @@ function SeatSelectionPage() {
             </div>
 
             <div className="text-center">
-              <p className="text-lg font-semibold">Total: {getTotalPrice().toLocaleString('vi-VN')} VND</p>
+              <p className="text-lg font-semibold">
+                Total: {getTotalPrice().toLocaleString('vi-VN')} VND
+              </p>
               <button
                 onClick={handleSeatSelectionContinue}
                 disabled={selectedSeatsState.length === 0}

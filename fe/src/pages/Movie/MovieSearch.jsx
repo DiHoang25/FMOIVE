@@ -8,7 +8,8 @@ import {
   fetchAllMovies,
   searchMovies,
   setSearchTerm,
-  setCurrentPage
+  setCurrentPage,
+  resetSearchState
 } from '../../redux/movieSearchSlice';
 
 const MovieSearch = () => {
@@ -23,12 +24,18 @@ const MovieSearch = () => {
   } = useSelector(state => state.movieSearch);
   const moviesPerPage = 10;
 
+  
   useEffect(() => {
     dispatch(fetchAllMovies())
       .unwrap()
       .catch(error => {
         message.error(`Không thể tải danh sách phim: ${error}`);
       });
+
+    
+    return () => {
+      dispatch(resetSearchState());
+    };
   }, [dispatch]);
 
   const handleInputChange = (e) => {
@@ -62,7 +69,7 @@ const MovieSearch = () => {
 
   if (loading) {
     return (
-      <div className="bg-black text-white min-h-screen p-6">
+      <div className="bg-black text-white min-h-screen p-6 ">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold text-center mb-8 text-white">Movie Search</h1>
           <p className="text-center">Đang tải dữ liệu phim...</p>
@@ -91,11 +98,14 @@ const MovieSearch = () => {
   }
 
   return (
-    <div className="bg-black text-white min-h-screen p-6">
+    
+    <div className="bg-black text-white min-h-screen p-6 pt-[50px]">
+
+
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-center mb-8 text-white">Movie Search</h1>
 
-       
+
         <div className="flex flex-col mb-10 max-w-xl mx-auto">
           <div className="relative">
 <Input
