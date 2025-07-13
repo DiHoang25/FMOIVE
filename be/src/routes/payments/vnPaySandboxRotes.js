@@ -235,7 +235,7 @@ router.get('/vnpay_return', async (req, res) => {
     let amountFromVNPAY = vnp_Params['vnp_Amount'] / 100;
 
     let redirectUrl = `${VnPayConfig.vnp_ReturnUrlFrontend}?vnp_ResponseCode=${rspCode}&vnp_TransactionStatus=${transactionStatus}&vnp_TxnRef=${systemBookingId}`;
-
+    
     delete vnp_Params['vnp_SecureHash'];
     delete vnp_Params['vnp_SecureHashType']; // Xóa cả vnp_SecureHashType nếu có
 
@@ -276,12 +276,22 @@ router.get('/vnpay_return', async (req, res) => {
                 paymentIsSuccess,
                 amountFromVNPAY
             );
-
+            if (updateResult.success) {
+                redirectUrl = `${VnPayConfig.vnp_ReturnUrlFrontend}?vnp_ResponseCode=${rspCode}&vnp_TransactionStatus=${transactionStatus}&vnp_TxnRef=${systemBookingId || ''}`;
+                console.log(`[VNPAY Return] Successfully processed booking ${systemBookingId}. Redirecting to: ${redirectUrl}`);
+            }
             if (!updateResult.success) {
                 console.error(`[VNPAY Return] Failed to update booking/invoice for ${systemBookingId}: ${updateResult.message}`);
                 redirectUrl = `${VnPayConfig.vnp_ReturnUrlFrontend}?vnp_ResponseCode=99&vnp_TransactionStatus=99&vnp_TxnRef=${systemBookingId || ''}`;
             }
             // else: Hàm updateBookingAndInvoiceStatus đã log chi tiết thành công/thất bại
+              return res.status(200).json({
+            message: updateResult.message || 'Payment processing complete.',
+            code: rspCode, // Trả về responseCode từ VNPAY hoặc code nội bộ
+            transactionStatus: transactionStatus, // Trả về transactionStatus từ VNPAY
+            bookingId: systemBookingId,
+            redirectUrl: redirectUrl // <-- Gửi URL này về cho frontend
+        });
 
         } else {
             console.error('[VNPAY Return] Invalid Secure Hash. Signature mismatch. Cannot process transaction.');

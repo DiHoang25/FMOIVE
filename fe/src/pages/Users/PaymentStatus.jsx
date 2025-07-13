@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react'; // Thêm useRef
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { resetBooking } from '../../redux/bookingSlice';
@@ -14,21 +14,30 @@ const PaymentStatusPage = () => {
     const [bookingRef, setBookingRef] = useState('');
     const [isLoading, setIsLoading] = useState(true);
 
+    // Sử dụng useRef để tạo cờ chỉ gọi một lần, không kích hoạt re-render
+    const hasFetched = useRef(false);
+
+    // Đảm bảo URL này CHÍNH XÁC là URL của BACKEND của bạn
     const BACKEND_BASE_URL = 'http://localhost:5000'; 
 
-    const [hasCalledBackend, setHasCalledBackend] = useState(false);
     useEffect(() => {
+        // console.count('useEffect triggered'); // Dùng để debug số lần useEffect chạy
+
+        // Dùng cờ useRef để đảm bảo API chỉ gọi 1 lần khi component mount
+        if (hasFetched.current) {
+            console.log('API call already initiated, skipping.');
+            return;
+        }
+
         const queryParams = new URLSearchParams(location.search);
         const txnRefParam = queryParams.get('vnp_TxnRef');
         setBookingRef(txnRefParam || 'N/A');
 
-        // Lấy tất cả các tham số từ URL và tạo thành một đối tượng để dễ dàng làm việc
         const vnpayQueryParams = {};
         for (let pair of queryParams.entries()) {
             vnpayQueryParams[pair[0]] = pair[1];
         }
 
-        // Kiểm tra xem có tham số VNPAY không
         if (Object.keys(vnpayQueryParams).length === 0) {
             setPaymentStatus('No Payment Data Found');
             setMessage('Could not find payment transaction data in the URL.');
@@ -39,15 +48,24 @@ const PaymentStatusPage = () => {
         const verifyPaymentWithBackend = async () => {
             setIsLoading(true);
             try {
-                // TỰ XÂY DỰNG CHUỖI QUERY STRING TỪ vnpayQueryParams
+                // Đặt cờ này để không gọi lại trong các lần render sau
+                hasFetched.current = true; // <-- Cập nhật cờ useRef
+
                 const queryString = new URLSearchParams(vnpayQueryParams).toString();
-                
-                // Nối chuỗi query string vào URL của backend
                 const requestUrl = `${BACKEND_BASE_URL}/api/payment/vnpay_return?${queryString}`;
-                console.log('Frontend is attempting to call Backend URL:', requestUrl); //debug lỏd
-                const response = await axios.get(requestUrl); // KHÔNG CẦN DÙNG params: vnpayQueryParams ở đây nữa
                 
-                // Logic xử lý phản hồi vẫn giữ nguyên
+                console.log('Frontend is attempting to call Backend URL:', requestUrl); // Giữ lại log này
+
+                // Lời gọi axios.get ĐÚNG ĐỊA CHỈ
+                const response = await axios.get(requestUrl); 
+                
+                // Kiểm tra xem backend có gửi redirectUrl về không
+                if (response.data && response.data.redirectUrl) {
+                    console.log('Redirecting to URL from backend:', response.data.redirectUrl);
+                    navigate(response.data.redirectUrl); // Frontend điều hướng tới URL nhận được
+                    return; // Dừng xử lý tiếp trong component này
+                }
+                // Logic xử lý phản hồi từ Backend (status 200 OK)
                 const statusParam = queryParams.get('vnp_ResponseCode');
                 const transactionStatusParam = queryParams.get('vnp_TransactionStatus');
 
@@ -65,8 +83,16 @@ const PaymentStatusPage = () => {
 
             } catch (error) {
                 console.error('Error verifying payment with backend:', error);
-                setPaymentStatus('Verification Error');
-                setMessage('An error occurred while verifying your payment with the server. Please check your transaction history or contact support.');
+                // Xử lý lỗi cụ thể nếu backend trả về 404/500
+                if (axios.isAxiosError(error) && error.response) {
+                    // Lỗi từ phản hồi của backend (ví dụ: backend cũng trả về 404 cho booking không tồn tại)
+                    setPaymentStatus('Verification Error (Backend Response)');
+                    setMessage(`Server responded with error: ${error.response.status} - ${error.response.data?.message || error.message}. Please check your transaction history.`);
+                } else {
+                    // Lỗi mạng hoặc lỗi không xác định
+                    setPaymentStatus('Verification Error (Network/Client)');
+                    setMessage('An error occurred while communicating with the server. Please check your transaction history or contact support.');
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -74,10 +100,11 @@ const PaymentStatusPage = () => {
 
         verifyPaymentWithBackend();
 
-    }, [location.search, dispatch, navigate]);
+    }, [location.search, dispatch, navigate]); // hasFetched không cần trong dependencies vì nó là useRef
 
+    // ... (các hàm handleGoToBookings, handleGoHome và JSX render phần còn lại) ...
     const handleGoToBookings = () => {
-        navigate('/viewbookedticket'); // Chuyển đến trang lịch sử booking của người dùng
+        navigate('/viewbookedticket');
     };
 
     const handleGoHome = () => {
