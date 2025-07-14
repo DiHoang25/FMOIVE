@@ -1,5 +1,3 @@
-"use client"
-
 import { useNavigate, useLocation } from "react-router-dom"
 import { useState, useEffect } from "react"
 import SidebarLayout from "../../components/Sidebar-Employee"
@@ -31,6 +29,8 @@ const formatMovieTime = (timeString) => {
 const CounterConfirmBooking = () => {
   const navigate = useNavigate()
   const { state } = useLocation()
+  const location = useLocation()
+  const bookingState = JSON.parse(localStorage.getItem("bookingState")) || {};
   const [voucherCode, setVoucherCode] = useState("")
   const [voucherDiscount, setVoucherDiscount] = useState(0)
   const [promotions, setPromotions] = useState([])
@@ -41,12 +41,12 @@ const CounterConfirmBooking = () => {
     selectedCombos = [],
     selectedProducts = [],
     ticketPrice = 0,
-    serviceFee = 0,
+    fullShowtimeDate = "",
     combosTotal = 0,
     productsTotal = 0,
     finalTotal = 0,
     userInformation = {},
-  } = state || {}
+  } = bookingState
 
   const movie = movieDetails || {
     name: "Unknown Movie",
@@ -57,6 +57,14 @@ const CounterConfirmBooking = () => {
     cinema_room: "N/A",
     genres: [],
   }
+
+  useEffect(() => {
+    if (location.state) {
+      localStorage.setItem("bookingData", JSON.stringify(location.state))
+    }
+  }, [location.state])
+
+
 
   const formattedMovieTimeDisplay = formatMovieTime(movie.time)
   const displayCinemaRoomName = formatCinemaRoomName(movie.cinema_room)
@@ -80,14 +88,14 @@ const CounterConfirmBooking = () => {
   const handleProceedToPayment = () => {
     navigate("/employee/counter-payment", {
       state: {
-        movieDetails: movie,
-        selectedSeats: seatsDisplay,
-        selectedCombos: combosDisplay,
-        selectedProducts: selectedProducts,
-        ticketPrice: currentTicketPrice,
+        movieDetails,
+        selectedSeats,
+        selectedCombos,
+        selectedProducts,
+        ticketPrice,
         serviceFee: 0,
-        combosTotal: currentCombosTotal,
-        productsTotal: currentProductsTotal,
+        combosTotal,
+        productsTotal,
         finalTotal: currentGrandTotal,
         voucherCode,
         voucherDiscount,
@@ -155,7 +163,7 @@ const CounterConfirmBooking = () => {
                             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                           />
                         </svg>
-                        <span>{formattedMovieTimeDisplay.display}</span>
+                        <span>{fullShowtimeDate}</span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-300">
                         <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
