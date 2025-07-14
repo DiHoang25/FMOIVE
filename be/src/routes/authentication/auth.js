@@ -151,7 +151,7 @@ router.put('/update-profile', authMiddleware, async (req, res) => {
     const { fullname, email, gender, phone, date_of_birth } = req.body;
   
     try {
-      const user = await User.findById(req.user.id);
+      const user = await User.findById(req.user.userId);
       if (!user) {
         return res.status(404).json({ message: 'Người dùng không tìm thấy.' });
       }
@@ -164,7 +164,7 @@ router.put('/update-profile', authMiddleware, async (req, res) => {
   
       await user.save();
   
-      const updatedUser = await User.findById(req.user.id).select('-password');
+      const updatedUser = await User.findById(req.user.userId).select('-password');
       res.status(200).json({
         message: 'Thông tin tài khoản đã được cập nhật thành công!',
         user: updatedUser
@@ -298,7 +298,7 @@ router.post('/verify-reset-code', async (req, res) => {
         // Token này chỉ dùng để xác thực cho bước reset-password
         const resetTokenPayload = {
             user: {
-                id: user.id
+                id: user.userId
             }
         };
 
@@ -343,7 +343,7 @@ router.post('/reset-password', async (req, res) => {
         const decoded = jwt.verify(actualResetToken, process.env.JWT_SECRET);
         
         // Tìm người dùng bằng ID từ payload của resetToken
-        const user = await User.findById(decoded.user.id);
+        const user = await User.findById(decoded.user.userId);
         if (!user) {
             return res.status(404).json({ message: 'Người dùng không tìm thấy.' });
         }
