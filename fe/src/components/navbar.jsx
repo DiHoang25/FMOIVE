@@ -48,12 +48,12 @@ const Navbar = () => {
             {links.map((item, idx) =>
               item.dropdown ? (
                 <div key={idx} className="mt-2">
-                  <span className="font-semibold">{item.label}</span>
+                  <span >{item.label}</span>
                   <ul className="ml-2 space-y-1">
                     {item.dropdown.map((child, cIdx) => (
                       <li key={cIdx}>
-                        <Link to={child.href} className="text-sm text-blue-600 hover:underline">
-                          {child.label}
+                        <Link to={child.href} className="text-sm hover:underline"  style={{ color: '#1A1A1A' }}>
+                        &gt; {child.label}
                         </Link>
                       </li>
                     ))}
@@ -63,7 +63,7 @@ const Navbar = () => {
                 <Link
                   key={idx}
                   to={item.href}
-                  className="block mt-2 text-sm text-Black-600 hover:underline"
+                  className="block mt-2  text-Black-600 hover:underline"
                 >
                   {item.label}
                 </Link>
