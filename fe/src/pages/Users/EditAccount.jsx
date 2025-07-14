@@ -119,13 +119,12 @@ const EditAccount = () => {
 
   return (
     <UserDashboardLayout>
-      <div className="bg-[#0a0f1c] text-white p-8 rounded-md">
-        <h1 className="text-3xl font-bold mb-8 text-center text-red-600">Edit Account Information</h1>
-        <div className="max-w-2xl mx-auto bg-[#121826] p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-bold mb-4 text-center">Information Account</h2>
-          <div className="space-y-4">
+      <div className="bg-[#0a0f1c] text-white py-10 px-4 rounded-md min-h-[80vh] flex items-center justify-center">
+        <div className="w-full max-w-3xl bg-[#121826] p-6 md:p-8 rounded-xl shadow-lg">
+          <h1 className="text-3xl font-bold mb-6 text-center text-red-600">Edit Account Information</h1>
+          <div className="space-y-5">
 
-            {/* Username - read-only */}
+            {/* Username (Read only) */}
             <div>
               <label className="block mb-1">Username</label>
               <input
@@ -151,8 +150,8 @@ const EditAccount = () => {
                 </>
               ) : (
                 <div className="flex justify-between items-center bg-white text-black font-medium px-3 py-2 rounded">
-                  <span>{formData.fullname}</span>
-                  <button onClick={() => toggleEdit('fullname')} className="text-gray-500 text-sm">Edit</button>
+                  <span className="break-all min-w-0">{formData.fullname || 'Not provided'}</span>
+                  <button onClick={() => toggleEdit('fullname')} className="text-gray-500 text-sm hover:text-red-600">Edit</button>
                 </div>
               )}
             </div>
@@ -172,8 +171,8 @@ const EditAccount = () => {
                 </>
               ) : (
                 <div className="flex justify-between items-center bg-white text-black font-medium px-3 py-2 rounded">
-                  <span>{formData.email}</span>
-                  <button onClick={() => toggleEdit('email')} className="text-gray-500 text-sm">Edit</button>
+                  <span className="break-all min-w-0">{formData.email || 'Not provided'}</span>
+                  <button onClick={() => toggleEdit('email')} className="text-gray-500 text-sm hover:text-red-600">Edit</button>
                 </div>
               )}
             </div>
@@ -193,14 +192,15 @@ const EditAccount = () => {
                 </>
               ) : (
                 <div className="flex justify-between items-center bg-white text-black font-medium px-3 py-2 rounded">
-                  <span>{formData.phone}</span>
-                  <button onClick={() => toggleEdit('phone')} className="text-gray-500 text-sm">Edit</button>
+                  <span className="break-all min-w-0">{formData.phone || 'Not provided'}</span>
+                  <button onClick={() => toggleEdit('phone')} className="text-gray-500 text-sm hover:text-red-600">Edit</button>
                 </div>
               )}
             </div>
 
-            {/* Date of Birth and Gender */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* DOB & Gender */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* DOB */}
               <div>
                 <label className="block mb-1">Date of Birth</label>
                 {editStates.date_of_birth ? (
@@ -213,12 +213,13 @@ const EditAccount = () => {
                   />
                 ) : (
                   <div className="flex justify-between items-center bg-white text-black font-medium px-3 py-2 rounded">
-                    <span>{formData.date_of_birth ? formatDate(formData.date_of_birth) : ''}</span>
-                    <button onClick={() => toggleEdit('date_of_birth')} className="text-gray-500 text-sm">Edit</button>
+                    <span>{formData.date_of_birth ? formatDate(formData.date_of_birth) : 'Not provided'}</span>
+                    <button onClick={() => toggleEdit('date_of_birth')} className="text-gray-500 text-sm hover:text-red-600">Edit</button>
                   </div>
                 )}
               </div>
 
+              {/* Gender */}
               <div>
                 <label className="block mb-1">Gender</label>
                 {editStates.gender ? (
@@ -234,24 +235,24 @@ const EditAccount = () => {
                   </select>
                 ) : (
                   <div className="flex justify-between items-center bg-white text-black font-medium px-3 py-2 rounded">
-                    <span>{formData.gender}</span>
-                    <button onClick={() => toggleEdit('gender')} className="text-gray-500 text-sm">Edit</button>
+                    <span>{formData.gender || 'Not specified'}</span>
+                    <button onClick={() => toggleEdit('gender')} className="text-gray-500 text-sm hover:text-red-600">Edit</button>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Buttons */}
+            {/* Save / Cancel */}
             <div className="flex justify-center items-center gap-4 mt-6">
               <button
                 onClick={() => navigate('/viewaccount')}
-                className="px-5 py-2 border border-red-500 text-red-500 rounded hover:bg-red-100"
+                className="px-5 py-2 border border-red-500 text-red-500 rounded hover:bg-red-100 transition"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
-                className="px-5 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                className="px-5 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
               >
                 Save
               </button>
@@ -274,7 +275,7 @@ const EditAccount = () => {
               <p className="text-gray-300 mb-6">Your account has been updated successfully.</p>
               <button
                 onClick={handleSuccessConfirm}
-                className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-200"
+                className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
               >
                 OK
               </button>
