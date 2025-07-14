@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Input, DatePicker, Upload, Button, message } from 'antd';
+import { Form, Input, DatePicker, Upload, Button, Modal, message } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import SidebarLayout from '../../components/Sidebar-Admin';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -12,6 +12,7 @@ const EditMovieNews = () => {
   const token = localStorage.getItem('token');
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
   const [fileList, setFileList] = useState([]);
   const [editStates, setEditStates] = useState({
@@ -28,8 +29,6 @@ const EditMovieNews = () => {
   };
 
   useEffect(() => {
-    if (!form) return;
-
     const fetchNews = async () => {
       try {
         const res = await fetch(`http://localhost:5000/api/movie-news/${id}`);
@@ -51,6 +50,7 @@ const EditMovieNews = () => {
                 name: 'image.jpg',
                 status: 'done',
                 url: data.image_url,
+                type: 'image/jpeg',
               },
             ]);
           }
@@ -79,20 +79,19 @@ const EditMovieNews = () => {
     if (fileList[0]?.originFileObj) {
       formData.append('image', fileList[0].originFileObj);
     }
-    const token = localStorage.getItem('token');
+
     try {
       setLoading(true);
       const res = await fetch(`http://localhost:5000/api/movie-news/${id}`, {
         method: 'PUT',
         headers: {
-            Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
       const result = await res.json();
       if (res.ok) {
-        message.success('News updated successfully');
-        navigate('/admin/movienews-list');
+        setSuccess(true); // Show modal
       } else {
         message.error(result.error || 'Update failed');
       }
@@ -170,6 +169,7 @@ const EditMovieNews = () => {
                 onChange={onUploadChange}
                 maxCount={1}
                 listType="picture"
+                showUploadList={{ showPreviewIcon: false }}
               >
                 <Button icon={<UploadOutlined />}>Upload Image</Button>
               </Upload>
@@ -195,6 +195,40 @@ const EditMovieNews = () => {
           </div>
         </Form>
       </div>
+
+      {/* Success Modal */}
+      <Modal
+        open={success}
+        onCancel={() => setSuccess(false)}
+        footer={null}
+        centered
+        width={350}
+      >
+        <div className="text-center p-6">
+          <div className="text-green-500 text-5xl mb-4">✔️</div>
+          <h3 className="text-xl font-bold text-gray-800 mb-2">Success</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Movie news updated successfully. Return to news list?
+          </p>
+          <div className="flex gap-4">
+            <button
+              onClick={() => setSuccess(false)}
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+            >
+              Stay
+            </button>
+            <button
+              onClick={() => {
+                setSuccess(false);
+                navigate('/admin/movienews-list');
+              }}
+              className="flex-1 bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded"
+            >
+              Go to List
+            </button>
+          </div>
+        </div>
+      </Modal>
     </SidebarLayout>
   );
 };

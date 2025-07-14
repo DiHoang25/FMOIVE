@@ -18,7 +18,6 @@ const Navbar = () => {
             label="Movies"
             items={[
               { label: "Movie Search", href: "/moviesearch" },
-              { label: "Movie News", href: "/movienews" },
             ]}
             isShowtimePage={isShowtimePage}
           />

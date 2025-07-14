@@ -24,10 +24,8 @@ router.post('/create', authMiddleware, async (req, res) => {
             user // Lấy toàn bộ thông tin người dùng từ payload frontend
         } = req.body;
 
-        // --- BỎ QUA TOÀN BỘ XÁC THỰC CHI TIẾT TỪ FRONTEND THEO YÊU CẦU ---
-        // **Cảnh báo**: Việc này làm tăng nguy cơ dữ liệu không hợp lệ hoặc gian lận
-        // từ phía client. Chỉ nên làm điều này trong môi trường phát triển
-        // hoặc khi bạn có cơ chế xác thực rất mạnh ở lớp khác.
+        // --- BỎ QUA TOÀN BỘ XÁC THỰC CHI TIẾT TỪ FRONTEND (Tự xác thực từ phía front-end) ---
+        
 
         // Kiểm tra cơ bản về sự tồn tại của dữ liệu cần thiết tối thiểu
         // if (!movieDetails || !movieDetails.movieId || !selectedSeats || selectedSeats.length === 0 || totalSeatPrice === undefined || totalSeatPrice < 0 || !grandTotal || !user || !user._id) {
@@ -86,5 +84,8 @@ router.post('/create', authMiddleware, async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
+
+
+
 
 module.exports = router;
