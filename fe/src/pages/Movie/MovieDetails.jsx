@@ -97,40 +97,40 @@ const MovieDetails = () => {
     if (!movie) return <div className="text-white text-center mt-20">Loading...</div>;
 
     return (
-        <div className="bg-black text-white px-6 py-10 max-w-full mx-auto">
-            {/* UI giữ nguyên như cũ */}
+        <div className="bg-black text-white px-4 py-8 md:px-6 md:py-10 max-w-full mx-auto">
+            {/* Responsive layout */}
             <div className="flex flex-col lg:flex-row gap-8">
                 <div className="flex-shrink-0 w-full lg:w-1/3">
-                    <img src={movie.image_url} alt={movie.name} className="w-80 rounded-lg shadow-lg mx-auto" />
+                    <img src={movie.image_url} alt={movie.name} className="w-full max-w-xs lg:w-80 mx-auto rounded-lg shadow-lg" />
                 </div>
 
                 <div className="flex-1 space-y-3">
-                    <h1 className="text-2xl font-bold uppercase tracking-wider">{movie.name}</h1>
-                    <hr className="border-red-500 w-45 mb-4" />
+                    <h1 className="text-2xl font-bold uppercase tracking-wider text-center lg:text-left">{movie.name}</h1>
+                    <hr className="border-red-500 w-20 mb-4 mx-auto lg:mx-0" />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                        <div className="text-xl">
-                            <p><span className="font-semibold text-2xl">Release date:</span> {new Date(movie.start_date).toLocaleDateString('vi-VN')}</p>
-                            <p><span className="font-semibold text-2xl">Genre:</span> {movie.genres?.join(', ')}</p>
-                            <p><span className="font-semibold text-2xl">Duration Time:</span> {movie.running_time} min</p>
-                            <p><span className="font-semibold text-2xl">Director:</span> {movie.director}</p>
-                            <p><span className="font-semibold text-2xl">Actor:</span> {movie.actors}</p>
+                        <div className="text-base md:text-xl">
+                            <p><span className="font-semibold">Release date:</span> {new Date(movie.start_date).toLocaleDateString('vi-VN')}</p>
+                            <p><span className="font-semibold">Genre:</span> {movie.genres?.join(', ')}</p>
+                            <p><span className="font-semibold">Duration:</span> {movie.running_time} min</p>
+                            <p><span className="font-semibold">Director:</span> {movie.director}</p>
+                            <p><span className="font-semibold">Actor:</span> {movie.actors}</p>
                         </div>
-                        <div className="text-xl">
-                            <p><span className="font-semibold text-xl">Distributed by:</span> {movie.production_company}</p>
+                        <div className="text-base md:text-xl">
+                            <p><span className="font-semibold">Distributed by:</span> {movie.production_company}</p>
                         </div>
                     </div>
 
-                    <div className="mt-6 text-xl">
+                    <div className="mt-6 text-base md:text-xl">
                         <p className="font-semibold mb-1">Summary:</p>
                         <p className="text-gray-300">{movie.description}</p>
                     </div>
                 </div>
             </div>
 
-            {/* Chọn ngày và giờ chiếu */}
+            {/* Date and time selection */}
             <div className="mt-10 text-center bg-gray-900 p-6 rounded-lg shadow-md">
                 <h2 className="text-2xl font-bold text-red-500 mb-4">Choose Your Show</h2>
-                <div className="flex items-center justify-center gap-2 mb-6">
+                <div className="flex items-center justify-center gap-2 flex-wrap mb-6">
                     <button onClick={() => setStartDate(prev => {
                         const newDate = new Date(prev);
                         newDate.setDate(prev.getDate() - 6);
@@ -181,7 +181,7 @@ const MovieDetails = () => {
 
             {/* Trailer */}
             <div className="mt-10 flex justify-center">
-                <div className="relative w-[50%] h-[50vh]">
+                <div className="relative w-[90%] md:w-[70%] lg:w-[50%] h-[50vh]">
                     <ReactPlayer
                         url={movie.trailer_link}
                         controls

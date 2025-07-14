@@ -48,19 +48,19 @@ const roomSchema = new mongoose.Schema({
     type: Number,
     required: [true, 'Số hàng ghế là bắt buộc'],
     min: [1, 'Số hàng ghế phải lớn hơn 0'],
-    max: [50, 'Số hàng ghế không được vượt quá 50']
+    max: [12, 'Số hàng ghế không được vượt quá 50']
   },
   columns: {
     type: Number,
     required: [true, 'Số cột ghế là bắt buộc'],
     min: [1, 'Số cột ghế phải lớn hơn 0'],
-    max: [50, 'Số cột ghế không được vượt quá 50']
+    max: [14, 'Số cột ghế không được vượt quá 50']
   },
   quantity: {
     type: Number,
     required: [true, 'Số lượng ghế là bắt buộc'],
     min: [1, 'Số lượng ghế phải lớn hơn 0'],
-    max: [500, 'Số lượng ghế không được vượt quá 500']
+    max: [168, 'Số lượng ghế không được vượt quá 500']
   },
   roomType: {
     type: String,
