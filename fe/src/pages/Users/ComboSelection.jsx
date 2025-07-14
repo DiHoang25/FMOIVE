@@ -116,8 +116,6 @@ const ComboSelection = () => {
   }, [movie.cinema_room]);
 
 
-
-
   // Fetch Combo Data from API on component mount
   useEffect(() => {
     console.log("ComboSelection useEffect (initial mount/re-render): movieDetails:", movieDetails, "selectedSeats:", selectedSeats, "totalSeatPrice:", totalSeatPrice); // Debugging line
@@ -160,7 +158,7 @@ const ComboSelection = () => {
     };
 
     fetchCombos();
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
 
   // Update quantity handler
   const updateQuantity = (id, delta) => {
@@ -201,7 +199,7 @@ const ComboSelection = () => {
     // Persist combos data to localStorage before navigation
     localStorage.setItem('selectedCombos', JSON.stringify(selectedCombosWithQuantity));
     localStorage.setItem('totalComboPrice', totalComboPrice.toString());
-    
+
     // Also save complete booking state
     const bookingState = {
       movieDetails,
@@ -266,33 +264,29 @@ const ComboSelection = () => {
       <div className="max-w-4xl mx-auto bg-neutral-900 rounded-xl p-6 shadow-lg relative">
 
         {/* Back Button */}
-        <button
-          onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 text-white bg-gray-700 hover:bg-gray-600 px-4 py-1 rounded"
-        >
-          ← Back
-        </button>
+        <div className="mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="text-sm text-white bg-gray-700 hover:bg-gray-600 px-4 py-1 rounded"
+          >
+            ← Back
+          </button>
+        </div>
 
         {/* Movie Info */}
         <h1 className="text-2xl font-bold text-center mb-6">COMBO POPCORN & DRINKS</h1>
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <img
-            src={movie.image_url}
-            alt={movie.name}
-            className="w-32 h-48 object-cover rounded-md"
-          />
-          <div className="text-sm flex flex-col justify-between">
+          <img src={movie.image_url} alt={movie.name} className="w-32 h-48 object-cover rounded-md mx-auto sm:mx-0" />
+          <div className="text-sm flex flex-col justify-between text-center sm:text-left">
             <div>
               <h2 className="text-3xl font-semibold">{movie.name}</h2>
-              <p className="text-gray-400 text-xl">
-                {movie.version || 'N/A'} • {formattedRunningTime} • {movie.genres && movie.genres.length > 0 ? movie.genres.join(', ') : 'N/A'}
-              </p>
+              <p className="text-gray-400 text-xl">{movie.version || 'N/A'} • {formattedRunningTime} • {movie.genres?.join(', ') || 'N/A'}</p>
             </div>
             <div className="mt-2">
               <p className="text-gray-200 text-2xl">{movie.time}</p>
               <p className="text-gray-200 text-2xl">{roomName}</p>
-              <p className="text-gray-200 text-2xl">Seats: {selectedSeats && selectedSeats.length > 0 ? selectedSeats.join(', ') : 'N/A'}</p>
-              <p className="text-gray-200 text-2xl">Seat Price: {totalSeatPrice !== undefined ? totalSeatPrice.toLocaleString('vi-VN') : 'N/A'} VND</p>
+              <p className="text-gray-200 text-2xl">Seats: {selectedSeats?.join(', ') || 'N/A'}</p>
+              <p className="text-gray-200 text-2xl">Seat Price: {totalSeatPrice?.toLocaleString('vi-VN')} VND</p>
             </div>
           </div>
         </div>
@@ -304,33 +298,33 @@ const ComboSelection = () => {
             {combos.map((combo) => (
               <div
                 key={combo.id}
-                className="bg-zinc-800 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:bg-zinc-700 transition-colors"
+                className="bg-zinc-800 rounded-md p-4 flex flex-col sm:flex-row sm:items-center gap-4 cursor-pointer hover:bg-zinc-700 transition-colors"
                 onClick={() => handleComboClick(combo.id)}
               >
                 <img
                   src={combo.image}
                   alt={combo.name}
-                  className="w-24 h-24 object-cover rounded"
+                  className="w-full sm:w-24 h-24 object-cover rounded mx-auto sm:mx-0"
                   onError={(e) => {
                     console.error(`Failed to load image for combo ${combo.name}:`, combo.image);
                     e.target.src = 'https://placehold.co/96x96/000000/FFFFFF?text=No+Image';
                   }}
                 />
-                <div className="flex-1">
-                  <p className="font-semibold">{combo.name}</p>
-                  <p className="text-sm">{combo.price.toLocaleString('vi-VN')} VND</p>
+                <div className="flex-1 text-center sm:text-left">
+                  <p className="font-semibold text-lg">{combo.name}</p>
+                  <p className="text-sm text-gray-300">{combo.price.toLocaleString('vi-VN')} VND</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex justify-center sm:justify-end items-center gap-2">
                   <button
                     onClick={(e) => { e.stopPropagation(); updateQuantity(combo.id, -1); }}
-                    className="w-7 h-7 rounded-full bg-slate-600 flex items-center justify-center"
+                    className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center"
                   >
                     <Minus className="w-4 h-4 text-white" />
                   </button>
                   <span className="w-6 text-center">{quantities[combo.id] || 0}</span>
                   <button
                     onClick={(e) => { e.stopPropagation(); updateQuantity(combo.id, 1); }}
-                    className="w-7 h-7 rounded-full bg-red-600 flex items-center justify-center hover:bg-red-700"
+                    className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center hover:bg-red-700"
                   >
                     <Plus className="w-4 h-4 text-white" />
                   </button>
@@ -362,10 +356,10 @@ const ComboSelection = () => {
           </button>,
         ]}
         width={700}
-        bodyStyle={{ 
-          maxHeight: '70vh', 
-          overflowY: 'auto', 
-          backgroundColor: '#1f2937', 
+        bodyStyle={{
+          maxHeight: '70vh',
+          overflowY: 'auto',
+          backgroundColor: '#1f2937',
           color: 'white',
           padding: '24px',
           borderRadius: '8px'

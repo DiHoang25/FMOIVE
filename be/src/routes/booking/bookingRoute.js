@@ -4,6 +4,61 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid'); // Import uuid để tạo bookingId duy nhất
 const authMiddleware = require('../../middleware/authMiddleware'); // Đảm bảo đường dẫn đúng
 const Booking = require('../../models/Booking'); // Import Booking Model
+const mongoose = require('mongoose'); // Import mongoose để sử dụng trong hàm helper
+const Room = require('../../models/Room'); // Import Room Model để cập nhật ghế đã đặt
+
+
+//Hàm Helper
+
+async function updateOccupiedSeats(systemBookingId) {
+    try {
+         const booking = await this.findOne({ bookingId: systemBookingId });
+
+        if (!booking || booking.status !== 'PAID') {
+            console.warn(`Booking ${systemBookingId} not found or not paid. Skipping room seat update.`);
+            return false;
+        }
+
+        const Room = mongoose.model('Room'); // Get the Room model
+        const roomId = booking.movieDetails.cinema_room; // Assuming cinema_room stores roomId
+        const showtime = booking.movieDetails.time;
+        const seatLabels = booking.selectedSeats;
+
+        if (!roomId || !showtime || !seatLabels || seatLabels.length === 0) {
+            console.error(`Missing data for updating room seats for booking ${systemBookingId}`);
+            return false;
+        }
+
+        // Prepare the new occupied seat entries
+        const newOccupiedSeats = seatLabels.map(label => ({
+            seatLabel: label,
+            bookingId: systemBookingId,
+            showtime: showtime
+        }));
+
+        const result = await Room.updateOne(
+            { roomId: roomId },
+            { $addToSet: { occupiedSeats: { $each: newOccupiedSeats } } }
+        );
+
+        if (result.matchedCount === 0) {
+            console.error(`Room with roomId ${roomId} not found for updating occupied seats.`);
+            return false;
+        }
+
+        if (result.modifiedCount > 0) {
+            console.log(`Successfully added occupied seats for booking ${systemBookingId} to room ${roomId}`);
+            return true;
+        } else {
+            console.log(`No new seats added to room ${roomId} for booking ${systemBookingId}. They might already be there.`);
+            return true; // Consider it successful if no change means already present
+        }
+
+    } catch (error) {
+        console.error(`Error updating occupied seats for booking ${systemBookingId}:`, error);
+        return false;
+    }
+};
 
 // @route   POST /api/bookings/create
 // @desc    Tạo một booking mới từ dữ liệu frontend (ít xác thực hơn)

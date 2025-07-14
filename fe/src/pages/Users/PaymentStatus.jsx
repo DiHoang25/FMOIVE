@@ -59,14 +59,9 @@ const PaymentStatusPage = () => {
                 // Lời gọi axios.get ĐÚNG ĐỊA CHỈ
                 const response = await axios.get(requestUrl); 
                 
-                // Kiểm tra xem backend có gửi redirectUrl về không
-                if (response.data && response.data.redirectUrl) {
-                    console.log('Redirecting to URL from backend:', response.data.redirectUrl);
-                    navigate(response.data.redirectUrl); // Frontend điều hướng tới URL nhận được
-                    return; // Dừng xử lý tiếp trong component này
-                }
                 // Logic xử lý phản hồi từ Backend (status 200 OK)
                 const statusParam = queryParams.get('vnp_ResponseCode');
+                console.log("statusParam:", statusParam);
                 const transactionStatusParam = queryParams.get('vnp_TransactionStatus');
 
                 if (statusParam === '00' && transactionStatusParam === '00') {
@@ -81,6 +76,12 @@ const PaymentStatusPage = () => {
                     setMessage(errorMessage + " Please check your transaction history.");
                 }
 
+                // Kiểm tra xem backend có gửi redirectUrl về không
+                if (response.data && response.data.redirectUrl) {
+                    console.log('Redirecting to URL from backend:', response.data.redirectUrl);
+                    navigate(response.data.redirectUrl); // Frontend điều hướng tới URL nhận được
+                    return; // Dừng xử lý tiếp trong component này
+                }
             } catch (error) {
                 console.error('Error verifying payment with backend:', error);
                 // Xử lý lỗi cụ thể nếu backend trả về 404/500
