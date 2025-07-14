@@ -184,28 +184,26 @@ router.put('/change-password', authMiddleware, async (req, res) => {
     const { currentPassword, newPassword, confirmNewPassword } = req.body;
 
     // Kiểm tra đầu vào
-    if (!currentPassword) { 
+    if (!currentPassword) {
         return res.status(400).json({ message: 'Làm ơn cung cấp mật khẩu hiện tại' });
     }
-    if (!newPassword) {
+    if (!newPassword || !confirmNewPassword) {
         return res.status(400).json({ message: 'Làm ơn cung cấp mật khẩu mới và xác nhận mật khẩu mới.' });
     }
-    if (!confirmNewPassword) {
-        return res.status(400).json({ message: 'Làm ơn nhập lại mật khẩu giùm tao' });
-    }
     if (newPassword.length < 5) {
-        return res.status(400).json({ message: 'nhập ít nhất 5 ký tự.' });
+        return res.status(400).json({ message: 'Mật khẩu mới phải có ít nhất 5 ký tự.' });
     }
-    // THAY ĐỔI Ở ĐÂY: Kiểm tra newPassword và confirmNewPassword có khớp không
+    // Kiểm tra newPassword và confirmNewPassword có khớp không
     if (newPassword !== confirmNewPassword) {
-        return res.status(400).json({ message: 'Mật khẩu mới và xác nhận mật khẩu mới éo khớp.' });
+        return res.status(400).json({ message: 'Mật khẩu mới và xác nhận mật khẩu mới không khớp.' });
     }
 
     try {
-        // Tìm người dùng bằng ID từ JWT (req.user.id)
-        const user = await User.findById(req.user.id);
+        // Tìm người dùng bằng ID từ JWT (req.user.userId)
+        // Dựa trên payload bạn cung cấp ở hàm login, userId được lưu trong req.user.userId
+        const user = await User.findById(req.user.userId); // Sử dụng findById để tìm theo ID
         if (!user) {
-            return res.status(404).json({ message: 'Người dùng méo tìm thấy.' });
+            return res.status(404).json({ message: 'Người dùng không tìm thấy.' });
         }
 
         // So sánh mật khẩu hiện tại với mật khẩu đã lưu trong DB
@@ -214,11 +212,14 @@ router.put('/change-password', authMiddleware, async (req, res) => {
             return res.status(400).json({ message: 'Mật khẩu hiện tại không đúng.' });
         }
 
-        // const salt = await bcrypt.genSalt(10);
-        // user.password = await bcrypt.hash(newPassword, salt);
+        // Mã hóa mật khẩu mới trước khi lưu
+        // Đảm bảo bạn đã import bcrypt ở đầu file nếu chưa có
+        // const bcrypt = require('bcryptjs'); // Ví dụ import
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
 
-        user.password = newPassword; // fix bug lỏd
         // Lưu mật khẩu mới vào database
+        user.password = newPassword;
         await user.save();
 
         res.status(200).json({ message: 'Mật khẩu đã được thay đổi thành công!' });
