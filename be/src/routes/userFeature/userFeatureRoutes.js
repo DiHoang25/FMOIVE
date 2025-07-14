@@ -4,6 +4,7 @@ const Movie = require('../../models/Movie');
 const User = require('../../models/User');     
 const Booking = require('../../models/Booking'); // Import Booking model
 const authMiddleware = require('../../middleware/authMiddleware'); // Middleware xác thực người dùng
+const Room = require('../../models/Room');
 
 // @route   GET /api/customer/movies
 // @desc    Lấy danh sách các bộ phim và lịch chiếu có sẵn
@@ -50,56 +51,61 @@ router.get('/search', async (req, res) => {
 });
 
 router.get('/my-bookings', authMiddleware, async (req, res) => {
-    try {
-        // Lấy userId từ đối tượng req.user (được gắn bởi authMiddleware)
-        const userId = req.user.userId;
+  try {
+    const userId = req.user.userId;
 
-        if (!userId) {
-            return res.status(400).json({ message: 'User ID not found in token.' });
-        }
-
-        // Tìm tất cả các booking trong DB có user._id khớp với userId
-        // Sắp xếp theo ngày tạo mới nhất lên trước
-        const bookings = await Booking.find({ 'user._id': userId }).sort({ createdAt: -1 });
-
-        if (!bookings || bookings.length === 0) {
-            // Trả về mảng rỗng nếu người dùng chưa đặt vé nào
-            return res.status(200).json([]);
-        }
-
-        // --- QUAN TRỌNG: Định dạng lại dữ liệu để khớp với frontend ---
-        // Component React của bạn đang mong đợi một cấu trúc dữ liệu cụ thể.
-        // Chúng ta cần chuyển đổi dữ liệu từ Booking model sang cấu trúc đó.
-        const formattedTickets = bookings.map(booking => {
-            return {
-                id: booking.bookingId || booking._id.toString(), // Dùng bookingId nếu có, nếu không thì dùng _id
-                movie: booking.movieDetails.name,
-                date: new Date(booking.movieDetails.time).toLocaleDateString('en-GB', {
-                    day: '2-digit', month: 'short', year: 'numeric'
-                }).replace(/ /g, ' '), // Format: "25 Dec 2026"
-                time: new Date(booking.movieDetails.time).toLocaleTimeString('en-US', {
-                    hour: '2-digit', minute: '2-digit', hour12: true
-                }), // Format: "07:30 PM"
-                status: booking.status === 'PAID' ? 'CONFIRMED' : booking.status, // Chuyển đổi trạng thái
-                seats: booking.selectedSeats.join(', '), // Chuyển mảng thành chuỗi
-                screen: booking.movieDetails.cinema_room,
-                bookingDate: new Date(booking.createdAt).toLocaleDateString('en-GB', {
-                    day: '2-digit', month: 'short', year: 'numeric'
-                }).replace(/ /g, ' '),
-                ticketPrice: `$${booking.grandTotal.toFixed(2)}`,
-                imdb: 'N/A', // Model Booking không có thông tin này, có thể thêm sau
-                duration: `${booking.movieDetails.running_time}m`,
-                // Thêm trường này để logic "Cancel Ticket" ở frontend hoạt động chính xác
-                rawShowDate: booking.movieDetails.time 
-            };
-        });
-
-        res.status(200).json(formattedTickets);
-
-    } catch (error) {
-        console.error('Error fetching booked tickets:', error);
-        res.status(500).json({ message: 'Server error while fetching booked tickets.' });
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID not found in token.' });
     }
+
+    const bookings = await Booking.find({ 'user._id': userId }).sort({ createdAt: -1 });
+
+    if (!bookings || bookings.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    // FORMAT VÉ CÓ roomName (tìm theo roomId)
+    const formattedTickets = await Promise.all(bookings.map(async (booking) => {
+      let roomName = booking.movieDetails.cinema_room;
+
+      try {
+        const room = await Room.findOne({ roomId: booking.movieDetails.cinema_room });
+        if (room) {
+          roomName = room.roomName;
+        }
+      } catch (err) {
+        console.warn('Không tìm thấy roomName từ roomId:', err.message);
+      }
+
+      return {
+        id: booking.bookingId || booking._id.toString(),
+        movie: booking.movieDetails.name,
+        date: new Date(booking.movieDetails.time).toLocaleDateString('en-GB', {
+          day: '2-digit', month: 'short', year: 'numeric'
+        }).replace(/ /g, ' '),
+        time: new Date(booking.movieDetails.time).toLocaleTimeString('en-US', {
+          hour: '2-digit', minute: '2-digit', hour12: true
+        }),
+        status: booking.status === 'PAID' ? 'CONFIRMED' : booking.status,
+        seats: booking.selectedSeats.join(', '),
+        screen: booking.movieDetails.cinema_room, // Vẫn giữ để so sánh
+        roomName: roomName, // ← frontend sẽ hiển thị giá trị này
+        bookingDate: new Date(booking.createdAt).toLocaleDateString('en-GB', {
+          day: '2-digit', month: 'short', year: 'numeric'
+        }).replace(/ /g, ' '),
+        ticketPrice: `$${booking.grandTotal.toFixed(2)}`,
+        imdb: 'N/A',
+        duration: `${booking.movieDetails.running_time}m`,
+        rawShowDate: booking.movieDetails.time
+      };
+    }));
+
+    res.status(200).json(formattedTickets);
+
+  } catch (error) {
+    console.error('Error fetching booked tickets:', error);
+    res.status(500).json({ message: 'Server error while fetching booked tickets.' });
+  }
 });
 
 module.exports = router;

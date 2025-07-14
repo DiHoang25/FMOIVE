@@ -39,6 +39,7 @@ const ConfirmBooking = () => {
     totalSeatPrice,
     selectedCombos,
     totalComboPrice,
+    fullShowtimeDate = '',
     user, // Get user from Redux
   } = useSelector((state) => state.booking)
 

@@ -9,44 +9,44 @@ const AddCinemaRoom = () => {
   const [loading, setLoading] = useState(false);
 
   const onFinish = async (values) => {
-  try {
-    setLoading(true);
-    const token = localStorage.getItem('token');
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
 
-    // Ép kiểu rõ ràng
-    const payload = {
-      ...values,
-      rows: Number(values.rows),
-      columns: Number(values.columns),
-      normalPrice: Number(values.normalPrice),
-      vipPrice: Number(values.vipPrice),
-    };
+      // Ép kiểu rõ ràng
+      const payload = {
+        ...values,
+        rows: Number(values.rows),
+        columns: Number(values.columns),
+        normalPrice: Number(values.normalPrice),
+        vipPrice: Number(values.vipPrice),
+      };
 
-    const response = await fetch('http://localhost:5000/api/theater/rooms/new_room', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
+      const response = await fetch('http://localhost:5000/api/theater/rooms/new_room', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (response.ok) {
-      message.success('Phòng chiếu đã được tạo thành công!');
-      form.resetFields();
-      navigate('/admin/cinema-rooms');
-    } else {
-      message.error(data.message || 'Tạo phòng thất bại!');
+      if (response.ok) {
+        message.success('Phòng chiếu đã được tạo thành công!');
+        form.resetFields();
+        navigate('/admin/cinema-rooms');
+      } else {
+        message.error(data.message || 'Tạo phòng thất bại!');
+      }
+    } catch (error) {
+      console.error('Error creating room:', error);
+      message.error('Đã xảy ra lỗi khi tạo phòng.');
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error('Error creating room:', error);
-    message.error('Đã xảy ra lỗi khi tạo phòng.');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
 
   const labelClass = 'text-white font-medium';
@@ -77,18 +77,35 @@ const AddCinemaRoom = () => {
             <Form.Item
               label={<label className={labelClass}>Number of Rows</label>}
               name="rows"
-              rules={[{ required: true, type: 'number', min: 1, max: 50 }]}
+              rules={[
+                { required: true, message: 'Please enter number of rows!' },
+                {
+                  validator: (_, value) => {
+                    if (value >= 1 && value <= 12) return Promise.resolve();
+                    return Promise.reject(new Error('Rows must be between 1 and 12'));
+                  },
+                },
+              ]}
             >
-              <InputNumber min={1} max={50} className={inputClass} />
+              <InputNumber className={inputClass} />
             </Form.Item>
 
             <Form.Item
               label={<label className={labelClass}>Number of Columns</label>}
               name="columns"
-              rules={[{ required: true, type: 'number', min: 1, max: 50 }]}
+              rules={[
+                { required: true, message: 'Please enter number of columns!' },
+                {
+                  validator: (_, value) => {
+                    if (value >= 1 && value <= 14) return Promise.resolve();
+                    return Promise.reject(new Error('Columns must be between 1 and 14'));
+                  },
+                },
+              ]}
             >
-              <InputNumber min={1} max={50} className={inputClass} />
+              <InputNumber className={inputClass} />
             </Form.Item>
+
 
             <Form.Item
               label={<label className={labelClass}>Room Type</label>}
