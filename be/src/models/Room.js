@@ -75,7 +75,8 @@ const roomSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  seats: [seatSchema]
+ seats: [seatSchema], 
+    occupiedSeats: [occupiedSeatEntrySchema]
 }, {
   timestamps: true,
   collection: 'room'
