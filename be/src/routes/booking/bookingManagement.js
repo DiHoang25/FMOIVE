@@ -16,7 +16,34 @@ router.get('/', authMiddleware, employeeMiddleware, async (req, res) => {
     try {
         let query = {};
 
-        // 
+        // Apply filters based on query parameters
+        if (req.query.status) {
+            query.status = req.query.status;
+        }
+        if (req.query.movie) {
+            // Search by movie name within movieDetails
+            query['movieDetails.name'] = new RegExp(req.query.movie, 'i');
+        }
+        if (req.query.startDate && req.query.endDate) {
+            // Filter by booking time within movieDetails
+            query['movieDetails.time'] = {
+                $gte: new Date(req.query.startDate),
+                $lte: new Date(req.query.endDate)
+            };
+        }
+        // Add more filters as needed, e.g., by cinema room, user email, etc.
+        if (req.query.cinemaRoom) {
+            query['movieDetails.cinema_room'] = new RegExp(req.query.cinemaRoom, 'i');
+        }
+        if (req.query.userEmail) {
+            query['user.email'] = new RegExp(req.query.userEmail, 'i');
+        }
+        if (req.query.userName) {
+            query['user.name'] = new RegExp(req.query.userName, 'i');
+        }
+        if (req.query.phoneNumber) {
+            query['user.phone'] = new RegExp(req.query.phoneNumber, 'i');
+        }
 
 
         // Pagination
@@ -70,19 +97,9 @@ router.get('/search', authMiddleware, employeeMiddleware, async (req, res) => {
             return res.status(404).json({ message: 'Không tìm thấy đặt vé nào với thông tin đã cung cấp.' });
         }
 
-        // Filter bookings based on user role
-        const filteredBookings = bookings.filter(booking => {
-
-            return booking.user._id.toString() === req.user.id;
-        });
-
-        if (filteredBookings.length === 0) {
-            return res.status(403).json({ message: 'Bạn không có quyền xem các đặt vé này.' });
-        }
-
         res.status(200).json({
             message: 'Tìm kiếm đặt vé thành công.',
-            bookings: filteredBookings
+            bookings: bookings // No need to filter by user role here
         });
 
     } catch (error) {
