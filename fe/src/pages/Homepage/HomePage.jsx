@@ -19,16 +19,19 @@ const HomePage = () => {
   const [comingSoonIndex, setComingSoonIndex] = useState(0);
   const [currentBanner, setCurrentBanner] = useState(0);
   const [fade, setFade] = useState(false);
-  const currentDate = new Date();
-  const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-  const month = monthNames[currentDate.getMonth()];
-  const year = currentDate.getFullYear();
+  const [itemsPerPage, setItemsPerPage] = useState(7);
 
-
-  const itemsPerPage = 7;
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width < 640) setItemsPerPage(2);
+      else if (width < 1024) setItemsPerPage(4);
+      else setItemsPerPage(7);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchHomeData = async () => {
@@ -41,7 +44,6 @@ const HomePage = () => {
         const homeData = homeRes.data;
         const moviesData = moviesRes.data;
 
-        // Filter out ended movies for hot movies section
         const activeMovies = moviesData.filter(movie => movie.status !== 'ended' && movie.is_hot);
 
         setBanners(homeData.banners || []);
@@ -56,17 +58,11 @@ const HomePage = () => {
     fetchHomeData();
   }, []);
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return 'N/A';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('vi-VN');
-  };
-
   useEffect(() => {
     const bannerInterval = setInterval(() => {
       setFade(true);
       setTimeout(() => {
-        setCurrentBanner((prev) => (prev + 1) % banners.length);
+        setCurrentBanner(prev => (prev + 1) % banners.length);
         setFade(false);
       }, 300);
     }, 3000);
@@ -75,30 +71,23 @@ const HomePage = () => {
     let comingSoonInterval = null;
     if (nowShowingMovies.length > itemsPerPage) {
       nowShowingInterval = setInterval(() => {
-        setNowShowingIndex((prev) => {
-          const maxIndex = nowShowingMovies.length - itemsPerPage;
-          return prev < maxIndex ? prev + 1 : prev;
-        });
+        setNowShowingIndex(prev => Math.min(prev + 1, nowShowingMovies.length - itemsPerPage));
       }, 3000);
     }
-
     if (comingSoonMovies.length > itemsPerPage) {
-comingSoonInterval = setInterval(() => {
-        setComingSoonIndex((prev) => {
-          const maxIndex = comingSoonMovies.length - itemsPerPage;
-          return prev < maxIndex ? prev + 1 : prev;
-        });
+      comingSoonInterval = setInterval(() => {
+        setComingSoonIndex(prev => Math.min(prev + 1, comingSoonMovies.length - itemsPerPage));
       }, 3000);
     }
 
     return () => {
       clearInterval(bannerInterval);
-      if (nowShowingInterval) clearInterval(nowShowingInterval);
-      if (comingSoonInterval) clearInterval(comingSoonInterval);
+      clearInterval(nowShowingInterval);
+      clearInterval(comingSoonInterval);
     };
-  }, [banners.length, nowShowingMovies.length, comingSoonMovies.length]);
+  }, [banners.length, nowShowingMovies.length, comingSoonMovies.length, itemsPerPage]);
 
-  const openTrailer = (url) => {
+  const openTrailer = url => {
     setTrailerUrl(url);
     setIsModalVisible(true);
   };
@@ -112,24 +101,15 @@ comingSoonInterval = setInterval(() => {
     const itemWidth = 220;
     const visibleCount = itemsPerPage;
     const totalMovies = movies.length;
-    const containerWidth = itemWidth * visibleCount;
-
-    // Tính max index sao cho không tạo khoảng trống
     const maxIndex = Math.max(totalMovies - visibleCount, 0);
-
-    // Giới hạn index thủ công (tránh vượt)
     const clampedIndex = Math.min(index, maxIndex);
 
     return (
       <div className="space-y-4 overflow-hidden">
-        {/* Movie List */}
         <div className="overflow-hidden w-full">
           <div
             className="flex transition-transform duration-700 ease-in-out"
-            style={{
-              width: `${itemWidth * totalMovies}px`,
-              transform: `translateX(-${clampedIndex * itemWidth}px)`,
-            }}
+            style={{ width: `${itemWidth * totalMovies}px`, transform: `translateX(-${clampedIndex * itemWidth}px)` }}
           >
             {movies.map((movie, i) => (
               <div
@@ -140,7 +120,7 @@ comingSoonInterval = setInterval(() => {
                 <img
                   src={movie.image_url}
                   alt={movie.name}
-                  className="w-full h-[320px] object-cover rounded shadow-lg"
+                  className="w-full h-[240px] sm:h-[300px] md:h-[320px] object-cover rounded shadow-lg"
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition duration-200">
                   <img src={buttonplay} alt="Play" className="w-10 h-10 object-contain" />
@@ -152,23 +132,13 @@ comingSoonInterval = setInterval(() => {
             ))}
           </div>
         </div>
-
-        {/* Navigation Buttons */}
         <div className="flex justify-center items-center gap-4 mt-2">
-          <button
-            onClick={() => setIndex((prev) => Math.max(prev - 1, 0))}
-            disabled={clampedIndex === 0}
-            className="disabled:opacity-30"
-          >
+          <button onClick={() => setIndex(prev => Math.max(prev - 1, 0))} disabled={clampedIndex === 0} className="disabled:opacity-30">
             <div className="bg-red-600 rounded-full p-1 hover:bg-red-700 transition">
-<img src={prevbanner} alt="Prev" className="w-7 h-7 object-contain" />
+              <img src={prevbanner} alt="Prev" className="w-7 h-7 object-contain" />
             </div>
           </button>
-          <button
-            onClick={() => setIndex((prev) => Math.min(prev + 1, maxIndex))}
-            disabled={clampedIndex >= maxIndex}
-            className="disabled:opacity-30"
-          >
+          <button onClick={() => setIndex(prev => Math.min(prev + 1, maxIndex))} disabled={clampedIndex >= maxIndex} className="disabled:opacity-30">
             <div className="bg-red-600 rounded-full p-1 hover:bg-red-700 transition">
               <img src={nextbanner} alt="Next" className="w-7 h-7 object-contain" />
             </div>
@@ -178,13 +148,17 @@ comingSoonInterval = setInterval(() => {
     );
   };
 
+  const currentDate = new Date();
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const month = monthNames[currentDate.getMonth()];
+  const year = currentDate.getFullYear();
 
-
+  const formatDate = dateStr => new Date(dateStr).toLocaleDateString('vi-VN');
 
   return (
-    <div className="bg-black text-white px-6 py-10 space-y-10">
-      {/* Banner section */}
-      <div className="relative w-full h-[800px] mb-6 overflow-hidden rounded-lg shadow-lg">
+    <div className="bg-black text-white px-4 sm:px-6 py-6 sm:py-10 space-y-10">
+      {/* Banner */}
+      <div className="relative w-full h-[400px] sm:h-[600px] lg:h-[800px] mb-6 overflow-hidden rounded-lg shadow-lg">
         {banners.length > 0 && (
           <img
             src={banners[currentBanner]}
@@ -219,20 +193,17 @@ comingSoonInterval = setInterval(() => {
 
       {/* Hot Movies */}
       <div className="mt-10">
-        <h2 className="text-xl font-bold mb-4">
-          Hot movie : <span className="text-red-500">{month} {year}</span>
-        </h2>
+        <h2 className="text-xl font-bold mb-4">Hot movie : <span className="text-red-500">{month} {year}</span></h2>
         {hotMovies.slice(0, 8).map((movie, idx) => (
-          <div key={idx} className="flex items-start gap-4 mb-6 border-b border-gray-700 pb-4">
+          <div key={idx} className="flex flex-col md:flex-row items-start gap-4 mb-6 border-b border-gray-700 pb-4">
             <Link to={`/moviedetails/${movie._id}`}>
               <img src={movie.image_url} alt="Poster" className="w-[200px] h-[340px] object-cover rounded" />
             </Link>
             <div>
               <h3 className="text-3xl font-bold text-red-500">{movie.name}</h3>
-<div className="flex items-center gap-3 text-sm font-medium mb-1">
+              <div className="flex items-center gap-3 text-sm font-medium mb-1">
                 <span className='text-xl'>{movie.genres?.join(', ') || 'N/A'}</span>
-                <span className="bg-red-600 text-b  lack px-1 rounded text-m">{movie.version}</span>
-                {/* <span className="bg-red-600 text-white px-1 rounded text-m">{movie.rating}</span> */}
+                <span className="bg-red-600 text-white px-1 rounded text-m">{movie.version}</span>
               </div>
               <div className="flex items-center gap-1 text-yellow-400 mb-2">
                 <span className="text-white text-m">IMDB: {movie.rating}/10</span>
@@ -241,9 +212,7 @@ comingSoonInterval = setInterval(() => {
               <p className="text-2xl mb-2">Actor: {movie.actors || 'N/A'}</p>
               <p className="text-2xl mb-2">Description: {movie.description || 'N/A'}</p>
               <div className="mb-2">
-                <button onClick={() => openTrailer(movie.trailer_link)} className="bg-gray-800 text-white px-2 py-1 rounded text-xl ml-0">
-                  Watch Trailer
-                </button>
+                <button onClick={() => openTrailer(movie.trailer_link)} className="bg-gray-800 text-white px-2 py-1 rounded text-xl ml-0">Watch Trailer</button>
               </div>
               <Link to={`/moviedetails/${movie._id}`}>
                 <button className="bg-red-600 text-white px-3 py-1 rounded text-xl">View Details</button>
@@ -257,28 +226,23 @@ comingSoonInterval = setInterval(() => {
       <div className="mt-10">
         <h2 className="text-xl font-bold mb-6">Movie News</h2>
         <div className="overflow-visible w-full">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 min-w-0">
-          {news.map((item, idx) => (
-            <Link
-              to={`/movienews/${item.slug}`}
-              key={idx}
-              className="bg-white text-black rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition duration-300"
-            >
-              <img src={item.image_url} alt="News" className="w-full h-[300px] object-cover" />
-              <div className="p-4 space-y-2">
-                <h3 className="text-lg font-semibold leading-tight line-clamp-2">{item.title}</h3>
-                <div className="flex items-center text-sm text-gray-500 gap-4">
-                  <span className="flex items-center gap-1">👤 {item.author}</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 min-w-0">
+            {news.map((item, idx) => (
+              <Link to={`/movienews/${item.slug}`} key={idx} className="bg-white text-black rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
+                <img src={item.image_url} alt="News" className="w-full h-[300px] object-cover" />
+                <div className="p-4 space-y-2">
+                  <h3 className="text-lg font-semibold leading-tight line-clamp-2">{item.title}</h3>
+                  <div className="flex items-center text-sm text-gray-500 gap-4">
+                    <span className="flex items-center gap-1">👤 {item.author}</span>
+                  </div>
+                  <span className="text-xs flex items-center gap-1">📅 {item.date}</span>
+                  <p className="text-sm text-gray-700 line-clamp-3">{item.short_description}</p>
                 </div>
-                <span className="text-xs flex items-center gap-1">📅 {item.date}</span>
-                <p className="text-sm text-gray-700 line-clamp-3">{item.short_description}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
-
 
       {/* Modal Trailer */}
       <Modal
@@ -286,16 +250,11 @@ comingSoonInterval = setInterval(() => {
         onCancel={closeTrailer}
         footer={null}
         centered
-        width={800}
+        width={window.innerWidth < 640 ? 360 : 800}
         className="backdrop-blur-sm"
         destroyOnClose
         styles={{
-          content: {
-            backgroundColor: 'transparent',
-            borderRadius: 0,
-            boxShadow: 'none',
-            padding: 0,
-          },
+          content: { backgroundColor: 'transparent', borderRadius: 0, boxShadow: 'none', padding: 0 },
           body: { padding: 0 },
         }}
       >
