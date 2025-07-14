@@ -1,6 +1,23 @@
 const mongoose = require('mongoose');
 const Counter = require('./Counter');
 
+
+const occupiedSeatEntrySchema = new mongoose.Schema({
+    seatLabel: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    bookingId: { // Reference to the booking that occupied this seat
+        type: String,
+        ref: 'Booking',
+        required: true
+    },
+    showtime: { // The specific showtime this seat is occupied for
+        type: Date,
+        required: true
+    }
+}, { _id: false });
 // Sub-schema cho mỗi ghế
 const seatSchema = new mongoose.Schema({
   row: {
@@ -75,7 +92,8 @@ const roomSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  seats: [seatSchema]
+ seats: [seatSchema], 
+    occupiedSeats: [occupiedSeatEntrySchema]
 }, {
   timestamps: true,
   collection: 'room'
