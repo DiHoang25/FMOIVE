@@ -29,6 +29,17 @@ code {
   color: white;
 }
 
+/* Xóa nền trắng, shadow, bo góc của Modal content */
+.custom-modal .ant-modal-content {
+  @apply bg-transparent shadow-none rounded-none p-0 !important;
+}
+
+/* (Tùy chọn) chỉnh màu overlay khi mở modal */
+.custom-modal .ant-modal-mask {
+  @apply bg-black bg-opacity-60 !important; /* hoặc bg-transparent nếu muốn */
+}
+
+
 
 
 

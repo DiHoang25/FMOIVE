@@ -5,6 +5,8 @@ import axios from 'axios';
 import { Modal, message } from 'antd';
 import { LoadingOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import LoadingSpinner from '../../components/LoadingSpinner';
+
 
 // Redux imports
 import { useSelector, useDispatch } from 'react-redux';
@@ -71,6 +73,7 @@ const ComboSelection = () => {
   const [showComboDetailModal, setShowComboDetailModal] = useState(false);
   const [selectedComboDetails, setSelectedComboDetails] = useState(null);
   const [loadingComboDetails, setLoadingComboDetails] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fallback for movie details
   const movie = movieDetails || {
@@ -120,7 +123,7 @@ const ComboSelection = () => {
     console.log("ComboSelection useEffect (initial mount/re-render): movieDetails:", movieDetails, "selectedSeats:", selectedSeats, "totalSeatPrice:", totalSeatPrice); // Debugging line
     const fetchCombos = async () => {
       try {
-        setLoadingCombos(true);
+        setIsLoading(true);
         const response = await axios.get(API_COMBO_BASE_URL);
         const activeCombos = response.data.combos.filter(combo => combo.status === 'active');
 
@@ -152,7 +155,7 @@ const ComboSelection = () => {
         console.error('Error fetching combos:', error);
         message.error('Failed to load combos. Please try again.');
       } finally {
-        setLoadingCombos(false);
+        setIsLoading(false);
       }
     };
 
@@ -230,6 +233,10 @@ const ComboSelection = () => {
     }
   };
 
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <div className="min-h-screen bg-black text-white py-10 px-4">
       {/* Custom styles for Ant Design Modal */}
@@ -293,14 +300,6 @@ const ComboSelection = () => {
         <hr className="border-gray-600 mb-6" />
 
         <h3 className="text-white font-semibold mb-4">The List of popcorn and drinks</h3>
-        {loadingCombos ? (
-          <div className="text-center py-8">
-            <LoadingOutlined style={{ fontSize: '24px', color: '#fff' }} />
-            <p className="text-gray-400 mt-2">Loading combos...</p>
-          </div>
-        ) : combos.length === 0 ? (
-          <div className="text-center text-gray-400">No active combos available.</div>
-        ) : (
           <div className="grid sm:grid-cols-2 gap-4 mb-6">
             {combos.map((combo) => (
               <div
@@ -339,7 +338,7 @@ const ComboSelection = () => {
               </div>
             ))}
           </div>
-        )}
+        
 
         {/* Total and Continue */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">

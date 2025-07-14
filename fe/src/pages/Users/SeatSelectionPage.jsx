@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, Monitor, Crown } from "lucide-react";
+import { Monitor, Crown } from "lucide-react";
 import { useSelector, useDispatch } from 'react-redux';
 import {
   setSelectedSeats,
   setSelectedCombos,
   setMovieDetails,
 } from '../../redux/bookingSlice';
+import LoadingSpinner from '../../components/LoadingSpinner'; // import đầu file
 
 const formatMinutesToHoursMinutes = (minutes) => {
   if (typeof minutes !== 'number' || minutes < 0) return 'N/A';
@@ -34,74 +35,59 @@ function SeatSelectionPage() {
 
   const bookingState = useSelector((state) => state.booking);
   const movieDetails = bookingState.movieDetails;
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [roomData, setRoomDataState] = useState(null);
+  const [selectedSeatsState, setSelectedSeatsState] = useState(bookingState.selectedSeats || []);
 
   const movie = movieDetails?.name
     ? movieDetails
     : {
-      name: 'Movie Title N/A',
-      image_url: 'https://placehold.co/120x180/000000/FFFFFF?text=No+Poster',
-      version: 'N/A',
-      running_time: 'N/A',
-      time: 'N/A',
-      cinema_room: 'N/A',
-      rating: 'N/A',
-      genres: [],
-    };
-
-  const [roomData, setRoomDataState] = useState(null);
-  const [selectedSeatsState, setSelectedSeatsState] = useState(bookingState.selectedSeats || []);
+        name: 'Movie Title N/A',
+        image_url: 'https://placehold.co/120x180/000000/FFFFFF?text=No+Poster',
+        version: 'N/A',
+        running_time: 'N/A',
+        time: 'N/A',
+        cinema_room: 'N/A',
+        rating: 'N/A',
+        genres: [],
+      };
 
   useEffect(() => {
     dispatch(setSelectedCombos({ combos: [], totalPrice: 0 }));
   }, [dispatch]);
 
   useEffect(() => {
-    const fetchMovieDetails = async () => {
-      if (!movieId) return;
-
-      try {
-        const res = await fetch(`http://localhost:5000/api/movies/${movieId}`);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Không thể lấy thông tin phim");
-
-        dispatch(setMovieDetails(data));
-        console.log("🎬 Movie details fetched and stored in Redux:", data);
-      } catch (err) {
-        console.error("❌ Lỗi khi fetch thông tin phim:", err.message);
-      }
-    };
-
-    if (!movieDetails?.name) {
-      fetchMovieDetails();
-    }
-  }, [movieId, movieDetails?.name, dispatch]);
-
-  useEffect(() => {
-    const fetchRoomData = async () => {
-      if (!roomId) {
-        console.warn("No roomId provided.");
-        return;
-      }
-
+    const fetchAllData = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
 
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Failed to load seat data");
-        setRoomDataState(data.room);
-        console.log("🎭 Room data fetched:", data.room);
-      } catch (err) {
-        console.error("❌ Lỗi khi fetch thông tin phòng chiếu:", err.message);
+        const [roomRes, movieRes] = await Promise.all([
+          fetch(`http://localhost:5000/api/theater/rooms/${roomId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`http://localhost:5000/api/movies/${movieId}`)
+        ]);
+
+        const roomData = await roomRes.json();
+        const movieData = await movieRes.json();
+
+        if (!roomRes.ok) throw new Error(roomData.message || 'Failed to fetch room');
+        if (!movieRes.ok) throw new Error(movieData.message || 'Failed to fetch movie');
+
+        setRoomDataState(roomData.room);
+        dispatch(setMovieDetails(movieData));
+      } catch (error) {
+        console.error('❌ Error fetching data:', error.message);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchRoomData();
-  }, [roomId]);
+    if (roomId && movieId) {
+      fetchAllData();
+    }
+  }, [roomId, movieId, dispatch]);
 
   const handleToggleSeat = (seat) => {
     setSelectedSeatsState((prev) =>
@@ -135,8 +121,7 @@ function SeatSelectionPage() {
     }));
     localStorage.setItem('selectedSeats', JSON.stringify(selectedSeatsState));
     localStorage.setItem('totalSeatPrice', getTotalPrice().toString());
-    
-    // Also persist movie details if they exist
+
     if (movieDetails) {
       localStorage.setItem('movieDetails', JSON.stringify(movieDetails));
     }
@@ -147,7 +132,9 @@ function SeatSelectionPage() {
   const formattedRunningTime = formatMinutesToHoursMinutes(movie.running_time);
   const displayCinemaRoomName = formatCinemaRoomName(movie.cinema_room);
 
-
+  if (isLoading) {
+  return <LoadingSpinner />;
+}
 
   return (
     <div className="bg-black min-h-screen text-white px-6 py-10">
@@ -183,44 +170,40 @@ function SeatSelectionPage() {
             <div className="h-2 bg-gradient-to-r from-transparent via-white to-transparent rounded-full mt-2 mb-4 opacity-80" />
           </div>
 
-          {roomData ? (
-            <div className="space-y-3">
-              {[...Array(roomData.rows)].map((_, rIdx) => {
-                const rowLetter = String.fromCharCode(65 + rIdx);
-                const rowSeats = roomData.seats.filter((s) => Number(s.row) === rIdx + 1);
+          <div className="space-y-3">
+            {[...Array(roomData.rows)].map((_, rIdx) => {
+              const rowLetter = String.fromCharCode(65 + rIdx);
+              const rowSeats = roomData.seats.filter((s) => Number(s.row) === rIdx + 1);
 
-                return (
-                  <div key={rowLetter} className="flex items-center justify-center gap-2">
-                    <div className="w-8 flex items-center justify-center">
-                      <span className="text-slate-400 font-bold text-sm">{rowLetter}</span>
-                    </div>
-                    <div className="flex gap-2 justify-center">
-                      {[...Array(roomData.columns)].map((_, cIdx) => {
-                        const seat = rowSeats.find((s) => Number(s.column) === cIdx + 1);
-                        return seat ? (
-                          <button
-                            key={seat.label}
-                            onClick={() => handleToggleSeat(seat)}
-                            className={getSeatClass(seat)}
-                            title={`Seat ${seat.label} - ${seat.type} - ${seat.price.toLocaleString('vi-VN')} VND`}
-                          >
-                            {seat.type === "VIP" ? <Crown className="w-3 h-3" /> : seat.label}
-                          </button>
-                        ) : (
-                          <div key={`empty-${cIdx}`} className="w-10 h-10" />
-                        );
-                      })}
-                    </div>
-                    <div className="w-8 flex items-center justify-center">
-                      <span className="text-slate-400 font-bold text-sm">{rowLetter}</span>
-                    </div>
+              return (
+                <div key={rowLetter} className="flex items-center justify-center gap-2">
+                  <div className="w-8 flex items-center justify-center">
+                    <span className="text-slate-400 font-bold text-sm">{rowLetter}</span>
                   </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-12 text-slate-400">Loading seats...</div>
-          )}
+                  <div className="flex gap-2 justify-center">
+                    {[...Array(roomData.columns)].map((_, cIdx) => {
+                      const seat = rowSeats.find((s) => Number(s.column) === cIdx + 1);
+                      return seat ? (
+                        <button
+                          key={seat.label}
+                          onClick={() => handleToggleSeat(seat)}
+                          className={getSeatClass(seat)}
+                          title={`Seat ${seat.label} - ${seat.type} - ${seat.price.toLocaleString('vi-VN')} VND`}
+                        >
+                          {seat.type === "VIP" ? <Crown className="w-3 h-3" /> : seat.label}
+                        </button>
+                      ) : (
+                        <div key={`empty-${cIdx}`} className="w-10 h-10" />
+                      );
+                    })}
+                  </div>
+                  <div className="w-8 flex items-center justify-center">
+                    <span className="text-slate-400 font-bold text-sm">{rowLetter}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
           <div className="mt-10 space-y-6">
             <div className="flex justify-center gap-8 flex-wrap">

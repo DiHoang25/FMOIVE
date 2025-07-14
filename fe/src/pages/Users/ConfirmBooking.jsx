@@ -1,95 +1,114 @@
-"use client"
+"use client";
 
-import { useNavigate } from "react-router-dom"
-import { useEffect, useState } from "react"
-import axios from "axios"
-import { message } from "antd"
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { message } from "antd";
 import {
   setSelectedSeats,
   setSelectedCombos,
   setMovieDetails,
-} from '../../redux/bookingSlice';
+  updateGrandTotal,
+  setUser,
+} from "../../redux/bookingSlice";
 
-// Redux imports
-import { useSelector, useDispatch } from "react-redux"
-import { updateGrandTotal } from "../../redux/bookingSlice"
-import { setUser } from "../../redux/bookingSlice"
+// Redux
+import { useSelector, useDispatch } from "react-redux";
 
-// Use a placeholder image if movie.image_url is not available
-import defaultPoster from "../../assets/batman.png"
+// Image fallback
+import defaultPoster from "../../assets/batman.png";
 
-// Helper function to format cinema room name (e.g., "ROOM000000016" to "Cinema 16")
+// Format room name
 const formatCinemaRoomName = (roomName) => {
-  if (!roomName) return "N/A"
-  const match = roomName.match(/ROOM0*(\d+)/)
-  if (match && match[1]) {
-    return `Cinema ${Number.parseInt(match[1], 10)}`
-  }
-  return roomName
-}
+  if (!roomName) return "N/A";
+  const match = roomName.match(/ROOM0*(\d+)/);
+  return match?.[1] ? `Cinema ${parseInt(match[1], 10)}` : roomName;
+};
 
 const ConfirmBooking = () => {
-  const navigate = useNavigate()
-  const dispatch = useDispatch()
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const [voucherCode, setVoucherCode] = useState("");
+  const [voucherDiscount, setVoucherDiscount] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [promotions, setPromotions] = useState([]);
+  const [roomName, setRoomName] = useState("Loading...");
 
   useEffect(() => {
-  const savedState = {
-    movieDetails: JSON.parse(localStorage.getItem('movieDetails') || 'null'),
-    selectedSeats: JSON.parse(localStorage.getItem('selectedSeats') || '[]'),
-    totalSeatPrice: parseInt(localStorage.getItem('totalSeatPrice') || '0'),
-    selectedCombos: JSON.parse(localStorage.getItem('selectedCombos') || '[]'),
-    totalComboPrice: parseInt(localStorage.getItem('totalComboPrice') || '0'),
-    user: JSON.parse(localStorage.getItem('user') || 'null')
-  };
+    const loadAllData = async () => {
+      try {
+        setIsLoading(true);
 
-  const bookingState = JSON.parse(localStorage.getItem('bookingState') || 'null');
-  const stateToUse = bookingState || savedState;
+        const savedState = {
+          movieDetails: JSON.parse(localStorage.getItem("movieDetails") || "null"),
+          selectedSeats: JSON.parse(localStorage.getItem("selectedSeats") || "[]"),
+          totalSeatPrice: parseInt(localStorage.getItem("totalSeatPrice") || "0"),
+          selectedCombos: JSON.parse(localStorage.getItem("selectedCombos") || "[]"),
+          totalComboPrice: parseInt(localStorage.getItem("totalComboPrice") || "0"),
+          user: JSON.parse(localStorage.getItem("user") || "null"),
+        };
 
-  if (stateToUse.movieDetails) {
-    dispatch(setMovieDetails(stateToUse.movieDetails));
-  }
+        const bookingState = JSON.parse(localStorage.getItem("bookingState") || "null");
+        const stateToUse = bookingState || savedState;
 
-  if (stateToUse.selectedSeats?.length > 0 || stateToUse.totalSeatPrice > 0) {
-    dispatch(setSelectedSeats({
-      seats: stateToUse.selectedSeats || [],
-      totalPrice: stateToUse.totalSeatPrice || 0
-    }));
-  }
+        if (stateToUse.movieDetails) dispatch(setMovieDetails(stateToUse.movieDetails));
+        if (stateToUse.selectedSeats?.length > 0 || stateToUse.totalSeatPrice > 0) {
+          dispatch(setSelectedSeats({
+            seats: stateToUse.selectedSeats || [],
+            totalPrice: stateToUse.totalSeatPrice || 0,
+          }));
+        }
+        if (stateToUse.selectedCombos?.length > 0 || stateToUse.totalComboPrice > 0) {
+          dispatch(setSelectedCombos({
+            combos: stateToUse.selectedCombos || [],
+            totalPrice: stateToUse.totalComboPrice || 0,
+          }));
+        }
+        if (stateToUse.user) dispatch(setUser(stateToUse.user));
 
-  if (stateToUse.selectedCombos?.length > 0 || stateToUse.totalComboPrice > 0) {
-    dispatch(setSelectedCombos({
-      combos: stateToUse.selectedCombos || [],
-      totalPrice: stateToUse.totalComboPrice || 0
-    }));
-  }
+        if (stateToUse.movieDetails?.cinema_room) {
+          const token = localStorage.getItem("token");
+          const res = await fetch(
+            `http://localhost:5000/api/theater/rooms/${stateToUse.movieDetails.cinema_room}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          const data = await res.json();
+          setRoomName(data.room?.roomName || stateToUse.movieDetails.cinema_room);
+        }
 
-  if (stateToUse.user) {
-    dispatch(setUser(stateToUse.user));
-  }
-}, [dispatch]);
+        const token = localStorage.getItem("token");
+        if (token) {
+          const response = await axios.get("http://localhost:5000/api/user/profile", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const fetchedUser = response.data.user;
+          dispatch(setUser({
+            name: fetchedUser.fullname,
+            email: fetchedUser.email,
+            _id: fetchedUser._id,
+            phone: fetchedUser.phone,
+            username: fetchedUser.username,
+            gender: fetchedUser.gender,
+            address: fetchedUser.address,
+            id_card: fetchedUser.id_card,
+          }));
+        }
 
-  const [voucherCode, setVoucherCode] = useState("")
-  const [voucherDiscount, setVoucherDiscount] = useState(0)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [error, setError] = useState("")
-  const [promotions, setPromotions] = useState([])
+        const promoRes = await fetch("http://localhost:5000/api/promotions");
+        const promoData = await promoRes.json();
+        setPromotions(promoData.filter(p => !p.is_deleted));
+      } catch (err) {
+        console.error("❌ Error loading data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  useEffect(() => {
-    // Load persisted booking data from localStorage on component mount
-    const persistedBooking = JSON.parse(localStorage.getItem('bookingState'))
-    if (persistedBooking) {
-      dispatch(setMovieDetails(persistedBooking.movieDetails || {}))
-      dispatch(setSelectedSeats({
-        seats: persistedBooking.selectedSeats || [],
-        totalPrice: persistedBooking.totalSeatPrice || 0
-      }))
-      dispatch(setSelectedCombos({
-        combos: persistedBooking.selectedCombos || [],
-        totalPrice: persistedBooking.totalComboPrice || 0
-      }))
-      dispatch(setUser(persistedBooking.user || {}))
-    }
-  }, [dispatch])
+    loadAllData();
+  }, [dispatch]);
 
   const {
     movieDetails,
@@ -97,154 +116,54 @@ const ConfirmBooking = () => {
     totalSeatPrice,
     selectedCombos,
     totalComboPrice,
-    fullShowtimeDate = '',
-    user, // Get user from Redux
-  } = useSelector((state) => state.booking)
+    user,
+  } = useSelector((state) => state.booking);
 
-  const movie = movieDetails || {
-    name: "Movie Title N/A",
-    image_url: defaultPoster,
-    version: "N/A",
-    running_time: "N/A",
-    time: "N/A",
-    cinema_room: "N/A",
-    genres: [],
-  }
+  const movie = movieDetails || { name: "N/A", image_url: defaultPoster, version: "N/A", running_time: "N/A", time: "N/A", cinema_room: "N/A", genres: [] };
+  const seats = selectedSeats || [];
+  const combos = selectedCombos || [];
+  const userData = user || { name: "N/A", email: "N/A", phone: "N/A", username: "N/A", gender: "N/A", address: "N/A", id_card: "N/A", _id: null };
 
-  const seats = selectedSeats || []
-  const combos = selectedCombos || []
-  const userData = user || {
-    name: "N/A",
-    email: "N/A",
-    phone: "N/A",
-    username: "N/A",
-    gender: "N/A",
-    address: "N/A",
-    id_card: "N/A",
-    _id: null,
-  }
-
-  const calculatedTicketPrice = totalSeatPrice || 0
-  const calculatedCombosTotal = totalComboPrice || 0
-  const grandTotalAfterDiscount = calculatedTicketPrice + calculatedCombosTotal - voucherDiscount
+  const calculatedTicketPrice = totalSeatPrice || 0;
+  const calculatedCombosTotal = totalComboPrice || 0;
+  const grandTotalAfterDiscount = calculatedTicketPrice + calculatedCombosTotal - voucherDiscount;
 
   useEffect(() => {
-    dispatch(updateGrandTotal(grandTotalAfterDiscount))
-  }, [grandTotalAfterDiscount, dispatch])
+    dispatch(updateGrandTotal(grandTotalAfterDiscount));
+  }, [grandTotalAfterDiscount, dispatch]);
 
   const formatMovieTime = (timeString) => {
-    if (!timeString || timeString === "N/A") return { display: "N/A" }
-    const dateObj = new Date(timeString)
-    if (isNaN(dateObj.getTime())) {
-      const parts = timeString.split(", ")
-      const timePart = parts[parts.length - 1].trim()
-      const datePartArray = parts.slice(0, parts.length - 1).filter((part) => !/\d{4}/.test(part.trim()))
-      const datePart = datePartArray.join(", ").trim()
-      return { display: `${timePart}, ${datePart}` }
-    }
-    const dateOptions = { weekday: "long", month: "long", day: "numeric" }
-    const timeOptions = { hour: "2-digit", minute: "2-digit", hour12: true }
-    const formattedDate = dateObj.toLocaleDateString("en-US", dateOptions)
-    const formattedTime = dateObj.toLocaleTimeString("en-US", timeOptions)
-    return { display: `${formattedTime}, ${formattedDate}` }
-  }
+    if (!timeString || timeString === "N/A") return { display: "N/A" };
+    const dateObj = new Date(timeString);
+    if (isNaN(dateObj.getTime())) return { display: timeString };
+    const optionsDate = { weekday: "long", month: "long", day: "numeric" };
+    const optionsTime = { hour: "2-digit", minute: "2-digit", hour12: true };
+    return {
+      display: `${dateObj.toLocaleTimeString("en-US", optionsTime)}, ${dateObj.toLocaleDateString("en-US", optionsDate)}`
+    };
+  };
 
-  const formattedTime = formatMovieTime(movie.time)
-
-  const [roomName, setRoomName] = useState("Loading...")
-
-  useEffect(() => {
-    const fetchRoomName = async () => {
-      if (!movie.cinema_room) return
-      try {
-        const token = localStorage.getItem("token")
-        const res = await fetch(`http://localhost:5000/api/theater/rooms/${movie.cinema_room}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.message || "Failed to fetch room")
-        setRoomName(data.room?.roomName || movie.cinema_room)
-      } catch (error) {
-        console.error("❌ Error fetching room name:", error.message)
-        setRoomName(movie.cinema_room)
-      }
-    }
-    fetchRoomName()
-  }, [movie.cinema_room])
-
-  useEffect(() => {
-    const fetchAndSetUserData = async () => {
-      const token = localStorage.getItem("token")
-      if (token) {
-        try {
-          const response = await axios.get("http://localhost:5000/api/user/profile", {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          const fetchedUser = response.data.user
-          dispatch(
-            setUser({
-              name: fetchedUser.fullname,
-              email: fetchedUser.email,
-              _id: fetchedUser._id,
-              phone: fetchedUser.phone,
-              username: fetchedUser.username,
-              gender: fetchedUser.gender,
-              address: fetchedUser.address,
-              id_card: fetchedUser.id_card,
-            }),
-          )
-        } catch (error) {
-          console.error("Error fetching user data:", error)
-        }
-      }
-    }
-    fetchAndSetUserData()
-  }, [dispatch])
-
-  useEffect(() => {
-    fetch("http://localhost:5000/api/promotions")
-      .then((res) => res.json())
-      .then((data) => {
-        const activePromos = data.filter((p) => !p.is_deleted)
-        setPromotions(activePromos)
-      })
-      .catch((err) => console.error("Failed to fetch promotions", err))
-  }, [])
+  const formattedTime = formatMovieTime(movie.time);
 
   const handleProceedToPayment = async () => {
-    if (isProcessing) return
+    if (isProcessing) return;
 
-    // Persist all booking state fields to localStorage
-    localStorage.setItem('movieDetails', JSON.stringify(movieDetails));
-    localStorage.setItem('selectedSeats', JSON.stringify(selectedSeats));
-    localStorage.setItem('totalSeatPrice', totalSeatPrice.toString());
-    localStorage.setItem('selectedCombos', JSON.stringify(selectedCombos));
-    localStorage.setItem('totalComboPrice', totalComboPrice.toString());
-    localStorage.setItem('user', JSON.stringify(user));
-
-    // Also save the complete state object if needed elsewhere
-    const bookingState = {
-      movieDetails,
-      selectedSeats,
-      totalSeatPrice,
-      selectedCombos,
-      totalComboPrice,
-      user
-    };
-    localStorage.setItem('bookingState', JSON.stringify(bookingState))
-
-    setIsProcessing(true)
-    setError("")
     try {
-      const token = localStorage.getItem("token")
-      if (!token) {
-        setError("Authentication token missing. Please log in again.")
-        message.error("Authentication token missing. Please log in again.")
-        setIsProcessing(false)
-        return
-      }
+      setIsProcessing(true);
+      setError("");
+
+      const bookingState = {
+        movieDetails,
+        selectedSeats,
+        totalSeatPrice,
+        selectedCombos,
+        totalComboPrice,
+        user,
+      };
+      localStorage.setItem("bookingState", JSON.stringify(bookingState));
+
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Authentication token missing. Please log in again.");
 
       const bookingPayload = {
         bookingId: null,
@@ -260,17 +179,16 @@ const ConfirmBooking = () => {
         },
         selectedSeats: seats,
         totalSeatPrice: calculatedTicketPrice,
-        ...(selectedCombos &&
-          selectedCombos.length > 0 && {
-            selectedCombos: selectedCombos.map((c) => ({
-              comboId: c._id,
-              name: c.name,
-              quantity: c.quantity,
-              price: c.price,
-              imageUrl: c.image_url,
-            })),
-            totalComboPrice: calculatedCombosTotal,
-          }),
+        ...(combos.length > 0 && {
+          selectedCombos: combos.map((c) => ({
+            comboId: c._id,
+            name: c.name,
+            quantity: c.quantity,
+            price: c.price,
+            imageUrl: c.image_url,
+          })),
+          totalComboPrice: calculatedCombosTotal,
+        }),
         grandTotal: grandTotalAfterDiscount,
         user: {
           _id: userData._id,
@@ -282,34 +200,44 @@ const ConfirmBooking = () => {
           address: userData.address,
           id_card: userData.id_card,
         },
-      }
+      };
 
       const response = await axios.post("http://localhost:5000/api/booking/create", bookingPayload, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      })
+      });
 
       if (response.status === 201) {
-        message.success("Booking created successfully! Redirecting to payment...")
-        const createdBooking = response.data.booking
+        message.success("Booking created successfully! Redirecting to payment...");
+        const createdBooking = response.data.booking;
         navigate("/payment", {
           state: { bookingId: createdBooking.bookingId, grandTotal: createdBooking.grandTotal },
-        })
+        });
       } else {
-        setError(response.data.message || "Failed to create booking.")
-        message.error(response.data.message || "Failed to create booking.")
+        throw new Error(response.data.message || "Failed to create booking.");
       }
     } catch (err) {
-      console.error("Error during booking creation:", err)
-      setError(err.response?.data?.message || "An unexpected error occurred. Please try again.")
-      message.error(err.response?.data?.message || "An unexpected error occurred. Please try again.")
+      const msg = err.response?.data?.message || err.message || "An error occurred";
+      setError(msg);
+      message.error(msg);
     } finally {
-      setIsProcessing(false)
+      setIsProcessing(false);
     }
-  }
+  };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-red-500 border-solid mx-auto mb-4"></div>
+          <p className="text-lg font-medium text-gray-300">Loading your booking...</p>
+        </div>
+      </div>
+    );
+  }
+  
   return (
 <div className="min-h-screen bg-black text-white py-8 px-4">
       <div className="max-w-7xl mx-auto">
