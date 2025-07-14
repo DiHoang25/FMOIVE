@@ -139,7 +139,7 @@ const EditCinemaRoom = () => {
                   value={formValues.vipPrice}
                   onChange={value => setFormValues(prev => ({ ...prev, vipPrice: value }))}
                   min={0}
-                  max={1000000}
+                  max={1000000} 
                   className="w-full"
                   formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
                   parser={value => value.replace(/\./g, '')}

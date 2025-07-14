@@ -110,7 +110,7 @@ const ViewsBookedTicket = () => {
                                     <p><strong>NGÀY CHIẾU:</strong> {ticket.date}</p>
                                     <p><strong>GIỜ CHIẾU:</strong> {ticket.time}</p>
                                     <p><strong>GHẾ:</strong> {ticket.seats}</p>
-                                    <p><strong>RẠP:</strong> {ticket.screen}</p>
+                                    <p><strong>RẠP:</strong> {ticket.roomName}</p>
                                     <p><strong>TRẠNG THÁI:</strong> <span className={`px-2 py-1 rounded text-xs font-semibold ${ticket.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{ticket.status}</span></p>
                                     <div className="flex gap-2 pt-2">
                                         <button onClick={() => setViewModal(ticket)} className="bg-black hover:bg-gray-800 text-white text-sm px-3 py-1 rounded">Xem Chi Tiết</button>
@@ -153,7 +153,7 @@ const ViewsBookedTicket = () => {
                                 <h2 className="text-2xl font-bold mb-2">{viewModal.movie}</h2>
                                 <p><strong>NGÀY CHIẾU:</strong> {viewModal.date}</p>
                                 <p><strong>GIỜ CHIẾU:</strong> {viewModal.time}</p>
-                                <p><strong>RẠP:</strong> {viewModal.screen}</p>
+                                <p><strong>RẠP:</strong> {viewModal.roomName}</p>
                                 <p><strong>GHẾ:</strong> {viewModal.seats}</p>
                                 <p><strong>NGÀY ĐẶT:</strong> {viewModal.bookingDate}</p>
                                 <p><strong>TỔNG TIỀN:</strong> {viewModal.ticketPrice}</p>

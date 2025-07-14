@@ -133,7 +133,9 @@ const CounterCombo = () => {
 
     const finalTotal = ticketPrice + combosTotal + productsTotal;
 
+
     const handleContinue = () => {
+        // Lấy danh sách combo đã chọn
         const selectedComboList = combos.map(combo => ({
             id: combo.id,
             name: combo.name,
@@ -142,14 +144,11 @@ const CounterCombo = () => {
             image: combo.image
         })).filter(c => c.quantity > 0);
 
-        const totalComboPrice = selectedComboList.reduce((sum, c) => sum + c.price * c.quantity, 0);
+        const totalComboPrice = selectedComboList.reduce(
+            (sum, c) => sum + c.price * c.quantity, 0
+        );
 
-        dispatch(setSelectedCombos({
-            combos: selectedComboList,
-            totalPrice: totalComboPrice
-        }));
-
-
+        // Lấy danh sách sản phẩm đã chọn
         const selectedProducts = products.map(p => ({
             id: p._id,
             name: p.productName,
@@ -158,28 +157,46 @@ const CounterCombo = () => {
             image: p.image_url || ''
         })).filter(p => p.quantity > 0);
 
-        dispatch(setSelectedProducts({
-            products: selectedProducts,
-            totalPrice: productsTotal
+        const totalProductsPrice = selectedProducts.reduce(
+            (sum, p) => sum + p.price * p.quantity, 0
+        );
+
+        // Tổng cộng
+        const total = ticketPrice + totalComboPrice + totalProductsPrice;
+
+        // Lưu vào Redux nếu cần
+        dispatch(setSelectedCombos({
+            combos: selectedComboList,
+            totalPrice: totalComboPrice
         }));
 
+        dispatch(setSelectedProducts({
+            products: selectedProducts,
+            totalPrice: totalProductsPrice
+        }));
 
-        navigate('/employee/counter-confirm', {
-            state: {
-                movieDetails,
-                selectedShowtimeTime,
-                fullShowtimeDate,
-                selectedSeats,
-                selectedCombos: selectedComboList,
-                selectedProducts,
-                ticketPrice,
-                combosTotal,
-                productsTotal,
-                finalTotal,
-                userInformation,
-            },
-        });
+        // Gói tất cả lại trong 1 object
+        const bookingState = {
+            movieDetails,
+            selectedShowtimeTime,
+            fullShowtimeDate,
+            selectedSeats,
+            ticketPrice,
+            selectedCombos: selectedComboList,
+            combosTotal: totalComboPrice,
+            selectedProducts,
+            productsTotal: totalProductsPrice,
+            finalTotal: total,
+            userInformation
+        };
+
+        // Lưu toàn bộ booking state vào localStorage
+        localStorage.setItem('bookingState', JSON.stringify(bookingState));
+
+        // Chuyển trang
+        navigate('/employee/counter-confirm');
     };
+
 
     return (
         <SidebarLayout>
