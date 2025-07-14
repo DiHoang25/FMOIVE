@@ -1,9 +1,14 @@
 "use client"
 
 import { useNavigate } from "react-router-dom"
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import axios from "axios"
 import { message } from "antd"
+import {
+  setSelectedSeats,
+  setSelectedCombos,
+  setMovieDetails,
+} from '../../redux/bookingSlice';
 
 // Redux imports
 import { useSelector, useDispatch } from "react-redux"
@@ -27,11 +32,64 @@ const ConfirmBooking = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
 
+  useEffect(() => {
+  const savedState = {
+    movieDetails: JSON.parse(localStorage.getItem('movieDetails') || 'null'),
+    selectedSeats: JSON.parse(localStorage.getItem('selectedSeats') || '[]'),
+    totalSeatPrice: parseInt(localStorage.getItem('totalSeatPrice') || '0'),
+    selectedCombos: JSON.parse(localStorage.getItem('selectedCombos') || '[]'),
+    totalComboPrice: parseInt(localStorage.getItem('totalComboPrice') || '0'),
+    user: JSON.parse(localStorage.getItem('user') || 'null')
+  };
+
+  const bookingState = JSON.parse(localStorage.getItem('bookingState') || 'null');
+  const stateToUse = bookingState || savedState;
+
+  if (stateToUse.movieDetails) {
+    dispatch(setMovieDetails(stateToUse.movieDetails));
+  }
+
+  if (stateToUse.selectedSeats?.length > 0 || stateToUse.totalSeatPrice > 0) {
+    dispatch(setSelectedSeats({
+      seats: stateToUse.selectedSeats || [],
+      totalPrice: stateToUse.totalSeatPrice || 0
+    }));
+  }
+
+  if (stateToUse.selectedCombos?.length > 0 || stateToUse.totalComboPrice > 0) {
+    dispatch(setSelectedCombos({
+      combos: stateToUse.selectedCombos || [],
+      totalPrice: stateToUse.totalComboPrice || 0
+    }));
+  }
+
+  if (stateToUse.user) {
+    dispatch(setUser(stateToUse.user));
+  }
+}, [dispatch]);
+
   const [voucherCode, setVoucherCode] = useState("")
   const [voucherDiscount, setVoucherDiscount] = useState(0)
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState("")
   const [promotions, setPromotions] = useState([])
+
+  useEffect(() => {
+    // Load persisted booking data from localStorage on component mount
+    const persistedBooking = JSON.parse(localStorage.getItem('bookingState'))
+    if (persistedBooking) {
+      dispatch(setMovieDetails(persistedBooking.movieDetails || {}))
+      dispatch(setSelectedSeats({
+        seats: persistedBooking.selectedSeats || [],
+        totalPrice: persistedBooking.totalSeatPrice || 0
+      }))
+      dispatch(setSelectedCombos({
+        combos: persistedBooking.selectedCombos || [],
+        totalPrice: persistedBooking.totalComboPrice || 0
+      }))
+      dispatch(setUser(persistedBooking.user || {}))
+    }
+  }, [dispatch])
 
   const {
     movieDetails,
@@ -157,6 +215,25 @@ const ConfirmBooking = () => {
 
   const handleProceedToPayment = async () => {
     if (isProcessing) return
+
+    // Persist all booking state fields to localStorage
+    localStorage.setItem('movieDetails', JSON.stringify(movieDetails));
+    localStorage.setItem('selectedSeats', JSON.stringify(selectedSeats));
+    localStorage.setItem('totalSeatPrice', totalSeatPrice.toString());
+    localStorage.setItem('selectedCombos', JSON.stringify(selectedCombos));
+    localStorage.setItem('totalComboPrice', totalComboPrice.toString());
+    localStorage.setItem('user', JSON.stringify(user));
+
+    // Also save the complete state object if needed elsewhere
+    const bookingState = {
+      movieDetails,
+      selectedSeats,
+      totalSeatPrice,
+      selectedCombos,
+      totalComboPrice,
+      user
+    };
+    localStorage.setItem('bookingState', JSON.stringify(bookingState))
 
     setIsProcessing(true)
     setError("")

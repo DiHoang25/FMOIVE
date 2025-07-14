@@ -8,7 +8,7 @@ import dayjs from 'dayjs';
 
 // Redux imports
 import { useSelector, useDispatch } from 'react-redux';
-import { setSelectedCombos } from '../../redux/bookingSlice'; // Ensure this path is correct
+import { setSelectedCombos, setMovieDetails, setSelectedSeats } from '../../redux/bookingSlice'; // Ensure this path is correct
 
 // Make sure this path is correct relative to where ComboSelection.jsx is located
 import darkknight from '../../assets/darkknight.jpg';
@@ -37,6 +37,25 @@ const formatCinemaRoomName = (roomName) => {
 const ComboSelection = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  // Persist Redux state to localStorage
+  useEffect(() => {
+    const savedState = {
+      movieDetails: localStorage.getItem('movieDetails') ? JSON.parse(localStorage.getItem('movieDetails')) : null,
+      selectedSeats: localStorage.getItem('selectedSeats') ? JSON.parse(localStorage.getItem('selectedSeats')) : [],
+      totalSeatPrice: localStorage.getItem('totalSeatPrice') ? parseInt(localStorage.getItem('totalSeatPrice')) : 0,
+    };
+
+    if (savedState.movieDetails) {
+      dispatch(setMovieDetails(savedState.movieDetails));
+    }
+    if (savedState.selectedSeats.length > 0) {
+      dispatch(setSelectedSeats({
+        seats: savedState.selectedSeats,
+        totalPrice: savedState.totalSeatPrice
+      }));
+    }
+  }, [dispatch]);
 
   // Redux state
   const bookingState = useSelector((state) => state.booking);
@@ -176,6 +195,20 @@ const ComboSelection = () => {
       totalPrice: totalComboPrice,
     }));
 
+    // Persist combos data to localStorage before navigation
+    localStorage.setItem('selectedCombos', JSON.stringify(selectedCombosWithQuantity));
+    localStorage.setItem('totalComboPrice', totalComboPrice.toString());
+    
+    // Also save complete booking state
+    const bookingState = {
+      movieDetails,
+      selectedSeats,
+      totalSeatPrice,
+      selectedCombos: selectedCombosWithQuantity,
+      totalComboPrice
+    };
+    localStorage.setItem('bookingState', JSON.stringify(bookingState));
+
     navigate('/confirm-booking');
   };
 
@@ -291,7 +324,7 @@ const ComboSelection = () => {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={(e) => { e.stopPropagation(); updateQuantity(combo.id, -1); }}
-                    className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center"
+                    className="w-7 h-7 rounded-full bg-slate-600 flex items-center justify-center"
                   >
                     <Minus className="w-4 h-4 text-white" />
                   </button>
@@ -309,14 +342,11 @@ const ComboSelection = () => {
         )}
 
         {/* Total and Continue */}
-        <div className="flex justify-between items-center mt-6">
-          <div className="bg-gray-700 text-white px-6 py-2 rounded text-sm">
-            COMBO PRICE: {totalComboPrice.toLocaleString('vi-VN')} VND
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
+          <div className="bg-gray-700 px-6 py-2 rounded text-sm font-medium">
+            TOTAL: {(totalSeatPrice + totalComboPrice).toLocaleString('vi-VN')} VND
           </div>
-          <button
-            className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded font-semibold"
-            onClick={handleContinue}
-          >
+          <button className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded font-semibold" onClick={handleContinue}>
             CONTINUE
           </button>
         </div>
@@ -333,7 +363,14 @@ const ComboSelection = () => {
           </button>,
         ]}
         width={700}
-        bodyStyle={{ maxHeight: '70vh', overflowY: 'auto', backgroundColor: '#1f2937', color: 'white' }}
+        bodyStyle={{ 
+          maxHeight: '70vh', 
+          overflowY: 'auto', 
+          backgroundColor: '#1f2937', 
+          color: 'white',
+          padding: '24px',
+          borderRadius: '8px'
+        }}
         centered
       >
         {loadingComboDetails ? (
@@ -343,21 +380,23 @@ const ComboSelection = () => {
           </div>
         ) : selectedComboDetails ? (
           <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-4">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8 mb-6">
               <img
                 src={selectedComboDetails.image_url || darkknight}
                 alt={selectedComboDetails.comboName}
-                className="w-40 h-auto object-cover rounded-lg shadow-lg"
+                className="w-48 h-48 object-cover rounded-xl shadow-xl border-2 border-gray-600"
                 onError={(e) => {
                   console.error(`Failed to load image for modal combo ${selectedComboDetails.comboName}:`, selectedComboDetails.image_url);
-                  e.target.src = 'https://placehold.co/160x240/000000/FFFFFF?text=No+Image';
+                  e.target.src = 'https://placehold.co/192x192/000000/FFFFFF?text=No+Image';
                 }}
               />
-              <div className="flex-1 text-white text-center sm:text-left">
-                <h2 className="text-3xl font-bold mb-2">{selectedComboDetails.comboName}</h2>
-                <p className="text-gray-300 text-lg mb-1">Price: <span className="font-semibold">{selectedComboDetails.price?.toLocaleString('vi-VN')} VND</span></p>
-                <p className="text-gray-300 text-lg mb-1">Start Date: {dayjs(selectedComboDetails.startDate).format('DD/MM/YYYY')}</p>
-                <p className="text-gray-300 text-lg mb-1">End Date: {dayjs(selectedComboDetails.endDate).format('DD/MM/YYYY')}</p>
+              <div className="flex-1 text-white">
+                <h2 className="text-3xl font-bold mb-3 text-red-500">{selectedComboDetails.comboName}</h2>
+                <div className="space-y-2">
+                  <p className="text-lg"><span className="text-gray-400">Price:</span> <span className="font-bold">{selectedComboDetails.price?.toLocaleString('vi-VN')} VND</span></p>
+                  <p className="text-lg"><span className="text-gray-400">Start Date:</span> {dayjs(selectedComboDetails.startDate).format('DD/MM/YYYY')}</p>
+                  <p className="text-lg"><span className="text-gray-400">End Date:</span> {dayjs(selectedComboDetails.endDate).format('DD/MM/YYYY')}</p>
+                </div>
               </div>
             </div>
 

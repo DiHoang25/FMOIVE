@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import {
   setSelectedSeats,
   setSelectedCombos,
-  setMovieDetails, // ✅ Đã thêm đúng action creator từ slice
+  setMovieDetails,
 } from '../../redux/bookingSlice';
 
 const formatMinutesToHoursMinutes = (minutes) => {
@@ -64,7 +64,7 @@ function SeatSelectionPage() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Không thể lấy thông tin phim");
 
-        dispatch(setMovieDetails(data)); // ✅ đúng action creator
+        dispatch(setMovieDetails(data));
         console.log("🎬 Movie details fetched and stored in Redux:", data);
       } catch (err) {
         console.error("❌ Lỗi khi fetch thông tin phim:", err.message);
@@ -134,7 +134,12 @@ function SeatSelectionPage() {
       totalPrice: getTotalPrice(),
     }));
     localStorage.setItem('selectedSeats', JSON.stringify(selectedSeatsState));
-    localStorage.setItem('totalSeatPrice', getTotalPrice.toString());
+    localStorage.setItem('totalSeatPrice', getTotalPrice().toString());
+    
+    // Also persist movie details if they exist
+    if (movieDetails) {
+      localStorage.setItem('movieDetails', JSON.stringify(movieDetails));
+    }
 
     navigate(`/combo-selection`);
   };

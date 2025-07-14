@@ -256,7 +256,8 @@ comingSoonInterval = setInterval(() => {
       {/* Movie News */}
       <div className="mt-10">
         <h2 className="text-xl font-bold mb-6">Movie News</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="overflow-visible w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 min-w-0">
           {news.map((item, idx) => (
             <Link
               to={`/movienews/${item.slug}`}
@@ -274,6 +275,7 @@ comingSoonInterval = setInterval(() => {
               </div>
             </Link>
           ))}
+        </div>
         </div>
       </div>
 
@@ -298,7 +300,7 @@ comingSoonInterval = setInterval(() => {
         }}
       >
         <div className="relative pb-[56.25%] h-0">
-{isModalVisible && (
+          {isModalVisible && (
             <ReactPlayer
               key={trailerUrl}
               url={trailerUrl}
