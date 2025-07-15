@@ -195,9 +195,11 @@ const HomePage = () => {
       <div className="mt-10">
         <h2 className="text-xl font-bold mb-4">Hot movie : <span className="text-red-500">{month} {year}</span></h2>
         {hotMovies.slice(0, 8).map((movie, idx) => (
-          <div key={idx} className="flex flex-col md:flex-row items-start gap-4 mb-6 border-b border-gray-700 pb-4">
+         <div key={idx} className="flex flex-col md:flex-row items-center md:items-start gap-4 mb-6 border-b border-gray-700 pb-4">
             <Link to={`/moviedetails/${movie._id}`}>
-              <img src={movie.image_url} alt="Poster" className="w-[200px] h-[340px] object-cover rounded" />
+              <div className="flex justify-center w-full mb-4">
+                <img src={movie.image_url} alt="Poster" className="w-[200px] h-[340px] object-cover rounded" />
+              </div>
             </Link>
             <div>
               <h3 className="text-3xl font-bold text-red-500">{movie.name}</h3>
