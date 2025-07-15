@@ -76,52 +76,58 @@ const AdminProfile = () => {
 
     return (
         <SidebarLayout>
-            <div className="p-6 flex justify-center items-center min-h-[80vh]">
+            <div className="p-4 md:p-6 flex justify-center items-center min-h-[80vh]">
                 <Card
                     bordered={false}
-                    style={{ width: '100%', maxWidth: '800px' }}
-                    className="shadow-lg bg-slate-800"
+                    style={{ width: '100%', maxWidth: '900px' }}
+                    className="shadow-lg bg-slate-800 w-full"
                 >
-                    <div className="flex flex-col md:flex-row items-center gap-8">
-                        <div className="flex flex-col items-center">
+                    <div className="flex flex-col lg:flex-row gap-6 lg:gap-12 items-center lg:items-start">
+                        {/* Avatar and actions */}
+                        <div className="flex flex-col items-center w-full sm:w-auto">
                             <Avatar
                                 size={128}
                                 src={avatar}
                                 icon={<UserOutlined />}
                             />
-                            <h2 className="text-xl font-semibold mt-4 text-white">{user.fullname}</h2>
-                            <div className="flex flex-col gap-2 mt-4 w-full">
+                            <h2 className="text-xl font-semibold mt-4 text-white text-center">{user.fullname}</h2>
+                            <div className="flex flex-col gap-3 mt-4 w-full sm:w-[200px]">
                                 <Button
                                     onClick={() => navigate('/admin/admin-profile/edit-profile')}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold w-full"
                                 >
                                     Edit Profile
                                 </Button>
 
                                 <Button
                                     onClick={() => navigate('/admin/admin-profile/change-admin-password')}
-                                    className="bg-red-600 hover:bg-red-700 text-white font-semibold"
+                                    className="bg-red-600 hover:bg-red-700 text-white font-semibold w-full"
                                 >
                                     Change Password
                                 </Button>
                             </div>
                         </div>
 
-                        <div className="flex-1">
-                            <h1 className="text-2xl font-bold mb-6 text-red-600 text-center">
-                                Account Information
-                            </h1>
+                        {/* Information */}
+                        <div className="w-full">
                             <Descriptions
+                                title={
+                                    <div className="text-center text-xl sm:text-2xl font-bold text-white">
+                                        Account Information
+                                    </div>
+                                }
                                 column={1}
                                 bordered
                                 size="middle"
-                                className="custom-descriptions"
+                                className="custom-descriptions rounded-md overflow-hidden"
                             >
                                 <Descriptions.Item label="Name">{user.fullname}</Descriptions.Item>
                                 <Descriptions.Item label="Account">{user.username}</Descriptions.Item>
                                 <Descriptions.Item label="Email">{user.email}</Descriptions.Item>
                                 <Descriptions.Item label="DOB">{formattedDOB}</Descriptions.Item>
-                                <Descriptions.Item label="Phone Number">{user.phone || 'Not provided'}</Descriptions.Item>
+                                <Descriptions.Item label="Phone Number">
+                                    {user.phone || 'Not provided'}
+                                </Descriptions.Item>
                             </Descriptions>
                         </div>
                     </div>

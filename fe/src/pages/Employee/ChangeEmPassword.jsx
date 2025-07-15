@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SidebarLayout from '../../components/Sidebar-Admin';
+import SidebarLayoutEmployee from '../../components/Sidebar-Employee';
 
-const ChangeAdminPassword = () => {
+const ChangeEmPassword = () => {
   const navigate = useNavigate();
   const [success, setSuccess] = useState(false);
   const [serverError, setServerError] = useState('');
@@ -67,11 +67,11 @@ const ChangeAdminPassword = () => {
 
   const handleSuccessConfirm = () => {
     setSuccess(false);
-    navigate('/admin/admin-profile');
+    navigate('/employee/employee-profile');
   };
 
   return (
-    <SidebarLayout>
+    <SidebarLayoutEmployee>
       <div className=" text-white p-8 rounded-md">
         <h1 className="text-3xl font-bold mb-8 text-center text-white">Change Password</h1>
 
@@ -120,7 +120,7 @@ const ChangeAdminPassword = () => {
           </div>
           <div className="flex justify-center items-center gap-4 mt-6">
             <button
-              onClick={() => navigate('/admin/admin-profile')}
+              onClick={() => navigate('/employee/employee-profile')}
               className="px-5 py-2 border border-red-500 text-red-500 rounded hover:bg-red-100"
             >
               Cancel
@@ -156,8 +156,9 @@ const ChangeAdminPassword = () => {
           </div>
         </div>
       )}
-    </SidebarLayout>
+    </SidebarLayoutEmployee>
+
   );
 };
 
-export default ChangeAdminPassword;
+export default ChangeEmPassword;

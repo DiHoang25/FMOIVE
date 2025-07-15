@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SidebarLayout from '../../components/Sidebar-Admin';
+import SidebarLayoutEmployee from '../../components/Sidebar-Employee';
 import { FaEdit } from 'react-icons/fa';
 
-const EditAdminProfile = () => {
+const EditEmProfile = () => {
   const navigate = useNavigate();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -115,11 +115,11 @@ const EditAdminProfile = () => {
 
   const handleSuccessConfirm = () => {
     setShowSuccessModal(false);
-    navigate('/admin/admin-profile');
+    navigate('/employee/employee-profile');
   };
 
   return (
-    <SidebarLayout>
+    <SidebarLayoutEmployee>
       <div className="text-white py-8 px-4 sm:px-6 rounded-md min-h-screen flex justify-center items-start">
         <div className="w-full max-w-3xl bg-slate-800 p-6 sm:p-8 rounded-xl shadow-lg">
           <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-center text-white">Edit Profile</h1>
@@ -219,7 +219,7 @@ const EditAdminProfile = () => {
             {/* Buttons */}
             <div className="flex flex-col sm:flex-row justify-center sm:justify-end gap-3 mt-6">
               <button
-                onClick={() => navigate('/admin/admin-profile')}
+                onClick={() => navigate('/employee/employee-profile')}
                 className="w-full sm:w-auto px-6 py-2 border border-red-500 text-red-500 rounded hover:bg-red-100 transition duration-200 text-sm"
               >
                 Cancel
@@ -257,8 +257,8 @@ const EditAdminProfile = () => {
           </div>
         </div>
       )}
-    </SidebarLayout>
+    </SidebarLayoutEmployee>
   );
 };
 
-export default EditAdminProfile;
+export default EditEmProfile;
