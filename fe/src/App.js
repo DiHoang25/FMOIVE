@@ -83,6 +83,8 @@ import EditProduct from './pages/Employee/EditProduct';
 import PublicRouteGuard from './components/PublicRouteGuard';
 import EditCinemaRoom from './pages/Admin/EditCinemaRoom';
 import MovieNews from './pages/Movie/MovieNews';
+import EditAdminProfile from './pages/Admin/EditAdminProfile';
+import ChangeAdminPassword from './pages/Admin/ChangeAdminPassword';
 
 function AppContent() {
   const location = useLocation();
@@ -170,6 +172,8 @@ function AppContent() {
           <Route path="/admin/movienews-list" element={<RequireRole allowedRoles={['admin']}><MovieNewsList /></RequireRole>} />
           <Route path="/admin/edit-movienews/:id" element={<RequireRole allowedRoles={['admin']}><EditMovieNews /></RequireRole>} />
           <Route path="/admin/edit-cinema-room/:roomId" element={<RequireRole allowedRoles={['admin']}><EditCinemaRoom /></RequireRole>} />
+          <Route path="/admin/admin-profile/edit-profile" element={<RequireRole allowedRoles={['admin']}><EditAdminProfile /></RequireRole>} />
+          <Route path="/admin/admin-profile/change-admin-password" element={<RequireRole allowedRoles={['admin']}><ChangeAdminPassword /></RequireRole>} />
 
           {/* Employee */}
           <Route path="/employee" element={<RequireRole allowedRoles={['employee']}><EmployeeDashboard /></RequireRole>} />
