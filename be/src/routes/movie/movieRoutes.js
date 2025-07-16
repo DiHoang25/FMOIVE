@@ -9,6 +9,12 @@ const constants = require('constants');
 const upload = multer({ dest: './src/uploads/' });
 const dayjs = require('dayjs');
 
+const isSameOrBefore = require('dayjs/plugin/isSameOrBefore');
+dayjs.extend(isSameOrBefore);
+
+const isBetween = require('dayjs/plugin/isBetween');
+dayjs.extend(isBetween);
+
 const calculateStatus = (start, end) => {
   const today = dayjs();
   if (today.isBefore(dayjs(start))) return 'coming_soon';
@@ -348,5 +354,85 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ error: 'Ẩn phim thất bại', details: err.message });
   }
 });
+
+router.post('/check-showtime-conflict', async (req, res) => {
+  try {
+    const { cinemaRoom, showTimes, startDate, endDate, runningTime } = req.body;
+
+    // ✅ Validate đầu vào
+    if (!cinemaRoom || !Array.isArray(showTimes) || !startDate || !endDate || !runningTime) {
+      return res.status(400).json({ message: 'Thiếu dữ liệu đầu vào hoặc không hợp lệ' });
+    }
+
+    const start = dayjs(startDate);
+    const end = dayjs(endDate);
+    if (!start.isValid() || !end.isValid()) {
+      return res.status(400).json({ message: 'Ngày bắt đầu hoặc kết thúc không hợp lệ' });
+    }
+
+    const BUFFER = 20; // phút dọn dẹp
+
+    // ✅ Tìm phim đang chiếu trong khoảng đó
+    const existingMovies = await Movie.find({
+      cinema_room: cinemaRoom,
+      is_deleted: false,
+      start_date: { $lte: end.toDate() },
+      end_date: { $gte: start.toDate() },
+    });
+
+    const conflicts = [];
+
+    for (let date = start.clone(); date.isBefore(end.add(1, 'day')); date = date.add(1, 'day')) {
+      const dateStr = date.format('YYYY-MM-DD');
+
+      for (const movie of existingMovies) {
+        if (!Array.isArray(movie.showtimes) || !movie.running_time) continue;
+
+        for (const existingTime of movie.showtimes) {
+          const existingStart = dayjs(`${dateStr}T${existingTime}`);
+          if (!existingStart.isValid()) continue;
+
+          const existingEnd = existingStart.add(movie.running_time + BUFFER, 'minute');
+
+          for (const newTime of showTimes) {
+            const newStart = dayjs(`${dateStr}T${newTime}`);
+            if (!newStart.isValid()) continue;
+
+            const newEnd = newStart.add(runningTime + BUFFER, 'minute');
+
+            const isOverlap = newStart.isBefore(existingEnd) && existingStart.isBefore(newEnd);
+
+            if (isOverlap) {
+              conflicts.push({
+                date: dateStr,
+                existingMovie: movie.name,
+                existingTime,
+                newTime,
+              });
+            }
+          }
+        }
+      }
+    }
+
+    if (conflicts.length > 0) {
+      return res.status(200).json({
+        conflict: true,
+        message: 'Trùng suất chiếu với các phim khác trong cùng phòng',
+        conflicts,
+      });
+    }
+
+    return res.status(200).json({
+      conflict: false,
+      message: 'Không có xung đột suất chiếu',
+    });
+
+  } catch (err) {
+    console.error('💥 Lỗi server:', err);
+    return res.status(500).json({ message: 'Lỗi server khi kiểm tra xung đột suất chiếu' });
+  }
+});
+
 
 module.exports = router;
