@@ -264,7 +264,7 @@ const EditAccount = () => {
       {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+          <div className="bg-gradient-to-br from-black via-gray-900 to-black p-6 rounded-lg shadow-lg max-w-md w-full">
             <div className="text-center">
               <div className="mb-4 flex justify-center">
                 <svg className="w-16 h-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
