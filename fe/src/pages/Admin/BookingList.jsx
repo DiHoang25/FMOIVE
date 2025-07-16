@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import SidebarLayout from '../../components/Sidebar-Admin';
 import { FaSpinner } from 'react-icons/fa';
 import axios from 'axios';
@@ -15,6 +15,7 @@ const BookingList = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const isFetchedRef = useRef(false);
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -49,7 +50,7 @@ const BookingList = () => {
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       setCurrentPage(1);
-      fetchBookings();
+      
     }, 500);
     return () => clearTimeout(delayDebounce);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -94,7 +95,7 @@ const BookingList = () => {
       <div className="p-6 text-white">
         <div className="p-4 flex items-center justify-between">
           <div className="flex-1 text-center">
-            <h2 className="text-2xl font-bold">Admin - Booking Management</h2>
+            <h2 className="text-2xl font-bold"> Booking Management</h2>
           </div>
         </div>
 
