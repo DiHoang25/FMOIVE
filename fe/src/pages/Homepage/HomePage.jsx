@@ -156,7 +156,7 @@ const HomePage = () => {
   const formatDate = dateStr => new Date(dateStr).toLocaleDateString('vi-VN');
 
   return (
-    <div className="bg-black text-white px-4 sm:px-6 pt-20 sm:pt-24 pb-6 sm:pb-10 space-y-10">
+    <div className="bg-black text-white px-4 sm:px-6 pt-[30px] sm:pt-[30px] pb-6 sm:pb-10 space-y-10">
       {/* Banner */}
       <div className="relative w-full h-[400px] sm:h-[600px] lg:h-[800px] mb-6 overflow-hidden rounded-lg shadow-lg">
         {banners.length > 0 && (
