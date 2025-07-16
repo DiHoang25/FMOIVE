@@ -6,6 +6,7 @@ const authMiddleware = require('../../middleware/authMiddleware'); // Đảm b�
 const Booking = require('../../models/Booking'); // Import Booking Model
 const mongoose = require('mongoose'); // Import mongoose để sử dụng trong hàm helper
 const Room = require('../../models/Room'); // Import Room Model để cập nhật ghế đã đặt
+const cron = require('node-cron');
 
 
 //Hàm Helper
@@ -14,18 +15,18 @@ const Room = require('../../models/Room'); // Import Room Model để cập nh�
  * @param {string} bookingId - The unique ID of the booking.
  * @returns {Promise<boolean>} - True if successful, false otherwise.
  */
-async function updateOccupiedSeats(systemBookingId, statusToExpect = 'PAID') { // Added expected status parameter
+async function updateOccupiedSeats(bookingId, statusToExpect = 'PENDING_PAYMENT') {
     try {
-        const booking = await Booking.findOne({ bookingId: systemBookingId });
+        const booking = await Booking.findOne({ bookingId: bookingId });
 
         if (!booking) {
-            console.warn(`Booking ${systemBookingId} not found. Cannot update room seat.`);
-            return { success: false, message: `Booking ${systemBookingId} not found.` };
+            console.warn(`Booking ${bookingId} not found. Cannot update room seat.`);
+            return { success: false, message: `Booking ${bookingId} not found.` };
         }
 
         // IMPORTANT: Only update occupied seats if the booking status matches the expected status
         if (booking.status !== statusToExpect) {
-            console.warn(`Booking ${systemBookingId} status is '${booking.status}', not '${statusToExpect}'. Skipping room seat update.`);
+            console.warn(`Booking ${bookingId} status is '${booking.status}', not '${statusToExpect}'. Skipping room seat update.`);
             return { success: false, message: `Booking status is not ${statusToExpect}.` };
         }
 
@@ -33,14 +34,14 @@ async function updateOccupiedSeats(systemBookingId, statusToExpect = 'PAID') { /
         const showtime = booking.movieDetails.time;
         const seatLabels = booking.selectedSeats;
 
-        if (!roomId || !showtime || !seatLabels || seatLabels.length === 0) {
-            console.error(`Missing data for updating room seats for booking ${systemBookingId}`);
+        if (!roomId || !showtime || !seatLabels || seatLabels.length === 0 || !bookingId) {
+            console.error(`Missing data for updating room seats for booking ${bookingId}`);
             return { success: false, message: 'Missing essential data for seat update.' };
         }
 
         const newOccupiedSeats = seatLabels.map(label => ({
             seatLabel: label,
-            bookingId: systemBookingId,
+            bookingId: bookingId,
             showtime: showtime
         }));
 
@@ -56,15 +57,15 @@ async function updateOccupiedSeats(systemBookingId, statusToExpect = 'PAID') { /
         }
 
         if (result.modifiedCount > 0) {
-            console.log(`Successfully added occupied seats for booking ${systemBookingId} to room ${roomId}`);
-            return { success: true, message: `Seats for booking ${systemBookingId} marked as occupied.` };
+            console.log(`Successfully added occupied seats for booking ${bookingId} to room ${roomId}`);
+            return { success: true, message: `Seats for booking ${bookingId} marked as occupied.` };
         } else {
-            console.log(`No new seats added to room ${roomId} for booking ${systemBookingId}. They might already be there.`);
-            return { success: true, message: `Seats for booking ${systemBookingId} were already marked as occupied.` };
+            console.log(`No new seats added to room ${roomId} for booking ${bookingId}. They might already be there.`);
+            return { success: true, message: `Seats for booking ${bookingId} were already marked as occupied.` };
         }
 
     } catch (error) {
-        console.error(`Error updating occupied seats for booking ${systemBookingId}:`, error);
+        console.error(`Error updating occupied seats for booking ${bookingId}:`, error);
         return { success: false, message: `Server error during seat update: ${error.message}` };
     }
 }
@@ -100,6 +101,10 @@ router.post('/create', authMiddleware, async (req, res) => {
         // Tạo một bookingId duy nhất bằng uuidv4
         const uniqueBookingId = uuidv4();
 
+        // Thiết lập thời gian hết hạn cho việc giữ chỗ (ví dụ: 10 phút)
+        const EXPIRATION_TIME_MINUTES = 20;
+        const expiresAt = new Date(Date.now() + EXPIRATION_TIME_MINUTES * 60 * 1000);
+
         const newBooking = new Booking({
             bookingId: uniqueBookingId, // Gán bookingId duy nhất
             movieDetails: {
@@ -134,12 +139,19 @@ router.post('/create', authMiddleware, async (req, res) => {
                 address: user.address,
                 id_card: user.id_card,
             },
-            status: 'PENDING_PAYMENT' // Đặt trạng thái ban đầu cho booking
+            status: 'PENDING_PAYMENT', // Đặt trạng thái ban đầu cho booking
+            expiresAt: expiresAt // Gán thời gian hết hạn
         });
 
         const booking = await newBooking.save();
 
-        res.status(201).json({ message: 'Booking created successfully!', booking });
+        // Cập nhật ghế đã chiếm dụng trong Room model
+        const updateResult = await updateOccupiedSeats(booking.bookingId, 'PENDING_PAYMENT');
+        if (!updateResult.success) {
+            console.error(`Failed to update occupied seats for booking ${booking.bookingId}: ${updateResult.message}`);
+            // Tùy chọn: Xử lý lỗi ở đây, ví dụ: hủy booking nếu không thể cập nhật ghế
+        }
+        res.status(201).json({ message: `Booking created successfully! It will expire in ${EXPIRATION_TIME_MINUTES} minutes.`, booking });
     } catch (error) {
         console.error('Error creating booking:', error);
         // Xử lý lỗi trùng lặp bookingId nếu có (rất hiếm với uuidv4)
@@ -150,7 +162,55 @@ router.post('/create', authMiddleware, async (req, res) => {
     }
 });
 
+async function removeOccupiedSeats(bookingId) {
+    try {
+        const booking = await Booking.findOne({ bookingId: bookingId });
 
+        if (!booking) {
+            console.warn(`Booking ${bookingId} not found. Cannot remove occupied seats.`);
+            return { success: false, message: `Booking ${bookingId} not found.` };
+        }
+
+        const roomId = booking.movieDetails.cinema_room;
+        const showtime = booking.movieDetails.time;
+        const seatLabels = booking.selectedSeats;
+
+        const result = await Room.updateOne(
+            { roomId: roomId },
+            { $pull: { occupiedSeats: { bookingId: bookingId } } }
+        );
+
+        if (result.matchedCount === 0) {
+            console.error(`Room with roomId ${roomId} not found for removing occupied seats.`);
+            return { success: false, message: `Room ${roomId} not found.` };
+        }
+        console.log(`Successfully removed occupied seats for booking ${bookingId} from room ${roomId}`);
+        return { success: true, message: `Occupied seats for booking ${bookingId} removed.` };
+
+    } catch (error) {
+        console.error(`Error removing occupied seats for booking ${bookingId}:`, error);
+        return { success: false, message: `Server error during seat removal: ${error.message}` };
+    }
+}
+
+// hàm helper này tự chạy, khỏi gọi
+// Cron job để hủy các booking chưa thanh toán sau x phút
+cron.schedule('*/20 * * * *', async () => {
+    try {
+        const expired = new Date(Date.now() - 20 * 60 * 1000);
+        const result = await Booking.updateMany(
+            { status: 'PENDING_PAYMENT', createdAt: { $lte: expired } },
+            { status: 'CANCELLED' },
+        );
+        // remove occupied seats
+        await Promise.all(
+            (await Booking.find({ status: 'CANCELLED', createdAt: { $lte: expired } })).map(booking => removeOccupiedSeats(booking.bookingId))
+        );
+        console.log(`Cron job: Updated ${result.modifiedCount} bookings to CANCELLED.`);
+    } catch (error) {
+        console.error('Cron job error:', error);
+    }
+});
 
 
 module.exports = router;

@@ -41,6 +41,10 @@ const bookingSchema = new mongoose.Schema({
         enum: ['PENDING_PAYMENT', 'PAID', 'CANCELLED', 'COMPLETED', 'FAILED'], // Thêm 'FAILED'
         default: 'PENDING_PAYMENT',
     },
+    // Thêm trường để lưu thời gian hết hạn của việc giữ chỗ
+    expiresAt: {
+        type: Date,
+    },
     // Thêm trường paymentDetails để lưu thông tin từ VNPAY
     paymentDetails: {
         vnp_Amount: { type: Number },
@@ -58,9 +62,13 @@ const bookingSchema = new mongoose.Schema({
     },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
+    
 },{
     collection: 'bookings'
 });
+
+// Thêm index để cron job truy vấn hiệu quả các booking hết hạn
+bookingSchema.index({ status: 1, expiresAt: 1 });
 
 bookingSchema.pre('save', function (next) {
     this.updatedAt = Date.now();
