@@ -18,7 +18,7 @@ const BookingList = () => {
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:5000/api/bookings', {
+      const response = await axios.get('http://localhost:5000/api/booking', {
         params: {
           page: currentPage,
           limit: bookingsPerPage,
