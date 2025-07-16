@@ -71,7 +71,7 @@ function RegisterPage() {
 
   return (
     <div className="flex min-h-screen">
-      <div className="w-1/2 flex flex-col justify-center px-12 py-8 bg-gray-900 text-white">
+      <div className="w-1/2 flex flex-col justify-center px-12 py-8 bg-gray-900 text-white" style={{ paddingTop: '100px' }}>
         <div className="max-w-md mx-auto w-full">
           <div className="mb-6 text-center">
             <h1 className="text-3xl font-bold mb-4">Register account</h1>

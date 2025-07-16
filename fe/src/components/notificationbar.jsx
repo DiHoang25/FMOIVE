@@ -1,16 +1,15 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import bgImage from '../assets/bg.jpg';
 import logo from '../assets/logo.png';
 import avatar from '../assets/avatar.png';
 import { useAuth } from '../contexts/AuthContext';
 import { message } from 'antd';
-import { MenuOutlined } from '@ant-design/icons';
+import { LogoutOutlined } from '@ant-design/icons';
 
 const NotificationBar = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -26,88 +25,55 @@ const NotificationBar = () => {
         height: '60px',
       }}
     >
-      <div className="flex items-center justify-between h-full">
-        <Link to="/">
-          <img src={logo} alt="Logo" className="h-10 object-contain" />
-        </Link>
+      <div className="flex items-center justify-between h-full relative">
+        {/* Logo */}
+        <img
+          src={logo}
+          alt="Logo"
+          className="h-10 object-contain cursor-pointer"
+          onClick={() => navigate('/')}
+        />
 
-        <div className="flex items-center space-x-3">
-          {/* Mobile Menu Icon */}
-          <div className="sm:hidden">
-            <MenuOutlined
-              className="text-white text-xl cursor-pointer"
-              onClick={() => setMenuOpen(!menuOpen)}
-            />
-          </div>
+        {/* Logged In */}
+        {user ? (
+          <div className="relative group">
+            {/* Avatar + Name */}
+            <div className="flex items-center space-x-2 cursor-pointer">
+              <img src={avatar} alt="User" className="h-10 w-10 object-contain" />
+              <span className="text-white hidden sm:inline font-semibold">Hi {user.fullname}</span>
+            </div>
 
-          {/* User info - Desktop */}
-          <div className="hidden sm:flex items-center space-x-4">
-            {user ? (
-              <>
-                <div
+            {/* Dropdown Menu */}
+            <div className="absolute right-0 mt-2 w-56 bg-gradient-to-br from-black via-gray-900 to-black text-white rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-200">
+              <div className="p-4 border-b border-gray-600">
+                <p className="flex justify-center items-center font-semibold text-sm">{user.fullname}</p>
+              </div>
+              <div className="flex flex-col py-2 text-sm">
+                <button
                   onClick={() => navigate('/viewaccount')}
-                  className="cursor-pointer hover:scale-105 transition"
-                  title="View Account"
+                  className="text-left px-3 py-2 hover:bg-gray-400 flex items-center gap-2"
                 >
-                  <img src={avatar} alt="User" className="h-10 w-10 object-contain" />
-                </div>
-                <span className="text-white font-semibold">Hello {user.fullname}</span>
+                  <span role="img" aria-label="profile">🧑‍💼</span> Account
+                </button>
                 <button
                   onClick={handleLogout}
-                  className="bg-red-600 px-3 py-1 rounded text-white text-sm hover:bg-red-700 border border-white"
+                  className="px-4 py-2 text-red-500 hover:bg-gray-400 flex items-center gap-2"
                 >
-                  Logout
+                  <LogoutOutlined />
+                  Sign out
                 </button>
-              </>
-            ) : (
-              <Link to="/login">
-                <button className="bg-red-600 px-3 py-1 rounded text-white text-sm hover:bg-red-700 border border-white">
-                  Login
-                </button>
-              </Link>
-            )}
+              </div>
+            </div>
           </div>
-        </div>
+        ) : (
+          // Not Logged In
+          <Link to="/login">
+            <button className="bg-red-600 px-3 py-1 rounded text-white text-sm hover:bg-red-700 border border-white">
+              Login
+            </button>
+          </Link>
+        )}
       </div>
-
-      {/* Mobile Dropdown */}
-      {menuOpen && (
-        <div className="sm:hidden bg-black bg-opacity-80 mt-1 rounded text-white absolute right-4 top-[60px] w-48 shadow-lg z-50">
-          {user ? (
-            <div className="flex flex-col items-start px-4 py-2 space-y-2">
-              <span className="flex items-center">
-                <img src={avatar} alt="Avatar" className="w-6 h-6 rounded-full mr-2" />
-                <span className="font-semibold">{user.fullname}</span>
-              </span>
-              <button
-                onClick={() => {
-                  navigate('/viewaccount');
-                  setMenuOpen(false);
-                }}
-                className="hover:text-blue-400"
-              >
-                View Account
-              </button>
-              <button
-                onClick={handleLogout}
-                className="text-red-400 hover:text-red-500"
-              >
-                Logout
-              </button>
-            </div>
-          ) : (
-            <div className="px-4 py-2">
-              <Link
-                to="/login"
-                className="block hover:text-blue-400"
-                onClick={() => setMenuOpen(false)}
-              >
-                Login
-              </Link>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 };
