@@ -69,15 +69,15 @@ function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen">
-      <div className="w-1/2 flex flex-col justify-center px-12 py-8 bg-gray-900 text-white">
+    <div className="flex flex-col md:flex-row min-h-screen">
+      <div className="w-full md:w-1/2 flex flex-col justify-center px-4 sm:px-8 md:px-12 py-6 sm:py-8 bg-gray-900 text-white">
         <div className="max-w-md mx-auto w-full">
-          <h1 className="text-4xl font-bold mb-8">Forgot Password</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 md:mb-8">Forgot Password</h1>
           
-          <div className="bg-gray-700 p-6 rounded-lg shadow">
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="bg-gray-700 p-4 sm:p-6 rounded-lg shadow">
+            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium mb-1">
+                <label htmlFor="email" className="block text-xs sm:text-sm font-medium mb-1">
                   Input your Email
                 </label>
                 <input
@@ -85,7 +85,7 @@ function ForgotPasswordPage() {
                   type="email"
                   value={email}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border rounded-md text-black"
+                  className="w-full px-3 py-1.5 sm:py-2 border rounded-md text-black text-sm"
                   placeholder="your@email.com"
                 />
                 <div className="text-xs text-gray-400 mt-1">
@@ -94,19 +94,19 @@ function ForgotPasswordPage() {
               </div>
               
               {error && (
-                <div className="text-red-500 text-sm mt-1">{error}</div>
+                <div className="text-red-500 text-xs sm:text-sm mt-1">{error}</div>
               )}
               
               {message && (
-                <div className="text-green-500 text-sm mt-1">{message}</div>
+                <div className="text-green-500 text-xs sm:text-sm mt-1">{message}</div>
               )}
 
-              <div className="flex justify-between space-x-4 mt-6">
+              <div className="flex justify-between space-x-4 mt-4 sm:mt-6">
                 
                 <button
                   type="submit"
                   disabled={isSubmitting || !email}
-                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-200 flex-1 disabled:opacity-50"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition duration-200 flex-1 disabled:opacity-50"
                 >
                   {isSubmitting ? 'Sending...' : 'Send Code'}
                 </button>
@@ -114,13 +114,13 @@ function ForgotPasswordPage() {
             </form>
           </div>
 
-          <div className="mt-6 text-center">
-            <Link to="/login" className="text-red-400 hover:text-white text-sm">Back to Login</Link>
+          <div className="mt-4 sm:mt-6 text-center">
+            <Link to="/login" className="text-red-400 hover:text-white text-xs sm:text-sm">Back to Login</Link>
           </div>
         </div>
       </div>
 
-      <div className="w-1/2 bg-gray-900">
+      <div className="hidden md:block md:w-1/2 bg-gray-900">
         <img
           src={anhnenloginImage}
           alt="Cinema"
@@ -132,4 +132,3 @@ function ForgotPasswordPage() {
 }
 
 export default ForgotPasswordPage;
-

@@ -113,7 +113,7 @@ function ShowtimePage() {
       });
   }, [selectedDate]);
 
-  
+
   useEffect(() => {
   const savedScroll = sessionStorage.getItem("showtimeScrollPosition");
   if (savedScroll) {
