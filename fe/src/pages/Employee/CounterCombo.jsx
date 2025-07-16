@@ -68,7 +68,7 @@ const CounterCombo = () => {
                 setQuantities(prev => ({ ...prev, ...initialQuantities }));
 
             } catch (error) {
-                console.error('Error fetching combos:', error);
+console.error('Error fetching combos:', error);
                 message.error('Failed to load combos. Please try again.');
             } finally {
                 setLoadingCombos(false);
@@ -156,8 +156,7 @@ const CounterCombo = () => {
             quantity: quantities[p._id],
             image: p.image_url || ''
         })).filter(p => p.quantity > 0);
-
-        const totalProductsPrice = selectedProducts.reduce(
+const totalProductsPrice = selectedProducts.reduce(
             (sum, p) => sum + p.price * p.quantity, 0
         );
 
@@ -209,6 +208,9 @@ const CounterCombo = () => {
                     <h1 className="text-2xl font-bold text-center mb-6">COMBO POPCORN & DRINKS</h1>
                     <hr className="border-gray-700 mb-4" />
 
+                    
+
+
                     <div onClick={() => { setShowCombos(!showCombos); setShowProducts(false); }} className="cursor-pointer bg-gray-700 px-4 py-2 rounded-md text-white font-semibold mb-2">
                         Choose Your Combo
                     </div>
@@ -221,7 +223,7 @@ const CounterCombo = () => {
                                             <img src={combo.image} alt={combo.name} className="w-20 h-20 object-cover rounded" onError={(e) => { e.target.src = 'https://placehold.co/80x80/000000/FFFFFF?text=No+Image'; }} />
                                             <div className="flex-1">
                                                 <p className="font-medium text-sm">{combo.name}</p>
-                                                <p className="text-sm text-gray-300">{combo.price.toLocaleString('vi-VN')} VND</p>
+<p className="text-sm text-gray-300">{combo.price.toLocaleString('vi-VN')} VND</p>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <button onClick={() => updateQuantity(combo.id, -1)} className="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center">
@@ -255,7 +257,7 @@ const CounterCombo = () => {
                                                 <button onClick={() => updateQuantity(product._id, -1)} className="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center">
                                                     <Minus className="w-4 h-4 text-white" />
                                                 </button>
-                                                <span className="w-6 text-center">{quantities[product._id]}</span>
+<span className="w-6 text-center">{quantities[product._id]}</span>
                                                 <button onClick={() => updateQuantity(product._id, 1)} className="w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center">
                                                     <Plus className="w-4 h-4 text-white" />
                                                 </button>

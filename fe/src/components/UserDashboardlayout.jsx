@@ -10,13 +10,15 @@ import {
 } from '@ant-design/icons';
 import { RxAvatar } from 'react-icons/rx';
 import { Button, Layout, Menu, Drawer } from 'antd';
+import { useAuth } from '../contexts/AuthContext';
+import { message } from 'antd';
 
 const { Header, Sider, Content } = Layout;
 
 const UserDashboardLayout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
-
+  const { user, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -28,9 +30,11 @@ const UserDashboardLayout = ({ children }) => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    logout();
+    message.success('Đăng xuất thành công!', 3);
     navigate('/login');
   };
+
 
   const menuItems = [
     {

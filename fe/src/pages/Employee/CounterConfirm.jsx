@@ -37,7 +37,6 @@ const CounterConfirmBooking = () => {
   const [promotions, setPromotions] = useState([])
   const [roomName, setRoomName] = useState("Loading...");
 
-
   const {
     movieDetails = {},
     selectedSeats = [],
@@ -68,7 +67,7 @@ const CounterConfirmBooking = () => {
   }, [location.state])
 
 
-
+  
   const formattedMovieTimeDisplay = formatMovieTime(movie.time)
   const displayCinemaRoomName = formatCinemaRoomName(roomName);
   const seatsDisplay = selectedSeats
