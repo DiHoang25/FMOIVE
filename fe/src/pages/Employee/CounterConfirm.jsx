@@ -34,6 +34,10 @@ const CounterConfirmBooking = () => {
   const [voucherCode, setVoucherCode] = useState("")
   const [voucherDiscount, setVoucherDiscount] = useState(0)
   const [promotions, setPromotions] = useState([])
+  const [roomName, setRoomName] = useState("Loading...");
+
+
+
 
   const {
     movieDetails = {},
@@ -65,9 +69,9 @@ const CounterConfirmBooking = () => {
   }, [location.state])
 
 
-
+  
   const formattedMovieTimeDisplay = formatMovieTime(movie.time)
-  const displayCinemaRoomName = formatCinemaRoomName(movie.cinema_room)
+  const displayCinemaRoomName = formatCinemaRoomName(roomName);
   const seatsDisplay = selectedSeats
   const combosDisplay = selectedCombos
   const currentTicketPrice = ticketPrice
@@ -84,6 +88,29 @@ const CounterConfirmBooking = () => {
       })
       .catch((err) => console.error("Failed to fetch promotions", err))
   }, [])
+
+    useEffect(() => {
+  const fetchRoomName = async () => {
+    try {
+      if (movie.cinema_room) {
+        const token = localStorage.getItem("token");
+        const res = await fetch(
+          `http://localhost:5000/api/theater/rooms/${movie.cinema_room}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const data = await res.json();
+        setRoomName(data.room?.roomName || movie.cinema_room);
+      }
+    } catch (error) {
+      console.error("Failed to fetch room name:", error);
+      setRoomName(movie.cinema_room);
+    }
+  };
+
+  fetchRoomName();
+}, [movie.cinema_room]);
 
   const handleProceedToPayment = () => {
     navigate("/employee/counter-payment", {

@@ -5,6 +5,7 @@ const User = require('../../models/User'); // Cần User model để lấy thôn
 const authMiddleware = require('../../middleware/authMiddleware');
 const adminMiddleware = require('../../middleware/adminMiddleware');
 const employeeMiddleware = require('../../middleware/employeeMiddleware');
+const teamMiddleware = require('../../middleware/teamMiddleware');
 
 
 
@@ -12,7 +13,7 @@ const employeeMiddleware = require('../../middleware/employeeMiddleware');
 // @route   GET /api/bookings
 // @desc    Tìm kiếm/Lấy danh sách đặt vé
 // @access  Private (Người dùng xem đặt vé của mình, Admin xem tất cả hoặc tìm kiếm)
-router.get('/', authMiddleware, employeeMiddleware, async (req, res) => {
+router.get('/', authMiddleware, teamMiddleware, async (req, res) => {
     try {
         let query = {};
 
