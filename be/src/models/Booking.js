@@ -58,6 +58,8 @@ const bookingSchema = new mongoose.Schema({
     },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
+},{
+    collection: 'bookings'
 });
 
 bookingSchema.pre('save', function (next) {

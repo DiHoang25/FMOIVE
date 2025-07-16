@@ -72,9 +72,9 @@ const SidebarLayout = ({ children }) => {
           collapsed={collapsed}
         >
           <header className="px-8 py-2 flex justify-center items-center border-b border-gray-600">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold">
+            <Link to="/employee/employee-profile" className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold hover:scale-105 transition">
               <RxAvatar className="text-9xl" />
-            </div>
+            </Link>
           </header>
 
           <Menu

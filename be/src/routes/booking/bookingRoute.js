@@ -4,6 +4,71 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid'); // Import uuid để tạo bookingId duy nhất
 const authMiddleware = require('../../middleware/authMiddleware'); // Đảm bảo đường dẫn đúng
 const Booking = require('../../models/Booking'); // Import Booking Model
+const mongoose = require('mongoose'); // Import mongoose để sử dụng trong hàm helper
+const Room = require('../../models/Room'); // Import Room Model để cập nhật ghế đã đặt
+
+
+//Hàm Helper
+
+/*
+ * @param {string} bookingId - The unique ID of the booking.
+ * @returns {Promise<boolean>} - True if successful, false otherwise.
+ */
+async function updateOccupiedSeats(systemBookingId, statusToExpect = 'PAID') { // Added expected status parameter
+    try {
+        const booking = await Booking.findOne({ bookingId: systemBookingId });
+
+        if (!booking) {
+            console.warn(`Booking ${systemBookingId} not found. Cannot update room seat.`);
+            return { success: false, message: `Booking ${systemBookingId} not found.` };
+        }
+
+        // IMPORTANT: Only update occupied seats if the booking status matches the expected status
+        if (booking.status !== statusToExpect) {
+            console.warn(`Booking ${systemBookingId} status is '${booking.status}', not '${statusToExpect}'. Skipping room seat update.`);
+            return { success: false, message: `Booking status is not ${statusToExpect}.` };
+        }
+
+        const roomId = booking.movieDetails.cinema_room;
+        const showtime = booking.movieDetails.time;
+        const seatLabels = booking.selectedSeats;
+
+        if (!roomId || !showtime || !seatLabels || seatLabels.length === 0) {
+            console.error(`Missing data for updating room seats for booking ${systemBookingId}`);
+            return { success: false, message: 'Missing essential data for seat update.' };
+        }
+
+        const newOccupiedSeats = seatLabels.map(label => ({
+            seatLabel: label,
+            bookingId: systemBookingId,
+            showtime: showtime
+        }));
+
+        const result = await Room.updateOne(
+            { roomId: roomId },
+            { $addToSet: { occupiedSeats: { $each: newOccupiedSeats } } }
+            // $addToSet prevents duplicate entries for the same seatLabel, bookingId, showtime if run multiple times
+        );
+
+        if (result.matchedCount === 0) {
+            console.error(`Room with roomId ${roomId} not found for updating occupied seats.`);
+            return { success: false, message: `Room ${roomId} not found.` };
+        }
+
+        if (result.modifiedCount > 0) {
+            console.log(`Successfully added occupied seats for booking ${systemBookingId} to room ${roomId}`);
+            return { success: true, message: `Seats for booking ${systemBookingId} marked as occupied.` };
+        } else {
+            console.log(`No new seats added to room ${roomId} for booking ${systemBookingId}. They might already be there.`);
+            return { success: true, message: `Seats for booking ${systemBookingId} were already marked as occupied.` };
+        }
+
+    } catch (error) {
+        console.error(`Error updating occupied seats for booking ${systemBookingId}:`, error);
+        return { success: false, message: `Server error during seat update: ${error.message}` };
+    }
+}
+
 
 // @route   POST /api/bookings/create
 // @desc    Tạo một booking mới từ dữ liệu frontend (ít xác thực hơn)
@@ -24,10 +89,8 @@ router.post('/create', authMiddleware, async (req, res) => {
             user // Lấy toàn bộ thông tin người dùng từ payload frontend
         } = req.body;
 
-        // --- BỎ QUA TOÀN BỘ XÁC THỰC CHI TIẾT TỪ FRONTEND THEO YÊU CẦU ---
-        // **Cảnh báo**: Việc này làm tăng nguy cơ dữ liệu không hợp lệ hoặc gian lận
-        // từ phía client. Chỉ nên làm điều này trong môi trường phát triển
-        // hoặc khi bạn có cơ chế xác thực rất mạnh ở lớp khác.
+        // --- BỎ QUA TOÀN BỘ XÁC THỰC CHI TIẾT TỪ FRONTEND (Tự xác thực từ phía front-end) ---
+
 
         // Kiểm tra cơ bản về sự tồn tại của dữ liệu cần thiết tối thiểu
         // if (!movieDetails || !movieDetails.movieId || !selectedSeats || selectedSeats.length === 0 || totalSeatPrice === undefined || totalSeatPrice < 0 || !grandTotal || !user || !user._id) {
@@ -86,5 +149,8 @@ router.post('/create', authMiddleware, async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
+
+
+
 
 module.exports = router;

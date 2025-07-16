@@ -19,8 +19,8 @@ const initialState = {
   totalSeatPrice: 0,
   selectedCombos: [],
   totalComboPrice: 0,
-  selectedProducts: [],           
-  totalProductPrice: 0,          
+  selectedProducts: [],
+  totalProductPrice: 0,
   serviceFee: 2.5,
   grandTotal: 0,
   bookingId: null,
@@ -86,12 +86,20 @@ export const bookingSlice = createSlice({
       state.user = { ...state.user, ...action.payload };
       console.log("bookingSlice: User info updated to:", state.user);
     },
+    setMovieDetails: (state, action) => {
+      state.movieDetails = {
+        ...state.movieDetails,
+        ...action.payload,
+      };
+      console.log("bookingSlice: movieDetails replaced with:", state.movieDetails);
+    },
   },
 });
 
 export const {
   setMovieAndDateTime,
   setSelectedSeats,
+  setMovieDetails,
   setSelectedCombos,
   setSelectedProducts,
   updateGrandTotal,
