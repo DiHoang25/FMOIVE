@@ -133,7 +133,7 @@ const MovieList = () => {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-4 mb-4">
+        <div className="flex justify-between items-center mb-4">
           <input
             type="text"
             placeholder="Search movie..."
@@ -141,10 +141,14 @@ const MovieList = () => {
             onChange={handleSearch}
             className="bg-gray-700 text-white px-3 py-2 rounded-md w-64"
           />
-          <Link to="/admin/add-movie" className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md">
+          <Link
+            to="/admin/add-movie"
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md shadow flex items-center"
+          >
             + Add New Movie
           </Link>
         </div>
+
 
         <div className="overflow-x-auto bg-gray-800 rounded-lg shadow">
           <table className="min-w-full divide-y divide-gray-700">
