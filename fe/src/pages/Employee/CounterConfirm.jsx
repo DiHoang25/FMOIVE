@@ -86,7 +86,7 @@ const CounterConfirmBooking = () => {
         const activePromos = data.filter((p) => !p.is_deleted)
         setPromotions(activePromos)
       })
-      .catch((err) => console.error("Failed to fetch promotions", err))
+.catch((err) => console.error("Failed to fetch promotions", err))
   }, [])
 
     useEffect(() => {
@@ -165,7 +165,7 @@ const CounterConfirmBooking = () => {
                       alt="Movie Poster"
                       className="w-32 h-48 rounded-xl object-cover shadow-lg transition-transform duration-300 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl"></div>
+<div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl"></div>
                   </div>
                   <div className="flex-1 space-y-3">
                     <h2 className="text-2xl font-bold text-white">{movie.name}</h2>
@@ -215,7 +215,7 @@ const CounterConfirmBooking = () => {
               <div className="bg-gradient-to-r from-slate-800/80 to-slate-700/80 backdrop-blur-sm rounded-2xl p-6 border border-slate-600/30 shadow-2xl">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-red-600 rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+<svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M20 9V7c0-1.1-.9-2-2-2H6c-1.1 0-2 .9-2 2v2c-1.1 0-2 .9-2 2v4c0 1.1.9 2 2 2h1v2c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-2h8v2c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-2h1c1.1 0 2-.9 2-2v-4c0-1.1-.9-2-2-2zM6 7h12v2H6V7zm14 8H4v-4h16v4z" />
                       <rect x="7" y="10" width="2" height="3" rx="1" />
                       <rect x="11" y="10" width="2" height="3" rx="1" />
@@ -260,7 +260,7 @@ const CounterConfirmBooking = () => {
                     <h3 className="text-xl font-semibold text-white">Popcorn & Drinks</h3>
                   </div>
                   <div className="space-y-3">
-                    {combosDisplay.map((combo) => (
+{combosDisplay.map((combo) => (
                       <div
                         key={combo.id}
                         className="flex justify-between items-center bg-slate-700/50 px-4 py-3 rounded-xl border border-slate-600/30"
@@ -310,7 +310,7 @@ const CounterConfirmBooking = () => {
                         <span className="font-semibold text-blue-400">
                           {(product.price * product.quantity).toLocaleString("vi-VN")} VND
                         </span>
-                      </div>
+</div>
                     ))}
                   </div>
                 </div>
@@ -365,7 +365,7 @@ const CounterConfirmBooking = () => {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                       </svg>
                       Discount applied: -{voucherDiscount.toLocaleString("vi-VN")} VND
@@ -422,7 +422,7 @@ const CounterConfirmBooking = () => {
                   <div className="border-t border-slate-600/50 pt-4">
                     <div className="flex justify-between items-center">
                       <span className="text-xl font-bold text-white">Total</span>
-                      <span className="text-2xl font-bold bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
+<span className="text-2xl font-bold bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
                         {currentGrandTotal.toLocaleString("vi-VN")} VND
                       </span>
                     </div>

@@ -208,6 +208,9 @@ const totalProductsPrice = selectedProducts.reduce(
                     <h1 className="text-2xl font-bold text-center mb-6">COMBO POPCORN & DRINKS</h1>
                     <hr className="border-gray-700 mb-4" />
 
+                    
+
+
                     <div onClick={() => { setShowCombos(!showCombos); setShowProducts(false); }} className="cursor-pointer bg-gray-700 px-4 py-2 rounded-md text-white font-semibold mb-2">
                         Choose Your Combo
                     </div>
