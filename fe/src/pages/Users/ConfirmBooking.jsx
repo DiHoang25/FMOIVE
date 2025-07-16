@@ -15,6 +15,11 @@ import { useSelector, useDispatch } from "react-redux";
 
 // Image fallback
 import defaultPoster from "../../assets/batman.png";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+
+dayjs.extend(customParseFormat);
+
 
 // Format room name
 const formatCinemaRoomName = (roomName) => {
@@ -172,7 +177,7 @@ const ConfirmBooking = () => {
           version: movieDetails.version,
           runningTime: movieDetails.running_time,
           genres: movieDetails.genres,
-          time: movieDetails.time,
+          time: dayjs(movieDetails.time, "DD/MM/YYYY, HH:mm").toISOString(),
           cinema_room: movieDetails.cinema_room,
         },
         selectedSeats: seats,

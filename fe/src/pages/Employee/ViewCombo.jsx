@@ -17,9 +17,9 @@ const ViewCombo = () => {
   const itemsPerPage = 8;
 
   const formatVND = (value) => {
-    if (typeof value !== 'number') return '';
-    return `${value.toLocaleString('vi-VN')}₫`;
-  };
+  if (typeof value !== 'number') return '';
+  return `${value.toLocaleString('vi-VN')} VND`;
+};
 
 
   useEffect(() => {

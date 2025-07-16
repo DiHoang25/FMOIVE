@@ -17,7 +17,7 @@ const ViewProduct = () => {
 
   const formatVND = (value) => {
     if (typeof value !== 'number') return '';
-    return `${value.toLocaleString('vi-VN')}₫`;
+    return `${value.toLocaleString('vi-VN')} VND`;
   };
 
   useEffect(() => {
@@ -116,7 +116,7 @@ const ViewProduct = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-gray-700 rounded-lg p-4 text-center shadow">
             <p className="text-sm text-gray-300">Total Products</p>
             <h2 className="text-xl font-bold">{totalProducts}</h2>

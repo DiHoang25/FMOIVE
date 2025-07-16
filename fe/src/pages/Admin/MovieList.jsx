@@ -116,22 +116,22 @@ const MovieList = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-gray-700 rounded-lg p-4 text-center shadow">
             <p className="text-sm text-gray-300">Total Movies</p>
             <h2 className="text-xl font-bold">{totalMovies}</h2>
           </div>
-          <div className="bg-green-700 rounded-lg p-4 text-center shadow">
+          <div className="bg-red-700 rounded-lg p-3 text-center shadow">
             <p className="text-sm text-gray-100">Now Showing</p>
             <h2 className="text-xl font-bold">{nowShowing}</h2>
           </div>
-          <div className="bg-yellow-600 rounded-lg p-4 text-center shadow">
+          <div className="bg-yellow-600 rounded-lg p-3 text-center shadow">
             <p className="text-sm text-gray-100">Coming Soon</p>
             <h2 className="text-xl font-bold">{upcomingMovies}</h2>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-4 mb-4">
+        <div className="flex justify-between items-center mb-4">
           <input
             type="text"
             placeholder="Search movie..."
@@ -139,10 +139,14 @@ const MovieList = () => {
             onChange={handleSearch}
             className="bg-gray-700 text-white px-3 py-2 rounded-md w-64"
           />
-          <Link to="/admin/add-movie" className="bg-red-600 hover:bg-red-700 text-white hover:text-white px-4 py-2 rounded-md">
+          <Link
+            to="/admin/add-movie"
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md shadow flex items-center"
+          >
             + Add New Movie
           </Link>
         </div>
+
 
         <div className="overflow-x-auto bg-gray-800 rounded-lg shadow">
           <table className="min-w-full divide-y divide-gray-700">

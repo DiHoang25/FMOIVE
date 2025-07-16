@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import bgImage from '../assets/bg.jpg';
 import logo from '../assets/logo.png';
-import avatar from '../assets/monk1.png';
+import avatar from '../assets/avatar.png';
 import { useAuth } from '../contexts/AuthContext';
 import { message } from 'antd';
 import { MenuOutlined } from '@ant-design/icons';

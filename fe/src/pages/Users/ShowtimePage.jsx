@@ -30,14 +30,12 @@ function formatDateLabel(date) {
 }
 
 function formatDateForNavigation(date) {
-  const options = {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  };
-  return date.toLocaleDateString("en-US", options);
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`; // trả về "17/07/2025"
 }
+
 
 function ShowtimePage() {
   const navigate = useNavigate();

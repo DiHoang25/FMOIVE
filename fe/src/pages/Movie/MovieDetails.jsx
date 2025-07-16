@@ -3,6 +3,7 @@ import ReactPlayer from 'react-player/youtube';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setMovieAndDateTime } from '../../redux/bookingSlice';
+import dayjs from 'dayjs';
 
 const getWeekDates = (startDate) => {
     const dates = [];
@@ -89,7 +90,7 @@ const MovieDetails = () => {
                     cinema_room: cinemaRoom,
                     genres: parsedGenres,
                     rating: movie.rating,
-                    time: `${formattedDate}, ${selectedTime}`,
+                    time: dayjs(`${formattedDate}, ${selectedTime}`, "DD/MM/YYYY, HH:mm").toISOString(),
                 }
             }
         });
