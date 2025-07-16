@@ -31,7 +31,7 @@ const formatCinemaRoomName = (roomName) => {
   if (!roomName) return 'N/A';
   const match = roomName.match(/ROOM0*(\d+)/);
   if (match && match[1]) {
-    return `Cinema ${parseInt(match[1], 10)}`;
+    return `Cinema ${parseInt(match[1], 100)}`;
   }
   return roomName;
 };

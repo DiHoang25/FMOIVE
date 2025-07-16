@@ -66,7 +66,7 @@ const ViewAccount = () => {
 
     return (
         <UserDashboardLayout>
-            <div className="bg-[#0a0f1c] text-white py-10 px-4 rounded-md min-h-[80vh] flex items-center justify-center">
+            <div className="bg-gradient-to-br from-black via-gray-900 to-black text-white py-10 px-4 rounded-md min-h-[80vh] flex items-center justify-center">
                 <div className="flex flex-col md:flex-row gap-10 w-full max-w-5xl bg-[#121826] p-6 md:p-8 rounded-xl shadow-lg">
                     {/* Avatar + Name + Actions */}
                     <div className="flex flex-col items-center md:w-1/2">

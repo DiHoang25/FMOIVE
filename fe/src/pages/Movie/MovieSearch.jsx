@@ -69,9 +69,9 @@ const MovieSearch = () => {
 
   if (loading) {
     return (
-      <div className="bg-black text-white min-h-screen p-6 ">
+      <div className="bg-black text-white min-h-screen p-4 sm:p-6 ">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold text-center mb-8 text-white">Movie Search</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 text-white">Movie Search</h1>
           <p className="text-center">Đang tải dữ liệu phim...</p>
         </div>
       </div>
@@ -80,9 +80,9 @@ const MovieSearch = () => {
 
   if (error) {
     return (
-      <div className="bg-black text-white min-h-screen p-6">
+      <div className="bg-black text-white min-h-screen p-4 sm:p-6">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold text-center mb-8 text-white">Movie Search</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 text-white">Movie Search</h1>
           <p className="text-center text-red-500">Lỗi: {error}</p>
           <div className="text-center mt-4">
             <button
@@ -99,21 +99,19 @@ const MovieSearch = () => {
 
   return (
     
-    <div className="bg-black text-white min-h-screen p-6 pt-[50px]">
-
-
+    <div className="bg-black text-white min-h-screen p-4 sm:p-6 pt-[50px]">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-8 text-white">Movie Search</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 text-white">Movie Search</h1>
 
 
-        <div className="flex flex-col mb-10 max-w-xl mx-auto">
+        <div className="flex flex-col mb-6 sm:mb-10 max-w-xl mx-auto px-4 sm:px-0">
           <div className="relative">
 <Input
               placeholder="Tìm kiếm phim theo tên..."
               value={searchTerm}
               onChange={handleInputChange}
               onKeyPress={handleSearch}
-              className="rounded-md p-2 h-12 pl-10"
+              className="rounded-md p-2 h-10 sm:h-12 pl-10"
               style={{ backgroundColor: '#1a1a2e', color: 'white', borderColor: '#333' }}
               suffix={
                 <SearchOutlined
@@ -128,7 +126,7 @@ const MovieSearch = () => {
 
         {filteredMovies.length > 0 ? (
           <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {currentMovies
                 .filter(movie => movie.status !== 'ended')
                 .map((movie) => (
@@ -137,16 +135,16 @@ const MovieSearch = () => {
                       <img
                         src={movie.image_url}
                         alt={movie.name}
-                        className="w-full h-[500px] object-cover rounded shadow-lg transition-opacity duration-300 hover:opacity-80"
+                        className="w-full h-[300px] sm:h-[400px] md:h-[450px] lg:h-[500px] object-cover rounded shadow-lg transition-opacity duration-300 hover:opacity-80"
                       />
-                      <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 p-3">
-                        <h2 className="text-lg font-bold text-white truncate">{movie.name}</h2>
+                      <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 p-2 sm:p-3">
+                        <h2 className="text-base sm:text-lg font-bold text-white truncate">{movie.name}</h2>
                         <div className="flex justify-between items-center">
-                          {movie.rating && <span className="text-sm text-yellow-400">{movie.rating.toFixed(1)}</span>}
+                          {movie.rating && <span className="text-xs sm:text-sm text-yellow-400">{movie.rating.toFixed(1)}</span>}
                           <span className="text-xs text-gray-300">{movie.running_time} min</span>
                         </div>
-                        <div className="mt-2 flex gap-1">
-                          <button className="w-full bg-red-600 hover:bg-red-700 text-white text-m py-1 px-2 rounded">
+                        <div className="mt-1 sm:mt-2 flex gap-1">
+                          <button className="w-full bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm py-1 px-2 rounded">
                             View Details
                           </button>
                         </div>
@@ -166,8 +164,8 @@ const MovieSearch = () => {
             )}
           </div>
         ) : (
-          <div className="text-center py-10">
-            <p className="text-xl">Không tìm thấy phim phù hợp.</p>
+          <div className="text-center py-6 sm:py-10">
+            <p className="text-lg sm:text-xl">Không tìm thấy phim phù hợp.</p>
           </div>
         )}
       </div>
@@ -176,4 +174,3 @@ const MovieSearch = () => {
 };
 
 export default MovieSearch;
-
