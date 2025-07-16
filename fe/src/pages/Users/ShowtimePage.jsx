@@ -132,6 +132,8 @@ function ShowtimePage() {
     return () => clearTimeout(timeout);
   }
 }, [movies]);
+
+
   const handleMovieCardShowtimeClick = (movieDetailsFromCard, timeClicked) => {
     const todayParts = selectedDate.split("/");
     const currentYear = new Date().getFullYear();
@@ -193,37 +195,48 @@ function ShowtimePage() {
         <div className="px-6 py-4">
           <h1 className="text-3xl font-bold text-center mb-4">SHOWTIMES</h1>
 
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <button
-              onClick={handlePrevWeek}
-              className="p-2 rounded-full hover:bg-gray-700"
-            >
-              <ChevronLeftIcon className="h-5 w-5" />
-            </button>
-            {weekDates.map((date, index) => {
-              const label = formatDateLabel(date);
-              const isSelected = label === selectedDate;
-              return (
+          <div className="flex items-center justify-center mb-4">
+    {/* Previous Week Button */}
+    <button 
+        onClick={handlePrevWeek} 
+        className="p-2 rounded-full hover:bg-gray-700/50 transition-colors mr-1 sm:mr-2"
+        aria-label="Previous week"
+    >
+        <ChevronLeftIcon className="h-5 w-5" />
+    </button>
+    
+    {/* Date Buttons */}
+    <div className="flex gap-1 sm:gap-2">
+        {weekDates.map((date, index) => {
+            const label = formatDateLabel(date);
+            const isSelected = label === selectedDate;
+            return (
                 <button
-                  key={index}
-                  onClick={() => setSelectedDate(label)}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ease-in-out ${
-                    isSelected
-                      ? "bg-red-600 text-white"
-                      : "bg-gray-800 hover:bg-gray-700"
-                  }`}
+                    key={index}
+                    onClick={() => setSelectedDate(label)}
+                    className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+                        isSelected 
+                            ? 'bg-red-600 text-white shadow-md' 
+                            : 'bg-gray-800 hover:bg-gray-700 text-gray-200'
+                    }`}
+                    aria-current={isSelected ? "date" : undefined}
                 >
-                  {label}
+                    {label}
                 </button>
-              );
-            })}
-            <button
-              onClick={handleNextWeek}
-              className="p-2 rounded-full hover:bg-gray-700"
-            >
-              <ChevronRightIcon className="h-5 w-5" />
-            </button>
-          </div>
+            );
+        })}
+    </div>
+    
+    {/* Next Week Button */}
+    <button 
+        onClick={handleNextWeek} 
+        className="p-2 rounded-full hover:bg-gray-700/50 transition-colors ml-1 sm:ml-2"
+        aria-label="Next week"
+    >
+        <ChevronRightIcon className="h-5 w-5" />
+    </button>
+</div>
+
         </div>
       </div>
 
