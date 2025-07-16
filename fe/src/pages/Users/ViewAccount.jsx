@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import UserDashboardLayout from '../../components/UserDashboardlayout';
-import avatar from '../../assets/monk.png';
+import avatar from '../../assets/avatar.png';
 import { useNavigate } from 'react-router-dom';
 
 const ViewAccount = () => {
