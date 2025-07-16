@@ -238,16 +238,16 @@ function RegisterPage() {
 
       {showSuccessModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+          <div className="bg-gray-800 p-4 sm:p-6 rounded-lg shadow-lg max-w-sm sm:max-w-md w-full">
             <div className="text-center">
-              <div className="mb-4 flex justify-center">
-                <svg className="w-16 h-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="mb-3 sm:mb-4 flex justify-center">
+                <svg className="w-12 h-12 sm:w-16 sm:h-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-white mb-4">Registration Successful!</h3>
-              <p className="text-gray-300 mb-6">Your account has been successfully created. You can now login with your credentials.</p>
-              <button onClick={handleSuccessConfirm} className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-200">
+              <h3 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">Registration Successful!</h3>
+              <p className="text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base">Your account has been successfully created. You can now login with your credentials.</p>
+              <button onClick={handleSuccessConfirm} className="px-4 sm:px-6 py-1.5 sm:py-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-200 text-sm sm:text-base">
                 OK
               </button>
             </div>

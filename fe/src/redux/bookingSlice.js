@@ -41,34 +41,30 @@ export const bookingSlice = createSlice({
   initialState,
   reducers: {
     setMovieAndDateTime: (state, action) => {
-      console.log("bookingSlice: setMovieAndDateTime action received payload:", action.payload);
+      
       state.movieDetails = {
         ...state.movieDetails,
         ...action.payload.movieDetails,
       };
-      console.log("bookingSlice: movieDetails updated to:", state.movieDetails);
+      
     },
     setSelectedSeats: (state, action) => {
       state.selectedSeats = action.payload.seats;
       state.totalSeatPrice = action.payload.totalPrice;
       state.grandTotal = state.totalSeatPrice + state.totalComboPrice + state.totalProductPrice + state.serviceFee;
-      console.log("bookingSlice: selectedSeats updated to:", state.selectedSeats, "totalSeatPrice:", state.totalSeatPrice);
     },
     setSelectedCombos: (state, action) => {
       state.selectedCombos = action.payload.combos;
       state.totalComboPrice = action.payload.totalPrice;
       state.grandTotal = state.totalSeatPrice + state.totalComboPrice + state.totalProductPrice + state.serviceFee;
-      console.log("bookingSlice: selectedCombos updated to:", state.selectedCombos, "totalComboPrice:", state.totalComboPrice);
     },
     setSelectedProducts: (state, action) => {
       state.selectedProducts = action.payload.products;
       state.totalProductPrice = action.payload.totalPrice;
       state.grandTotal = state.totalSeatPrice + state.totalComboPrice + state.totalProductPrice + state.serviceFee;
-      console.log("bookingSlice: selectedProducts updated to:", state.selectedProducts, "totalProductPrice:", state.totalProductPrice);
     },
     updateGrandTotal: (state, action) => {
       state.grandTotal = action.payload;
-      console.log("bookingSlice: grandTotal updated to:", state.grandTotal);
     },
     finalizeBooking: (state, action) => {
       state.bookingId = action.payload.bookingId;
@@ -76,22 +72,18 @@ export const bookingSlice = createSlice({
         state.user = { ...state.user, ...action.payload.user };
       }
       state.grandTotal = action.payload.grandTotal;
-      console.log("bookingSlice: Booking finalized. bookingId:", state.bookingId, "grandTotal:", state.grandTotal);
     },
     resetBooking: (state) => {
       Object.assign(state, initialState);
-      console.log("bookingSlice: Booking state reset.");
     },
     setUser: (state, action) => {
       state.user = { ...state.user, ...action.payload };
-      console.log("bookingSlice: User info updated to:", state.user);
     },
     setMovieDetails: (state, action) => {
       state.movieDetails = {
         ...state.movieDetails,
         ...action.payload,
       };
-      console.log("bookingSlice: movieDetails replaced with:", state.movieDetails);
     },
   },
 });

@@ -153,22 +153,22 @@ function ResetPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen">
-      <div className="w-1/2 flex flex-col justify-center px-12 py-8 bg-gray-900 text-white">
+    <div className="flex flex-col md:flex-row min-h-screen">
+      <div className="w-full md:w-1/2 flex flex-col justify-center px-4 sm:px-8 md:px-12 py-6 sm:py-8 bg-gray-900 text-white">
         <div className="max-w-md mx-auto w-full">
-          <h1 className="text-4xl font-bold mb-8 text-center">Verify Code</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 md:mb-8 text-center">Verify Code</h1>
           
-          <div className="bg-gray-700 p-6 rounded-lg shadow">
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="bg-gray-700 p-4 sm:p-6 rounded-lg shadow">
+            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
               <div className="text-center">
-                <label className="block text-sm font-medium mb-3">
+                <label className="block text-xs sm:text-sm font-medium mb-2 sm:mb-3">
                   Enter Verification Code
                 </label>
-                <p className="text-sm text-gray-400 mb-6 mx-auto max-w-xs">
+                <p className="text-xs sm:text-sm text-gray-400 mb-4 sm:mb-6 mx-auto max-w-xs">
                   A 5-digit code has been sent to {email}
                 </p>
                 
-                <div className="flex justify-center space-x-4 mb-4" onPaste={handlePaste}>
+                <div className="flex justify-center space-x-2 sm:space-x-4 mb-3 sm:mb-4" onPaste={handlePaste}>
                   {verificationCode.map((digit, index) => (
                     <input
                       key={index}
@@ -178,7 +178,7 @@ function ResetPasswordPage() {
                       value={digit}
                       onChange={(e) => handleChange(index, e)}
                       onKeyDown={(e) => handleKeyDown(index, e)}
-                      className="w-12 h-12 text-center text-xl font-bold border rounded-md bg-gray-100 text-black focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
+                      className="w-8 h-10 sm:w-12 sm:h-12 text-center text-lg sm:text-xl font-bold border rounded-md bg-gray-100 text-black focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
                       autoFocus={index === 0}
                     />
                   ))}
@@ -186,14 +186,14 @@ function ResetPasswordPage() {
               </div>
               
               {error && (
-                <div className="text-red-500 text-sm mt-2 text-center">{error}</div>
+                <div className="text-red-500 text-xs sm:text-sm mt-2 text-center">{error}</div>
               )}
               
-              <div className="flex justify-center mt-8">
+              <div className="flex justify-center mt-4 sm:mt-8">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-200 disabled:opacity-50"
+                  className="px-4 sm:px-6 py-1.5 sm:py-2 bg-red-600 text-white rounded text-sm sm:text-base hover:bg-red-700 transition duration-200 disabled:opacity-50"
                 >
                   {isSubmitting ? 'Verifying...' : 'Verify Code'}
                 </button>
@@ -211,13 +211,13 @@ function ResetPasswordPage() {
             </form>
       </div>
       
-          <div className="mt-6 text-center">
+          <div className="mt-4 sm:mt-6 text-center">
           
-      </div>
-    </div>
+          </div>
+        </div>
       </div>
 
-      <div className="w-1/2 bg-gray-900">
+      <div className="hidden md:block md:w-1/2 bg-gray-900">
         <img
           src={anhnenloginImage}
           alt="Cinema"
