@@ -17,7 +17,7 @@ const ViewProduct = () => {
 
   const formatVND = (value) => {
     if (typeof value !== 'number') return '';
-    return `${value.toLocaleString('vi-VN')}₫`;
+    return `${value.toLocaleString('vi-VN')} VND`;
   };
 
   useEffect(() => {
