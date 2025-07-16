@@ -5,6 +5,7 @@ import axios from 'axios';
 import Pagination from '../../components/PaginationHomepage';
 import { message, Modal } from 'antd';
 import { FaSearch, FaEye } from "react-icons/fa";
+import { Calendar, Clock, MapPin, Users, CreditCard } from "lucide-react";
 
 const BookingList = () => {
   const [bookings, setBookings] = useState([]);
@@ -15,6 +16,22 @@ const BookingList = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [roomMap, setRoomMap] = useState({});
+
+  useEffect(() => {
+    axios.get("http://localhost:5000/api/theater/rooms")
+      .then(res => {
+        const map = {};
+        res.data.forEach(r => { map[r.roomId] = r.roomName });
+        setRoomMap(map);
+      })
+      .catch(err => console.error("Room fetch error:", err));
+  }, []);
+
+  const getRoomName = (roomName) => {
+    const key = roomName?.trim().toUpperCase();
+    return roomMap[key] || (key?.match(/ROOM0*(\d+)/) ? `Cinema ${+key.match(/ROOM0*(\d+)/)[1]}` : key || 'N/A');
+  };
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -49,7 +66,6 @@ const BookingList = () => {
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       setCurrentPage(1);
-      fetchBookings();
     }, 500);
     return () => clearTimeout(delayDebounce);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -94,7 +110,7 @@ const BookingList = () => {
       <div className="p-6 text-white">
         <div className="p-4 flex items-center justify-between">
           <div className="flex-1 text-center">
-            <h2 className="text-2xl font-bold">Admin - Booking Management</h2>
+            <h2 className="text-2xl font-bold">Booking Management</h2>
           </div>
         </div>
 
@@ -185,40 +201,127 @@ const BookingList = () => {
       </div>
 
       <Modal
-        title="Booking Details"
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
-        footer={[
-          <button
-            key="close"
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors duration-200"
-            onClick={() => setModalVisible(false)}
-          >
-            Close
-          </button>,
-        ]}
-        width={700}
-        bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
+        footer={null}
+        centered
+        width={800}
+        className="custom-modal"
       >
         {selectedBooking && (
-          <div className="space-y-4 text-black">
-            <div><strong>Booking ID:</strong> {selectedBooking.bookingId}</div>
-            <div><strong>Full Name:</strong> {selectedBooking.user?.name || 'N/A'}</div>
-            <div><strong>Phone Number:</strong> {selectedBooking.user?.phone || 'N/A'}</div>
-            <div><strong>Movie:</strong> {selectedBooking.movieDetails?.name || 'N/A'}</div>
-            <div><strong>Showtime:</strong> {
-              selectedBooking.movieDetails?.time
-                ? new Date(selectedBooking.movieDetails.time).toLocaleString("vi-VN")
-                : 'N/A'
-            }</div>
-            <div><strong>Seat(s):</strong> {selectedBooking.selectedSeats?.join(", ") || 'N/A'}</div>
-            <div><strong>Status:</strong> {selectedBooking.status}</div>
-            <div><strong>Total Price:</strong> {selectedBooking.grandTotal?.toLocaleString('vi-VN')} VND</div>
-            <div><strong>Created At:</strong> {
-              selectedBooking.createdAt
-                ? new Date(selectedBooking.createdAt).toLocaleString("vi-VN")
-                : 'N/A'
-            }</div>
+          <div className="bg-gradient-to-br from-gray-900 to-black p-8 rounded-2xl">
+            <div className="flex flex-col lg:flex-row gap-8">
+              {/* Movie Poster */}
+              <div className="flex-shrink-0">
+                <img
+                  src={selectedBooking.movieDetails?.image_url || "/placeholder.svg"}
+                  alt="Poster"
+                  className="w-64 h-96 rounded-xl object-cover shadow-2xl border-2 border-gray-700"
+                />
+              </div>
+
+              {/* Movie Details */}
+              <div className="flex-1 space-y-6">
+                <div>
+                  <h2 className="text-3xl font-bold text-white mb-2">{selectedBooking.movieDetails?.name || 'N/A'}</h2>
+                  <div className="w-16 h-1 bg-red-600 rounded-full"></div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <Calendar className="w-5 h-5 text-red-500" />
+                      <div>
+                        <p className="text-gray-400 text-sm">Show Date</p>
+                        <p className="text-white font-semibold">
+                          {selectedBooking.movieDetails?.time
+                            ? new Date(selectedBooking.movieDetails.time).toLocaleDateString('vi-VN')
+                            : 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-3">
+                      <Clock className="w-5 h-5 text-red-500" />
+                      <div>
+                        <p className="text-gray-400 text-sm">Showtime</p>
+                        <p className="text-white font-semibold">
+                          {selectedBooking.movieDetails?.time
+                            ? new Date(selectedBooking.movieDetails.time).toLocaleTimeString('vi-VN')
+                            : 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-3">
+                      <MapPin className="w-5 h-5 text-red-500" />
+                      <div>
+                        <p className="text-gray-400 text-sm">Cinema Room</p>
+                        <p className="text-white font-semibold">
+                          {getRoomName(selectedBooking.movieDetails?.roomName)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <Users className="w-5 h-5 text-red-500" />
+                      <div>
+                        <p className="text-gray-400 text-sm">Seat</p>
+                        <p className="text-white font-semibold">{selectedBooking.selectedSeats?.join(', ') || 'N/A'}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-3">
+                      <Calendar className="w-5 h-5 text-red-500" />
+                      <div>
+                        <p className="text-gray-400 text-sm">Booking date</p>
+                        <p className="text-white font-semibold">
+                          {selectedBooking.createdAt
+                            ? new Date(selectedBooking.createdAt).toLocaleString('vi-VN')
+                            : 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-3">
+                      <CreditCard className="w-5 h-5 text-red-500" />
+                      <div>
+                        <p className="text-gray-400 text-sm">Total Price</p>
+                        <p className="text-white font-semibold text-lg">
+                          {selectedBooking.grandTotal?.toLocaleString('vi-VN')} VND
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+                  <div className="flex flex-col space-y-3">
+                    <div>
+                      <p className="text-gray-400 text-sm">Customer Name</p>
+                      <p className="text-white font-semibold">{selectedBooking.user?.name || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm">Customer Phone</p>
+                      <p className="text-white font-semibold">{selectedBooking.user?.phone || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm">Booking ID</p>
+                      <p className="text-white font-semibold">{selectedBooking.bookingId}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setModalVisible(false)}
+              className="mt-8 w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-[1.02]"
+            >
+              Close
+            </button>
           </div>
         )}
       </Modal>

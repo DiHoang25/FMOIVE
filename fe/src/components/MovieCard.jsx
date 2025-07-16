@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import { memo } from 'react';
 const MovieCard = ({ title, poster, info, showtimes = [], movie, onShowtimeClick }) => {
     const navigate = useNavigate();
 

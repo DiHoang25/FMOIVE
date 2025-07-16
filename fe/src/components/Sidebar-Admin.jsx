@@ -18,6 +18,7 @@ import { RiInformation2Line } from "react-icons/ri";
 import { Button, Layout, Menu, theme, Drawer } from 'antd';
 import AdminNotification from './Admin-Notification';
 import { useAuth } from '../contexts/AuthContext';
+import { message } from 'antd';
 
 const { Header, Sider, Content } = Layout;
 
@@ -32,6 +33,7 @@ const SidebarLayout = ({ children }) => {
 
   const handleLogout = () => {
     logout();
+    message.success('Đăng xuất thành công!', 3);
     navigate('/login');
   };
 
