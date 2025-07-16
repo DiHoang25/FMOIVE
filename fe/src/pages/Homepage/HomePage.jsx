@@ -156,7 +156,7 @@ const HomePage = () => {
   const formatDate = dateStr => new Date(dateStr).toLocaleDateString('vi-VN');
 
   return (
-    <div className="bg-black text-white px-4 sm:px-6 py-6 sm:py-10 space-y-10">
+    <div className="bg-black text-white px-4 sm:px-6 pt-20 sm:pt-24 pb-6 sm:pb-10 space-y-10">
       {/* Banner */}
       <div className="relative w-full h-[400px] sm:h-[600px] lg:h-[800px] mb-6 overflow-hidden rounded-lg shadow-lg">
         {banners.length > 0 && (
@@ -180,19 +180,19 @@ const HomePage = () => {
       </div>
 
       {/* Now Showing */}
-      <div>
+      <div id="now-showing" className="scroll-mt-32">
         <h2 className="text-xl font-semibold mb-4">The movie : <span className="text-red-500">Now showing</span></h2>
         {renderSlidingMovieList(nowShowingMovies, nowShowingIndex, setNowShowingIndex)}
       </div>
 
       {/* Coming Soon */}
-      <div>
+      <div id="coming-soon" className="scroll-mt-32">
         <h2 className="text-xl font-semibold mb-4">The movie : <span className="text-orange-400">Coming soon</span></h2>
         {renderSlidingMovieList(comingSoonMovies, comingSoonIndex, setComingSoonIndex)}
       </div>
 
       {/* Hot Movies */}
-      <div className="mt-10">
+      <div id="hot-movies" className="mt-10 scroll-mt-32">
         <h2 className="text-xl font-bold mb-4">Hot movie : <span className="text-red-500">{month} {year}</span></h2>
         {hotMovies.slice(0, 8).map((movie, idx) => (
          <div key={idx} className="flex flex-col md:flex-row items-center md:items-start gap-4 mb-6 border-b border-gray-700 pb-4">
@@ -225,7 +225,7 @@ const HomePage = () => {
       </div>
 
       {/* Movie News */}
-      <div className="mt-10">
+      <div id="movie-news" className="mt-10 scroll-mt-32">
         <h2 className="text-xl font-bold mb-6">Movie News</h2>
         <div className="overflow-visible w-full">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 min-w-0">

@@ -1,17 +1,53 @@
 import { useState, useRef, useEffect, Fragment } from 'react';
 import { ChevronDown, Menu } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FaHome } from 'react-icons/fa';
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isShowtimePage = location.pathname === '/showtimes';
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  const scrollToSection = (sectionId) => {
+    
+    if (location.pathname === '/') {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      
+      navigate(`/#${sectionId}`);
+    }
+  };
+
+  
+  useEffect(() => {
+    if (location.pathname === '/' && location.hash) {
+      const id = location.hash.substring(1); 
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 500); 
+    }
+  }, [location]);
 
   const links = [
     { label: 'Home', href: '/', icon: <FaHome className="w-4 h-4" /> },
     { label: 'Showtimes', href: '/showtimes' },
-    { label: 'Movies', dropdown: [{ label: 'Movie Search', href: '/moviesearch' }] },
+    {
+      label: 'Movies',
+      dropdown: [
+        { label: 'Now Showing', onClick: () => scrollToSection('now-showing') },
+        { label: 'Coming Soon', onClick: () => scrollToSection('coming-soon') },
+        { label: 'Hot Movies', onClick: () => scrollToSection('hot-movies') },
+        { label: 'Movie News', onClick: () => scrollToSection('movie-news') },
+        { label: 'Movie Search', href: '/moviesearch' }
+      ]
+    },
     { label: 'Promotions', href: '/promotions' },
     { label: 'Contact', href: '/contact' },
     {
@@ -22,7 +58,6 @@ const Navbar = () => {
       ],
     },
   ];
-
   return (
     <Fragment>
       <div className={`fixed top-[60px] left-0 right-0 ${isShowtimePage ? 'z-40' : 'z-20'} bg-white shadow`}>
@@ -42,19 +77,29 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile Dropdown Menu */}
+        
         {isMobileOpen && (
           <div className="md:hidden px-4 pb-4">
             {links.map((item, idx) =>
               item.dropdown ? (
                 <div key={idx} className="mt-2">
-                  <span >{item.label}</span>
+                  <span>{item.label}</span>
                   <ul className="ml-2 space-y-1">
                     {item.dropdown.map((child, cIdx) => (
                       <li key={cIdx}>
-                        <Link to={child.href} className="text-sm hover:underline"  style={{ color: '#1A1A1A' }}>
-                        &gt; {child.label}
-                        </Link>
+                        {child.href ? (
+                          <Link to={child.href} className="text-sm hover:underline" style={{ color: '#1A1A1A' }}>
+                            &gt; {child.label}
+                          </Link>
+                        ) : (
+                          <button
+                            onClick={child.onClick}
+                            className="text-sm hover:underline text-left"
+                            style={{ color: '#1A1A1A' }}
+                          >
+                            &gt; {child.label}
+                          </button>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -63,7 +108,7 @@ const Navbar = () => {
                 <Link
                   key={idx}
                   to={item.href}
-                  className="block mt-2  text-Black-600 hover:underline"
+                  className="block mt-2 text-Black-600 hover:underline"
                 >
                   {item.label}
                 </Link>
@@ -115,13 +160,25 @@ const DropdownItem = ({ label, items, isShowtimePage }) => {
           <ul className="py-2">
             {items.map((item, index) => (
               <li key={index}>
-                <Link
-                  to={item.href}
-                  className="block px-4 py-2 hover:bg-blue-50 hover:text-blue-600 text-sm"
-                  onClick={() => setIsOpen(false)}
-                >
-                  {item.label}
-                </Link>
+                {item.href ? (
+                  <Link
+                    to={item.href}
+                    className="block px-4 py-2 hover:bg-blue-50 hover:text-blue-600 text-sm"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => {
+                      item.onClick();
+                      setIsOpen(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-blue-50 hover:text-blue-600 text-sm"
+                  >
+                    {item.label}
+                  </button>
+                )}
               </li>
             ))}
           </ul>
@@ -132,3 +189,4 @@ const DropdownItem = ({ label, items, isShowtimePage }) => {
 };
 
 export default Navbar;
+
