@@ -215,28 +215,7 @@ const CounterCombo = () => {
                     </div>
                     <hr className="border-gray-700 mb-4" />
 
-                    {/* Movie Info Section - Responsive */}
-                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 mb-6 bg-slate-800 p-4 rounded-md text-center sm:text-left">
-                        {movieDetails.image_url && (
-                            <img
-                                src={movieDetails.image_url}
-                                alt={movieDetails.name}
-                                className="w-28 h-40 object-cover rounded shadow mx-auto sm:mx-0"
-                            />
-                        )}
-                        <div className="text-white flex-1">
-                            <h2 className="text-2xl sm:text-3xl font-bold mb-1">{movieDetails.name || "Unknown Movie"}</h2>
-                            <p className="text-gray-400 text-sm sm:text-base">
-                                {fullShowtimeDate} • {selectedShowtimeTime} • {movieDetails?.cinema_room || "Room N/A"}
-                            </p>
-                            <p className="text-gray-400 text-sm sm:text-base">
-                                Seats: {selectedSeats?.map(s => s.label).join(', ') || 'N/A'}
-                            </p>
-                            <p className="text-gray-400 text-sm sm:text-base">
-                                Ticket Price: {ticketPrice.toLocaleString('vi-VN')} VND
-                            </p>
-                        </div>
-                    </div>
+                    
 
 
                     <div onClick={() => { setShowCombos(!showCombos); setShowProducts(false); }} className="cursor-pointer bg-gray-700 px-4 py-2 rounded-md text-white font-semibold mb-2">
