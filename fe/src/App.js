@@ -83,6 +83,11 @@ import EditProduct from './pages/Employee/EditProduct';
 import PublicRouteGuard from './components/PublicRouteGuard';
 import EditCinemaRoom from './pages/Admin/EditCinemaRoom';
 import MovieNews from './pages/Movie/MovieNews';
+import EditAdminProfile from './pages/Admin/EditAdminProfile';
+import ChangeAdminPassword from './pages/Admin/ChangeAdminPassword';
+import EditEmProfile from './pages/Employee/EditEmProfile';
+import ChangeEmPassword from './pages/Employee/ChangeEmPassword';
+
 
 function AppContent() {
   const location = useLocation();
@@ -135,7 +140,7 @@ function AppContent() {
           <Route path="/editaccount" element={<RequireRole allowedRoles={['customer']}><EditAccount /></RequireRole>} />
           <Route path="/changepassword" element={<RequireRole allowedRoles={['customer']}><ChangePassword /></RequireRole>} />
           <Route path="/customer-benefits" element={<RequireRole allowedRoles={['customer']}><CustomerBenefits /></RequireRole>} />
-          <Route path="//moviedetails/:movieId/select-seats" element={<RequireRole allowedRoles={['customer']}><SeatSelectionPage /></RequireRole>} />
+          <Route path="/select-seats" element={<RequireRole allowedRoles={['customer']}><SeatSelectionPage /></RequireRole>} />
 
 
 
@@ -170,6 +175,8 @@ function AppContent() {
           <Route path="/admin/movienews-list" element={<RequireRole allowedRoles={['admin']}><MovieNewsList /></RequireRole>} />
           <Route path="/admin/edit-movienews/:id" element={<RequireRole allowedRoles={['admin']}><EditMovieNews /></RequireRole>} />
           <Route path="/admin/edit-cinema-room/:roomId" element={<RequireRole allowedRoles={['admin']}><EditCinemaRoom /></RequireRole>} />
+          <Route path="/admin/admin-profile/edit-profile" element={<RequireRole allowedRoles={['admin']}><EditAdminProfile /></RequireRole>} />
+          <Route path="/admin/admin-profile/change-admin-password" element={<RequireRole allowedRoles={['admin']}><ChangeAdminPassword /></RequireRole>} />
 
           {/* Employee */}
           <Route path="/employee" element={<RequireRole allowedRoles={['employee']}><EmployeeDashboard /></RequireRole>} />
@@ -189,6 +196,8 @@ function AppContent() {
           <Route path="/employee/add-product" element={<RequireRole allowedRoles={['employee']}><AddProduct /></RequireRole>} />
           <Route path="/employee/view-product" element={<RequireRole allowedRoles={['employee']}><ViewProduct /></RequireRole>} />
           <Route path="/employee/view-product/edit-product/:id" element={<RequireRole allowedRoles={['employee']}><EditProduct /></RequireRole>} />
+          <Route path="/employee/employee-profile/edit-em-profile" element={<RequireRole allowedRoles={['employee']}><EditEmProfile /></RequireRole>} />
+          <Route path="/employee/employee-profile/change-em-password" element={<RequireRole allowedRoles={['employee']}><ChangeEmPassword /></RequireRole>} />
 
           {/* Not Found Page - Phải là route cuối cùng */}
           <Route path="*" element={<NotFoundPage />} />

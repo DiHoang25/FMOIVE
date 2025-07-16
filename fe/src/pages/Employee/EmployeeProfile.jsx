@@ -1,83 +1,139 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import Sidebar from '../../components/Sidebar-Employee';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Avatar, Button, Card, Descriptions, Spin, Result } from 'antd';
+import { UserOutlined } from '@ant-design/icons';
+import SidebarLayoutEmployee from '../../components/Sidebar-Employee';
+import avatar from '../../assets/avatar.png';
 
 const EmployeeProfile = () => {
-  // Sample employee data
-  const employee = {
-    id: 5,
-    fullName: 'Do Minh Tuan',
-    idCard: '1990-12-15',
-    email: 'tuando@gmail.com',
-    phone: '0981233445',
-    address: 'Ho Chi Minh City',
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Not authenticated.');
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:5000/api/auth/profile', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          setError(data.message || 'Failed to fetch user data.');
+        } else {
+          setUser(data.user);
+        }
+      } catch (err) {
+        console.error('Error fetching user:', err);
+        setError('Failed to fetch user data.');
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  const formatDate = (isoString) => {
+    const date = new Date(isoString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   };
 
-  const navigate = useNavigate();
+  if (error) {
+    return (
+      <SidebarLayoutEmployee>
+        <Result
+          status="error"
+          title="Error"
+          subTitle={error}
+        />
+      </SidebarLayoutEmployee>
+    );
+  }
+
+  if (!user) {
+    return (
+      <SidebarLayoutEmployee>
+        <div className="flex justify-center items-center min-h-[70vh]">
+          <Spin size="large" />
+        </div>
+      </SidebarLayoutEmployee>
+    );
+  }
+
+  const formattedDOB = user.date_of_birth
+    ? formatDate(user.date_of_birth)
+    : 'Not provided';
 
   return (
-    <div className="flex h-screen bg-gray-900">
-      <Sidebar />
+    <SidebarLayoutEmployee>
+      <div className="p-4 md:p-6 flex justify-center items-center min-h-[80vh]">
+        <Card
+          bordered={false}
+          style={{ width: '100%', maxWidth: '900px' }}
+          className="shadow-lg bg-slate-800 w-full"
+        >
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-12 items-center lg:items-start">
+            {/* Avatar and actions */}
+            <div className="flex flex-col items-center w-full sm:w-auto">
+              <Avatar
+                size={128}
+                src={avatar}
+                icon={<UserOutlined />}
+              />
+              <h2 className="text-xl font-semibold mt-4 text-white text-center">{user.fullname}</h2>
+              <div className="flex flex-col gap-3 mt-4 w-full sm:w-[200px]">
+                <Button
+                  onClick={() => navigate('/employee/employee-profile/edit-em-profile')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold w-full"
+                >
+                  Edit Profile
+                </Button>
 
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="p-4 flex justify-between items-center border-b border-gray-800">
-          <div className="flex items-center">
-            <button
-              onClick={() => navigate(-1)}
-              className="text-gray-400 hover:text-white mr-4"
-            >
-              <i className="fas fa-arrow-left text-xl"></i>
-            </button>
-            <h1 className="text-2xl text-gray-300">Employee Profile</h1>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            {/* User Avatar */}
-            <div className="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center text-white font-bold">
-              E
-            </div>
-          </div>
-        </header>
-
-        <div className="bg-gray-900 p-4 flex items-center justify-between">
-          <Link to="/employee" className="text-gray-400 hover:text-gray-300 flex items-center mr-4">
-            <div className="mr-1" /> Back
-          </Link>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="bg-gray-800 rounded-lg p-8 shadow-lg">
-            <h2 className="text-2xl font-bold text-white mb-6 pb-2 border-b border-gray-700">Employee Information</h2>
-            <div className="space-y-4">
-              <div className="flex items-center p-3 hover:bg-gray-700 rounded-md transition-colors duration-200">
-                <div className="w-24 text-gray-400 font-medium">ID:</div>
-                <div className="text-gray-300 font-semibold">{employee.id}</div>
-              </div>
-              <div className="flex items-center p-3 hover:bg-gray-700 rounded-md transition-colors duration-200">
-                <div className="w-24 text-gray-400 font-medium">Full Name:</div>
-                <div className="text-gray-300 font-semibold">{employee.fullName}</div>
-              </div>
-              <div className="flex items-center p-3 hover:bg-gray-700 rounded-md transition-colors duration-200">
-                <div className="w-24 text-gray-400 font-medium">ID Card:</div>
-                <div className="text-gray-300 font-semibold">{employee.idCard}</div>
-              </div>
-              <div className="flex items-center p-3 hover:bg-gray-700 rounded-md transition-colors duration-200">
-                <div className="w-24 text-gray-400 font-medium">Email:</div>
-                <div className="text-gray-300 font-semibold">{employee.email}</div>
-              </div>
-              <div className="flex items-center p-3 hover:bg-gray-700 rounded-md transition-colors duration-200">
-                <div className="w-24 text-gray-400 font-medium">Phone:</div>
-                <div className="text-gray-300 font-semibold">{employee.phone}</div>
-              </div>
-              <div className="flex items-center p-3 hover:bg-gray-700 rounded-md transition-colors duration-200">
-                <div className="w-24 text-gray-400 font-medium">Address:</div>
-                <div className="text-gray-300 font-semibold">{employee.address}</div>
+                <Button
+                  onClick={() => navigate('/employee/employee-profile/change-em-password')}
+                  className="bg-red-600 hover:bg-red-700 text-white font-semibold w-full"
+                >
+                  Change Password
+                </Button>
               </div>
             </div>
+
+            {/* Information */}
+            <div className="w-full">
+              <Descriptions
+                title={
+                  <div className="text-center text-xl sm:text-2xl font-bold text-white">
+                    Account Information
+                  </div>
+                }
+                column={1}
+                bordered
+                size="middle"
+                className="custom-descriptions rounded-md overflow-hidden"
+              >
+                <Descriptions.Item label="Name">{user.fullname}</Descriptions.Item>
+                <Descriptions.Item label="Account">{user.username}</Descriptions.Item>
+                <Descriptions.Item label="Email">{user.email}</Descriptions.Item>
+                <Descriptions.Item label="DOB">{formattedDOB}</Descriptions.Item>
+                <Descriptions.Item label="Phone Number">
+                  {user.phone || 'Not provided'}
+                </Descriptions.Item>
+              </Descriptions>
+            </div>
           </div>
-        </div>
+        </Card>
       </div>
-    </div>
+    </SidebarLayoutEmployee>
   );
 };
 

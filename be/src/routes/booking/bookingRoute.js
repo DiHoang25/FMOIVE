@@ -10,26 +10,34 @@ const Room = require('../../models/Room'); // Import Room Model để cập nh�
 
 //Hàm Helper
 
-async function updateOccupiedSeats(systemBookingId) {
+/*
+ * @param {string} bookingId - The unique ID of the booking.
+ * @returns {Promise<boolean>} - True if successful, false otherwise.
+ */
+async function updateOccupiedSeats(systemBookingId, statusToExpect = 'PAID') { // Added expected status parameter
     try {
-         const booking = await this.findOne({ bookingId: systemBookingId });
+        const booking = await Booking.findOne({ bookingId: systemBookingId });
 
-        if (!booking || booking.status !== 'PAID') {
-            console.warn(`Booking ${systemBookingId} not found or not paid. Skipping room seat update.`);
-            return false;
+        if (!booking) {
+            console.warn(`Booking ${systemBookingId} not found. Cannot update room seat.`);
+            return { success: false, message: `Booking ${systemBookingId} not found.` };
         }
 
-        const Room = mongoose.model('Room'); // Get the Room model
-        const roomId = booking.movieDetails.cinema_room; // Assuming cinema_room stores roomId
+        // IMPORTANT: Only update occupied seats if the booking status matches the expected status
+        if (booking.status !== statusToExpect) {
+            console.warn(`Booking ${systemBookingId} status is '${booking.status}', not '${statusToExpect}'. Skipping room seat update.`);
+            return { success: false, message: `Booking status is not ${statusToExpect}.` };
+        }
+
+        const roomId = booking.movieDetails.cinema_room;
         const showtime = booking.movieDetails.time;
         const seatLabels = booking.selectedSeats;
 
         if (!roomId || !showtime || !seatLabels || seatLabels.length === 0) {
             console.error(`Missing data for updating room seats for booking ${systemBookingId}`);
-            return false;
+            return { success: false, message: 'Missing essential data for seat update.' };
         }
 
-        // Prepare the new occupied seat entries
         const newOccupiedSeats = seatLabels.map(label => ({
             seatLabel: label,
             bookingId: systemBookingId,
@@ -39,26 +47,28 @@ async function updateOccupiedSeats(systemBookingId) {
         const result = await Room.updateOne(
             { roomId: roomId },
             { $addToSet: { occupiedSeats: { $each: newOccupiedSeats } } }
+            // $addToSet prevents duplicate entries for the same seatLabel, bookingId, showtime if run multiple times
         );
 
         if (result.matchedCount === 0) {
             console.error(`Room with roomId ${roomId} not found for updating occupied seats.`);
-            return false;
+            return { success: false, message: `Room ${roomId} not found.` };
         }
 
         if (result.modifiedCount > 0) {
             console.log(`Successfully added occupied seats for booking ${systemBookingId} to room ${roomId}`);
-            return true;
+            return { success: true, message: `Seats for booking ${systemBookingId} marked as occupied.` };
         } else {
             console.log(`No new seats added to room ${roomId} for booking ${systemBookingId}. They might already be there.`);
-            return true; // Consider it successful if no change means already present
+            return { success: true, message: `Seats for booking ${systemBookingId} were already marked as occupied.` };
         }
 
     } catch (error) {
         console.error(`Error updating occupied seats for booking ${systemBookingId}:`, error);
-        return false;
+        return { success: false, message: `Server error during seat update: ${error.message}` };
     }
-};
+}
+
 
 // @route   POST /api/bookings/create
 // @desc    Tạo một booking mới từ dữ liệu frontend (ít xác thực hơn)
@@ -80,7 +90,7 @@ router.post('/create', authMiddleware, async (req, res) => {
         } = req.body;
 
         // --- BỎ QUA TOÀN BỘ XÁC THỰC CHI TIẾT TỪ FRONTEND (Tự xác thực từ phía front-end) ---
-        
+
 
         // Kiểm tra cơ bản về sự tồn tại của dữ liệu cần thiết tối thiểu
         // if (!movieDetails || !movieDetails.movieId || !selectedSeats || selectedSeats.length === 0 || totalSeatPrice === undefined || totalSeatPrice < 0 || !grandTotal || !user || !user._id) {

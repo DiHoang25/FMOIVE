@@ -79,6 +79,7 @@ const MovieDetails = () => {
 
         navigate(`/select-seats`, {
             state: {
+                movieId: movie._id, // ✅ THÊM movieId (rất quan trọng)
                 roomId: cinemaRoom,
                 movieDetails: {
                     name: movie.name,

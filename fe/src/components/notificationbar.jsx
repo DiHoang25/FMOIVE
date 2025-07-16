@@ -75,7 +75,10 @@ const NotificationBar = () => {
         <div className="sm:hidden bg-black bg-opacity-80 mt-1 rounded text-white absolute right-4 top-[60px] w-48 shadow-lg z-50">
           {user ? (
             <div className="flex flex-col items-start px-4 py-2 space-y-2">
-              <span className="font-semibold">👤 {user.fullname}</span>
+              <span className="flex items-center">
+                <img src={avatar} alt="Avatar" className="w-6 h-6 rounded-full mr-2" />
+                <span className="font-semibold">{user.fullname}</span>
+              </span>
               <button
                 onClick={() => {
                   navigate('/viewaccount');
