@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import bgImage from '../assets/bg.jpg';
 import logo from '../assets/logo.png';
 import avatar from '../assets/avatar.png';
@@ -10,16 +10,11 @@ import { LogoutOutlined } from '@ant-design/icons';
 const NotificationBar = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     message.success('Đăng xuất thành công!', 3);
     navigate('/login');
-  };
-
-  const handleAvatarClick = () => {
-    setMenuOpen(prev => !prev);
   };
 
   return (
@@ -31,46 +26,52 @@ const NotificationBar = () => {
       }}
     >
       <div className="flex items-center justify-between h-full relative">
-        <img src={logo} alt="Logo" className="h-10 object-contain cursor-pointer" onClick={() => navigate('/')} />
+        {/* Logo */}
+        <img
+          src={logo}
+          alt="Logo"
+          className="h-10 object-contain cursor-pointer"
+          onClick={() => navigate('/')}
+        />
 
-        {user && (
-          <div className="relative">
-            <div
-              className="cursor-pointer flex items-center space-x-2"
-              onClick={handleAvatarClick}
-              title="Account Menu"
-            >
+        {/* Logged In */}
+        {user ? (
+          <div className="relative group">
+            {/* Avatar + Name */}
+            <div className="flex items-center space-x-2 cursor-pointer">
               <img src={avatar} alt="User" className="h-10 w-10 object-contain" />
               <span className="text-white hidden sm:inline font-semibold">Hi {user.fullname}</span>
             </div>
 
-            {menuOpen && (
-              <div className="absolute right-0 mt-2 w-56 bg-gradient-to-br from-black via-gray-900 to-black text-white rounded-lg shadow-lg z-50">
-                <div className="p-4 border-b">
-                  <p className="font-semibold text-sm text-white">{user.fullname}</p>
-                </div>
-                <div className="flex flex-col py-2 text-sm text-white">
-                  <button
-                    onClick={() => {
-                      navigate('/viewaccount');
-                      setMenuOpen(false);
-                    }}
-                    className="text-left px-4 py-2 hover:bg-gray-400 flex items-center gap-2"
-                  >
-                    <span role="img" aria-label="profile">🧑‍💼</span> Account
-                  </button>
-
-                  <button
-                    onClick={handleLogout}
-                    className=" px-5 py-1 rounded text-red-500 text-sm hover:bg-gray-400 flex items-center gap-2"
-                  >
-                    <LogoutOutlined />
-                    Sign out
-                  </button>
-                </div>
+            {/* Dropdown Menu */}
+            <div className="absolute right-0 mt-2 w-56 bg-gradient-to-br from-black via-gray-900 to-black text-white rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-200">
+              <div className="p-4 border-b border-gray-600">
+                <p className="flex justify-center items-center font-semibold text-sm">{user.fullname}</p>
               </div>
-            )}
+              <div className="flex flex-col py-2 text-sm">
+                <button
+                  onClick={() => navigate('/viewaccount')}
+                  className="text-left px-3 py-2 hover:bg-gray-400 flex items-center gap-2"
+                >
+                  <span role="img" aria-label="profile">🧑‍💼</span> Account
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 text-red-500 hover:bg-gray-400 flex items-center gap-2"
+                >
+                  <LogoutOutlined />
+                  Sign out
+                </button>
+              </div>
+            </div>
           </div>
+        ) : (
+          // Not Logged In
+          <Link to="/login">
+            <button className="bg-red-600 px-3 py-1 rounded text-white text-sm hover:bg-red-700 border border-white">
+              Login
+            </button>
+          </Link>
         )}
       </div>
     </div>
