@@ -103,11 +103,14 @@ const EditMovie = () => {
                     },
                 });
 
-                const options = res.data.rooms.map(room => ({
-                    value: room.roomId,
-                    label: room.roomName,
-                    roomType: room.roomType
-                }));
+                const options = res.data.rooms
+                    .filter(room => room.is_actived && !room.is_deleted) // lọc các phòng đang hoạt động
+                    .map(room => ({
+                        value: room.roomId,
+                        label: room.roomName,
+                        roomType: room.roomType
+                    }));
+
                 setRoomOptions(options);
             } catch (err) {
                 console.error('Failed to fetch rooms:', err);
