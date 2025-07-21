@@ -4,6 +4,9 @@ import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../../contexts/AuthContext';
 import { message } from 'antd'; 
 
+// Import GoogleLoginButton component
+import GoogleLoginButton from '../../components/GoogleLoginButton'; // Điều chỉnh đường dẫn nếu cần
+
 const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth(); // 
@@ -54,9 +57,8 @@ const LoginPage = () => {
         return;
       }
 
-      
       localStorage.setItem('token', data.token);
-      login(data.token);
+      login(data.token); // Sử dụng hàm login từ AuthContext
 
       const decoded = jwtDecode(data.token);
       const role = decoded.user.role;
@@ -126,16 +128,15 @@ const LoginPage = () => {
 
           <div className="flex items-center my-4">
             <div className="flex-1 border-t border-gray-600"></div>
+            <span className="mx-4 text-gray-400">OR</span> {/* Thay đổi từ div sang span cho rõ ràng */}
             <div className="flex-1 border-t border-gray-600"></div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => console.log('Google login clicked')}
-            className="w-full bg-gray-700 text-white py-2 rounded hover:bg-gray-600 transition duration-200 flex items-center justify-center space-x-2"
-          >
-            <span>Continue with Google</span>
-          </button>
+          {/* Thay thế button cũ bằng GoogleLoginButton component */}
+          <div className="flex justify-center"> {/* Thêm div để căn giữa nút Google */}
+              <GoogleLoginButton />
+          </div>
+          
         </form>
         <div className="mt-4 text-center text-gray-400">
           <span>Not a member yet? </span>
@@ -147,4 +148,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-

@@ -24,7 +24,6 @@ async function updateOccupiedSeats(bookingId, statusToExpect = 'PENDING_PAYMENT'
             return { success: false, message: `Booking ${bookingId} not found.` };
         }
 
-        // IMPORTANT: Only update occupied seats if the booking status matches the expected status
         if (booking.status !== statusToExpect) {
             console.warn(`Booking ${bookingId} status is '${booking.status}', not '${statusToExpect}'. Skipping room seat update.`);
             return { success: false, message: `Booking status is not ${statusToExpect}.` };
