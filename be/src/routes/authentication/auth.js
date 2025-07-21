@@ -413,6 +413,18 @@ router.patch('/:userId/status', authMiddleware, adminMiddleware, async (req, res
 });
 
 
+// Sử dụng Google Identity Services (GIS - Recommended):
+
+// Là bộ thư viện mới nhất của Google, đơn giản hóa việc triển khai.
+
+// Hỗ trợ cả One Tap Sign-in và tùy chỉnh nút đăng nhập.
+
+// Frontend nhận ID token (JWT) trực tiếp từ Google sau khi người dùng đăng nhập.
+
+// Frontend gửi ID token này đến backend.
+
+// Backend xác minh ID token (rất quan trọng) và tạo session/JWT cho người dùng.
+
 router.post('/google', async (req, res) => {
     const { idToken } = req.body; // ID token nhận từ frontend
 
