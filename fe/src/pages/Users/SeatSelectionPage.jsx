@@ -114,11 +114,10 @@ function SeatSelectionPage() {
     }
   }, [roomId, movieId, dispatch]);
 
-  // ✅ CHUẨN HÓA THỜI GIAN THEO MÚI GIỜ VIỆT NAM
-const standardizedMovieTime = dayjs(movieDetails?.time, "DD/MM/YYYY, HH:mm", true).isValid()
-  ? dayjs(movieDetails?.time, "DD/MM/YYYY, HH:mm").tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DDTHH:mm")
-  : "Invalid Time";
-console.log("✅ standardizedMovieTime:", standardizedMovieTime);
+  const standardizedMovieTime = dayjs(movieDetails?.time, "DD/MM/YYYY, HH:mm", true).isValid()
+    ? dayjs(movieDetails?.time, "DD/MM/YYYY, HH:mm").tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DDTHH:mm")
+    : "Invalid Time";
+  console.log("✅ standardizedMovieTime:", standardizedMovieTime);
 
 
 
@@ -193,8 +192,7 @@ console.log("✅ standardizedMovieTime:", standardizedMovieTime);
         <div className="mb-6">
           <button
             onClick={() => {
-              // Save current scroll position before going back
-
+              sessionStorage.setItem("shouldRestoreScroll", "true");
               navigate(-1);
             }}
             className="text-sm text-white bg-gray-700 hover:bg-gray-600 px-4 py-1 rounded"
