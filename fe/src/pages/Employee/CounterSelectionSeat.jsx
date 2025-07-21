@@ -81,20 +81,19 @@ const SeatSelection = () => {
   };
 
   const getSeatClass = (seat) => {
-    const isSelected = selectedSeatsState.includes(seat.label);
-    
-    // Base classes for all seats, simplified as mobile-specific scaling classes are removed
-    const base =
-      "w-10 h-10 text-xs rounded-lg flex items-center justify-center font-bold transition-all duration-200 transform hover:scale-110 hover:shadow-lg border-2";
+  const isSelected = selectedSeatsState.includes(seat.label);
+  const isOccupied = roomData?.occupiedSeats?.some(os => os.seatLabel === seat.label);
+  
+  const base = `
+    w-10 h-10 text-xs rounded-lg flex items-center justify-center 
+    font-bold border-2 ${isMobile ? '' : 'transition-all duration-200 transform hover:scale-110 hover:shadow-lg'}
+  `;
 
-    if (seat.status === "booked")
-      return `${base} bg-gray-600 text-white cursor-not-allowed opacity-70`;
-    if (isSelected)
-      return `${base} bg-gradient-to-br from-red-500 to-red-600 text-white border-red-400 shadow-lg scale-105`;
-    if (seat.type === "VIP")
-      return `${base} bg-gradient-to-br from-amber-400 to-yellow-500 text-gray-900 border-amber-300`;
-    return `${base} bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 border-gray-300`;
-  };
+  if (isOccupied) return `${base} bg-gray-600 text-white border-gray-500 cursor-not-allowed opacity-70`;
+  if (isSelected) return `${base} bg-gradient-to-br from-red-500 to-red-600 text-white border-red-400 ${isMobile ? '' : 'shadow-lg scale-105'}`;
+  if (seat.type === "VIP") return `${base} bg-gradient-to-br from-amber-400 to-yellow-500 text-gray-900 border-amber-300`;
+  return `${base} bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 border-gray-300`;
+};
 
   const calculateTotalTicketPrice = () => {
     if (!roomData) return 0;
@@ -170,9 +169,9 @@ ticketPrice: calculateTotalTicketPrice(),
             isMobile ? (
               <div className="relative w-full overflow-hidden rounded-lg border border-gray-600">
                 <TransformWrapper
-                  initialScale={0.8}
-                  minScale={0.5}
-                  maxScale={2}
+                  initialScale={0.5}
+                  minScale={0.3}
+                  maxScale={2.5}
                   wheel={{ step: 0.1 }}
                   doubleClick={{ disabled: true }}
                 >
