@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setMovieAndDateTime } from '../../redux/bookingSlice';
 import dayjs from 'dayjs';
+import CommentSection from '../../components/CommentSection';
 
 const getWeekDates = (startDate) => {
     const dates = [];
@@ -196,6 +197,7 @@ const MovieDetails = () => {
                     />
                 </div>
             </div>
+            <CommentSection movieName={movie.name} />
         </div>
     );
 };

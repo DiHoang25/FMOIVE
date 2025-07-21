@@ -357,10 +357,10 @@ router.delete('/:id', async (req, res) => {
 
 router.post('/check-showtime-conflict', async (req, res) => {
   try {
-    const { cinemaRoom, showTimes, startDate, endDate, runningTime } = req.body;
+    const { cinema_room, showTimes, startDate, endDate, runningTime } = req.body;
 
     // ✅ Validate đầu vào
-    if (!cinemaRoom || !Array.isArray(showTimes) || !startDate || !endDate || !runningTime) {
+    if (!cinema_room || !Array.isArray(showTimes) || !startDate || !endDate || !runningTime) {
       return res.status(400).json({ message: 'Thiếu dữ liệu đầu vào hoặc không hợp lệ' });
     }
 
@@ -372,10 +372,9 @@ router.post('/check-showtime-conflict', async (req, res) => {
 
     const BUFFER = 20; // phút dọn dẹp
 
-    // ✅ Tìm phim đang chiếu trong khoảng đó
+    // ✅ Tìm phim đang chiếu trong khoảng thời gian đó trong cùng phòng
     const existingMovies = await Movie.find({
-      cinema_room: cinemaRoom,
-      is_deleted: false,
+      cinema_room: cinema_room,
       start_date: { $lte: end.toDate() },
       end_date: { $gte: start.toDate() },
     });
@@ -433,6 +432,7 @@ router.post('/check-showtime-conflict', async (req, res) => {
     return res.status(500).json({ message: 'Lỗi server khi kiểm tra xung đột suất chiếu' });
   }
 });
+
 
 
 module.exports = router;
