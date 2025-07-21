@@ -503,7 +503,7 @@ router.post('/google', async (req, res) => {
         const googlePayload = {
             user: {
                 googleId: user.googleId,
-                userId: user.userId, // Dùng userId đã được gán bởi middleware
+                userId: user._id, // Dùng userId đã được gán bởi middleware
                 username: user.username,
                 fullname: user.fullname,
                 role: user.role
