@@ -116,7 +116,7 @@ const ViewProduct = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-gray-700 rounded-lg p-4 text-center shadow">
             <p className="text-sm text-gray-300">Total Products</p>
             <h2 className="text-xl font-bold">{totalProducts}</h2>
@@ -139,7 +139,7 @@ const ViewProduct = () => {
             onChange={handleSearch}
             className="bg-gray-700 text-white px-3 py-2 rounded-md w-64"
           />
-          <Link to="/employee/add-product" className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md">
+          <Link to="/employee/add-product" className="bg-red-600 hover:bg-red-700 text-white hover:text-white px-4 py-2 rounded-md">
             + Add New Product
           </Link>
         </div>
@@ -205,32 +205,59 @@ const ViewProduct = () => {
         </div>
 
         <Modal
-          title="Product Details"
           open={modalVisible}
-          onOk={() => setModalVisible(false)}
           onCancel={() => setModalVisible(false)}
-          width={700}
-          bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
-          footer={[
-            <button key="close" className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md" onClick={() => setModalVisible(false)}>
-              Close
-            </button>,
-          ]}
+          footer={null}
+          centered
+          width={800}
+          className="custom-modal"
         >
           {selectedProduct && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-black">
-                <div><p className="text-gray-400">Product Name:</p><p>{selectedProduct.productName}</p></div>
-                <div><p className="text-gray-400">Price:</p><p>{formatVND(selectedProduct.price)}</p></div>
-                <div><p className="text-gray-400">Category:</p><p>{selectedProduct.category}</p></div>
-                <div><p className="text-gray-400">Stock Quantity:</p><p>{selectedProduct.stockQuantity}</p></div>
-                <div><p className="text-gray-400">Description:</p><p>{selectedProduct.description}</p></div>
-                <div><p className="text-gray-400">Status:</p><p>{formatStatusLabel(selectedProduct.is_deleted)}</p></div>
-                <div className="col-span-2">
-                  <p className="text-gray-400">Image:</p>
-                  <img src={selectedProduct.image_url} alt="Product" className="w-48 h-auto rounded-md shadow object-cover" />
+            <div className="bg-gradient-to-br from-gray-900 to-black p-8 rounded-2xl text-white">
+              <div className="flex flex-col lg:flex-row gap-8">
+                <div className="flex-shrink-0">
+                  <img
+                    src={selectedProduct.image_url || "/placeholder.svg"}
+                    alt="Product"
+                    onError={(e) => e.target.src = "/placeholder.svg"}
+                    className="w-64 h-64 object-cover rounded-xl border-2 border-gray-700 shadow-lg"
+                  />
+                </div>
+                <div className="flex-1 space-y-6">
+                  <div>
+                    <h2 className="text-3xl font-bold mb-2">{selectedProduct.productName}</h2>
+                    <div className="w-16 h-1 bg-red-600 rounded-full"></div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <p className="text-gray-400 text-sm">Price</p>
+                      <p className="font-semibold">{formatVND(selectedProduct.price)}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm">Category</p>
+                      <p className="font-semibold">{selectedProduct.category}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm">Stock Quantity</p>
+                      <p className="font-semibold">{selectedProduct.stockQuantity}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm">Status</p>
+                      <p className="font-semibold">{formatStatusLabel(selectedProduct.is_deleted)}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-sm">Description</p>
+                    <p className="font-medium leading-relaxed">{selectedProduct.description}</p>
+                  </div>
                 </div>
               </div>
+              <button
+                onClick={() => setModalVisible(false)}
+                className="mt-8 w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-[1.02]"
+              >
+                Close
+              </button>
             </div>
           )}
         </Modal>

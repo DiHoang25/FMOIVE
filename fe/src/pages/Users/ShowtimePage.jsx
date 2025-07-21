@@ -4,14 +4,15 @@ import MovieCard from "../../components/MovieCard";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
-
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import { useMediaQuery } from "react-responsive";
 import { useRef } from "react";
 import { useDispatch } from "react-redux";
 import {
   setMovieAndDateTime,
   setSelectedSeats,
 } from "../../redux/bookingSlice";
-
+import LoadingSpinner from "../../components/LoadingSpinner";
 function getWeekDates(startDate) {
   const dates = [];
   const start = new Date(startDate);
@@ -44,7 +45,7 @@ function ShowtimePage() {
 
   // Add this ref to track if we've restored scroll
   const hasRestoredScroll = useRef(false);
-
+  
   const dispatch = useDispatch();
 
   const [startDate, setStartDate] = useState(new Date());
@@ -55,17 +56,22 @@ function ShowtimePage() {
   const weekDates = getWeekDates(startDate);
 
   const handlePrevWeek = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" })
     const newStart = new Date(startDate);
     newStart.setDate(startDate.getDate() - 6);
     setStartDate(newStart);
     setSelectedDate(formatDateLabel(newStart));
+
+    
   };
 
   const handleNextWeek = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" })
     const newStart = new Date(startDate);
     newStart.setDate(startDate.getDate() + 6);
     setStartDate(newStart);
     setSelectedDate(formatDateLabel(newStart));
+     
   };
 
   const scrollToTop = () => {
@@ -76,10 +82,6 @@ function ShowtimePage() {
   };
 
   dispatch(setSelectedSeats({ seats: [], totalPrice: 0 }));
-
-  
-
-  
 
   useEffect(() => {
     axios
@@ -111,25 +113,25 @@ function ShowtimePage() {
       });
   }, [selectedDate]);
 
-
   useEffect(() => {
-  const savedScroll = sessionStorage.getItem("showtimeScrollPosition");
-  if (savedScroll) {
-    const scrollValue = parseInt(savedScroll, 10);
+    const savedScroll = sessionStorage.getItem("showtimeScrollPosition");
+    if (savedScroll) {
+      const scrollValue = parseInt(savedScroll, 10);
 
-    // Delay to ensure DOM is ready
-    const timeout = setTimeout(() => {
-      window.requestAnimationFrame(() => {
-        window.scrollTo({
-          top: scrollValue,
-          behavior: "smooth", // You can try "smooth" for nicer experience
+      // Delay to ensure DOM is ready
+      const timeout = setTimeout(() => {
+        window.requestAnimationFrame(() => {
+          window.scrollTo({
+            top: scrollValue,
+            behavior: "smooth", // You can try "smooth" for nicer experience
+          });
         });
-      });
-    }, 10); // or even 100ms if needed
+      }, 10); // or even 100ms if needed
 
-    return () => clearTimeout(timeout);
-  }
-}, [movies]);
+      return () => clearTimeout(timeout);
+    }
+  }, [movies]); 
+
   const handleMovieCardShowtimeClick = (movieDetailsFromCard, timeClicked) => {
     const todayParts = selectedDate.split("/");
     const currentYear = new Date().getFullYear();
@@ -142,7 +144,10 @@ function ShowtimePage() {
 
     const cinemaRoom = movieDetailsFromCard.cinema_room;
 
-    sessionStorage.setItem('showtimeScrollPosition', window.pageYOffset.toString());
+    sessionStorage.setItem(
+      "showtimeScrollPosition",
+      window.pageYOffset.toString()
+    );
 
     const parsedGenres = Array.isArray(movieDetailsFromCard.genres)
       ? movieDetailsFromCard.genres.flatMap((genre) =>
@@ -183,41 +188,56 @@ function ShowtimePage() {
     });
   };
 
+  
+
   return (
-    <div className="bg-black min-h-screen text-white">
-      <div className="pt-24 invisible">Spacer cho navbar</div>
+    <div className="pt-[60px] bg-black min-h-screen text-white"> {/* Add padding-top equal to NotificationBar height */}
+     
 
       <div className="fixed top-[100px] left-0 right-0 z-20 bg-black shadow-md">
         <div className="px-6 py-4">
           <h1 className="text-3xl font-bold text-center mb-4">SHOWTIMES</h1>
 
-          <div className="flex items-center justify-center gap-2 mb-2">
+          <div className="flex items-center justify-center mb-4">
+            {/* Previous Week Button */}
             <button
               onClick={handlePrevWeek}
-              className="p-2 rounded-full hover:bg-gray-700"
+              className="p-2 rounded-full hover:bg-gray-700/50 transition-colors mr-1 sm:mr-2"
+              aria-label="Previous week"
             >
               <ChevronLeftIcon className="h-5 w-5" />
             </button>
-            {weekDates.map((date, index) => {
-              const label = formatDateLabel(date);
-              const isSelected = label === selectedDate;
-              return (
-                <button
-                  key={index}
-                  onClick={() => setSelectedDate(label)}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ease-in-out ${
-                    isSelected
-                      ? "bg-red-600 text-white"
-                      : "bg-gray-800 hover:bg-gray-700"
-                  }`}
-                >
-                  {label}
-                </button>
-              );
-            })}
+
+            {/* Date Buttons */}
+            <div className="flex gap-1 sm:gap-2">
+              {weekDates.map((date, index) => {
+                const label = formatDateLabel(date);
+                const isSelected = label === selectedDate;
+                return (
+                  <button
+                    key={index}
+                    onClick={() => {
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      setSelectedDate(label);
+                    }}
+                    className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+                      isSelected
+                        ? "bg-red-600 text-white shadow-md"
+                        : "bg-gray-800 hover:bg-gray-700 text-gray-200"
+                    }`}
+                    aria-current={isSelected ? "date" : undefined}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Next Week Button */}
             <button
               onClick={handleNextWeek}
-              className="p-2 rounded-full hover:bg-gray-700"
+              className="p-2 rounded-full hover:bg-gray-700/50 transition-colors ml-1 sm:ml-2"
+              aria-label="Next week"
             >
               <ChevronRightIcon className="h-5 w-5" />
             </button>
