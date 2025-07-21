@@ -58,6 +58,7 @@ function ShowtimePage() {
   const weekDates = getWeekDates(startDate);
 
   const handlePrevWeek = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" })
     const newStart = new Date(startDate);
     newStart.setDate(startDate.getDate() - 6);
 
@@ -75,6 +76,7 @@ function ShowtimePage() {
 
 
   const handleNextWeek = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" })
     const newStart = new Date(startDate);
     newStart.setDate(startDate.getDate() + 6);
     setStartDate(newStart);
@@ -214,6 +216,8 @@ function ShowtimePage() {
     });
   };
 
+  
+
   return (
     <div className="bg-black min-h-screen text-white">
       <div className="px-7 invisible">Spacer cho navbar</div>
@@ -250,7 +254,8 @@ function ShowtimePage() {
             })}
             <button
               onClick={handleNextWeek}
-              className="p-2 rounded-full hover:bg-gray-700"
+              className="p-2 rounded-full hover:bg-gray-700/50 transition-colors ml-1 sm:ml-2"
+              aria-label="Next week"
             >
               <ChevronRightIcon className="h-5 w-5" />
             </button>

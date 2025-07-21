@@ -109,6 +109,7 @@ function AppContent() {
     <>
       {!hideLayout && <NotificationBar />}
       <div className={!hideLayout ? 'pt-[0px]' : ''}>
+        <div className="relative z-0  overflow-visible">
         {!hideNavbarFooter && <Navbar />}
         <ScrollToTop />
         <Routes>
@@ -203,6 +204,7 @@ function AppContent() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
         {!hideNavbarFooter && <Footer />}
+        </div>
       </div>
     </>
   );
@@ -220,10 +222,10 @@ function App() {
         loading={null}
         persistor={persistor}
         onBeforeLift={() => {
-          console.log("App.js: PersistGate onBeforeLift - State is about to be rehydrated.");
+          
         }}
         onRehydrated={() => {
-          console.log("App.js: PersistGate onRehydrated - State has been rehydrated.");
+          
         }}
       >
         <BrowserRouter>

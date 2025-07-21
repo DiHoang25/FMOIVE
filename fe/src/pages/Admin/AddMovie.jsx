@@ -162,8 +162,8 @@ const AddMovie = () => {
         setFormData({
             movieName: '',
             trailerLink: '',
-            fromDate: new Date().toISOString(),
-            toDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            fromDate: dayjs().startOf('day'), // Use dayjs object directly
+            toDate: dayjs().add(30, 'days').startOf('day'), // Use dayjs object directly
             actors: '',
             productionCompany: '',
             director: '',
@@ -208,6 +208,7 @@ const AddMovie = () => {
                                         value={formData.movieName}
                                         onChange={handleInputChange}
                                         className="w-full p-2 rounded bg-slate-700 text-white"
+                                        required
                                     />
                                 </div>
 
@@ -246,12 +247,13 @@ const AddMovie = () => {
                                         value={formData.actors}
                                         onChange={handleInputChange}
                                         className="w-full p-2 rounded bg-slate-700 text-white"
+                                        required
                                     />
                                 </div>
 
                                 <div>
                                     <label className="block text-gray-300 mb-1">
-                                        Production Company <span className="text-red-500">*</span>
+                                        Product Company <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                         type="text"
@@ -259,6 +261,7 @@ const AddMovie = () => {
                                         value={formData.productionCompany}
                                         onChange={handleInputChange}
                                         className="w-full p-2 rounded bg-slate-700 text-white"
+                                        required
                                     />
                                 </div>
 
@@ -272,83 +275,84 @@ const AddMovie = () => {
                                         value={formData.director}
                                         onChange={handleInputChange}
                                         className="w-full p-2 rounded bg-slate-700 text-white"
+                                        required
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-gray-300 mb-1">
-                                            Running Time (minutes) <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="runningTime"
-                                            value={formData.runningTime}
-                                            onChange={handleInputChange}
-                                            className="w-full p-2 rounded bg-slate-700 text-white"
-                                        />
+                                {/* Running Time in its own row */}
+                                <div>
+                                    <label className="block text-gray-300 mb-1">
+                                        Running Time (minutes) <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="runningTime"
+                                        value={formData.runningTime}
+                                        onChange={handleInputChange}
+                                        className="w-full p-2 rounded bg-slate-700 text-white"
+                                        required
+                                    />
+                                </div>
+
+                                {/* Version in its own separate row */}
+                                <div>
+                                    <label className="block text-gray-300 mb-1">
+                                        Version <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="flex space-x-2 mt-2">
+                                        {['2D', '3D', 'IMAX'].map((ver) => (
+                                            <button
+                                                key={ver}
+                                                type="button"
+                                                onClick={() => {
+                                                    const newVersion = !formData.version[ver];
+                                                    const updatedVersion = {
+                                                        ...formData.version,
+                                                        [ver]: newVersion
+                                                    };
+
+                                                    setFormData({
+                                                        ...formData,
+                                                        version: updatedVersion,
+                                                        cinemaRoom: [] // Reset phòng đã chọn khi thay version
+                                                    });
+                                                }}
+                                                className={`px-4 py-2 rounded-lg border transition ${formData.version[ver]
+                                                    ? 'bg-red-600 text-white border-red-700'
+                                                    : 'bg-slate-700 text-gray-300 border-slate-600 hover:bg-slate-600'
+                                                    }`}
+                                            >
+                                                {ver}
+                                            </button>
+                                        ))}
                                     </div>
+                                </div>
 
-                                    <div>
-                                        <label className="block text-gray-300 mb-1">
-                                            Version <span className="text-red-500">*</span>
-                                        </label>
-                                        <div className="flex space-x-3 mt-2">
-                                            {['2D', '3D', 'IMAX'].map((ver) => (
-                                                <button
-                                                    key={ver}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const newVersion = !formData.version[ver];
-                                                        const updatedVersion = {
-                                                            ...formData.version,
-                                                            [ver]: newVersion
-                                                        };
+                                <div>
+                                    <label className="block text-gray-300 mb-1">
+                                        Cinema Rooms <span className="text-red-500">*</span>
+                                    </label>
+                                    <DropDown
+                                        value={formData.cinemaRoom[0]}
+                                        onChange={(selectedRoom) => {
+                                            setFormData({
+                                                ...formData,
+                                                cinemaRoom: [selectedRoom],
+                                            });
+                                        }}
+                                        options={filteredRooms}
+                                        disabled={selectedVersions.length === 0}
+                                    />
+                                </div>
 
-                                                        setFormData({
-                                                            ...formData,
-                                                            version: updatedVersion,
-                                                            cinemaRoom: [] // ✅ Reset phòng đã chọn khi thay version
-                                                        });
-                                                    }}
-                                                    className={`px-4 py-2 rounded-lg border transition ${formData.version[ver]
-                                                        ? 'bg-red-600 text-white border-red-700'
-                                                        : 'bg-slate-700 text-gray-300 border-slate-600 hover:bg-slate-600'
-                                                        }`}
-                                                >
-                                                    {ver}
-                                                </button>
-                                            ))}
-                                        </div>
-
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-gray-300 mb-1">
-                                            Cinema Rooms <span className="text-red-500">*</span>
-                                        </label>
-                                        <DropDown
-                                            value={formData.cinemaRoom[0]}
-                                            onChange={(selectedRoom) => {
-                                                setFormData({
-                                                    ...formData,
-                                                    cinemaRoom: [selectedRoom],
-                                                });
-                                            }}
-                                            options={filteredRooms}
-                                            disabled={selectedVersions.length === 0}
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-gray-300 mb-1">
-                                            Show Times <span className="text-red-500">*</span>
-                                        </label>
-                                        <MultiTimePicker
-                                            value={formData.showTimes}
-                                            onChange={(val) => setFormData({ ...formData, showTimes: val })}
-                                        />
-                                    </div>
+                                <div>
+                                    <label className="block text-gray-300 mb-1">
+                                        Show Times <span className="text-red-500">*</span>
+                                    </label>
+                                    <MultiTimePicker
+                                        value={formData.showTimes}
+                                        onChange={(val) => setFormData({ ...formData, showTimes: val })}
+                                    />
                                 </div>
                             </div>
 
@@ -363,6 +367,7 @@ const AddMovie = () => {
                                         value={formData.trailerLink}
                                         onChange={handleInputChange}
                                         className="w-full p-2 rounded bg-slate-700 text-white"
+                                        required
                                     />
                                 </div>
 
@@ -412,8 +417,6 @@ const AddMovie = () => {
                                     </label>
                                 </div>
 
-
-
                                 <div>
                                     <label className="block text-gray-300 mb-1">
                                         Banner Image <span className="text-red-500">*</span>
@@ -460,6 +463,7 @@ const AddMovie = () => {
                                         value={formData.movieDescription}
                                         onChange={handleInputChange}
                                         className="w-full p-2 rounded bg-slate-700 text-white"
+                                        required
                                     ></textarea>
                                 </div>
                             </div>

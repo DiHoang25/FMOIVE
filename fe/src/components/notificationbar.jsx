@@ -44,7 +44,7 @@ const NotificationBar = () => {
             </div>
 
             {/* Dropdown Menu */}
-            <div className="absolute right-0 mt-2 w-56 bg-gradient-to-br from-black via-gray-900 to-black text-white rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-200">
+            <div className="absolute right-0 mt-2 w-56 bg-gradient-to-br from-black via-gray-900 to-black text-white rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-200 ">
               <div className="p-4 border-b border-gray-600">
                 <p className="flex justify-center items-center font-semibold text-sm">{user.fullname}</p>
               </div>

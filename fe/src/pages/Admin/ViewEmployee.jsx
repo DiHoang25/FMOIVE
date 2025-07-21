@@ -21,9 +21,9 @@ const AUTH_API_BASE_URL = 'http://localhost:5000/api/auth'; // Base URL for auth
 const ViewEmployees = () => {
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [token, setToken] = useState(''); 
+    const [token, setToken] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
-    const [currentPage, setCurrentPage] = useState(0); 
+    const [currentPage, setCurrentPage] = useState(0);
     const navigate = useNavigate();
 
     const employeesPerPage = 5;
@@ -46,7 +46,7 @@ const ViewEmployees = () => {
     }, [token]);
 
     useEffect(() => {
-        setCurrentPage(0); 
+        setCurrentPage(0);
     }, [searchTerm]);
 
     const fetchEmployees = async () => {
@@ -59,8 +59,8 @@ const ViewEmployees = () => {
             });
             const fetchedEmployees = (response.data.Employee || []).map(emp => ({
                 ...emp,
-                id: emp.userId, 
-                key: emp.userId 
+                id: emp.userId,
+                key: emp.userId
             }));
             setEmployees(fetchedEmployees);
 
@@ -73,7 +73,7 @@ const ViewEmployees = () => {
     };
 
     const handleUpdateStatus = (employeeId, currentStatus, employeeName) => {
-        const newStatusValue = !currentStatus; 
+        const newStatusValue = !currentStatus;
 
         let confirmTitle = newStatusValue ? 'Confirm Activation' : 'Confirm Deactivation';
         let confirmContent = newStatusValue ?
@@ -87,7 +87,7 @@ const ViewEmployees = () => {
             `Failed to deactivate employee "${employeeName}":`;
 
         const apiEndpoint = `${AUTH_API_BASE_URL}/${employeeId}/status`;
-        const apiBody = { status: newStatusValue.toString() }; 
+        const apiBody = { status: newStatusValue.toString() };
 
         confirm({
             title: confirmTitle,
@@ -104,13 +104,13 @@ const ViewEmployees = () => {
             },
             onOk: async () => {
                 try {
-                    await axios.patch( 
+                    await axios.patch(
                         apiEndpoint,
                         apiBody,
                         { headers: { Authorization: `Bearer ${token}` } }
                     );
                     message.success(successMessage);
-                    fetchEmployees(); 
+                    fetchEmployees();
                 } catch (error) {
                     console.error('Error updating status:', error);
                     message.error(`${errorMessage} ${error.response?.data?.message || error.message}`);
@@ -146,11 +146,11 @@ const ViewEmployees = () => {
                 try {
                     await axios.patch(
                         `${API_BASE_URL}/employees/${employeeId}/role`,
-                        { role: selectedRole }, 
+                        { role: selectedRole },
                         { headers: { Authorization: `Bearer ${token}` } }
                     );
                     message.success(`Role for "${employeeName}" updated to "${selectedRole}".`);
-                    fetchEmployees(); 
+                    fetchEmployees();
                 } catch (error) {
                     console.error('Error updating role:', error);
                     message.error(`Failed to update role for "${employeeName}": ${error.response?.data?.message || error.message}`);
@@ -165,11 +165,11 @@ const ViewEmployees = () => {
             icon: <ExclamationCircleFilled />,
             content: `Are you sure you want to PERMANENTLY delete employee "${employeeName}"? This action cannot be undone.`,
             okText: 'Yes, Delete Permanently',
-            okType: 'danger', 
+            okType: 'danger',
             cancelText: 'No',
             okButtonProps: {
                 style: {
-                    backgroundColor: '#dc2626', 
+                    backgroundColor: '#dc2626',
                     color: 'white',
                     borderColor: '#dc2626',
                 },
@@ -177,11 +177,11 @@ const ViewEmployees = () => {
             onOk: async () => {
                 try {
                     await axios.delete(
-                        `${API_BASE_URL}/employees/${employeeId}/hard_delete`, 
+                        `${API_BASE_URL}/employees/${employeeId}/hard_delete`,
                         { headers: { Authorization: `Bearer ${token}` } }
                     );
                     message.success(`Employee "${employeeName}" permanently deleted.`);
-                    fetchEmployees(); 
+                    fetchEmployees();
                 } catch (error) {
                     console.error('Error hard deleting employee:', error);
                     message.error(`Failed to permanently delete employee "${employeeName}": ${error.response?.data?.message || error.message}`);
@@ -220,7 +220,7 @@ const ViewEmployees = () => {
     const currentEmployees = filteredEmployees.slice(currentPage * employeesPerPage, (currentPage + 1) * employeesPerPage);
 
     // Columns: ID, Username, Full Name, Email, Phone, Role, Active, Actions (9 columns)
-    const numberOfColumns = 9; 
+    const numberOfColumns = 9;
 
     return (
         <SidebarLayout>
@@ -263,29 +263,21 @@ const ViewEmployees = () => {
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4">
-                        <div className="mb-4 flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
                             <input
                                 type="text"
-                                placeholder="Search..."
+                                placeholder="Search employee..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="bg-gray-700 text-white px-3 py-2 rounded-md w-64 focus:outline-none focus:ring-1 focus:ring-red-700"
+                                className="bg-gray-700 text-white px-4 py-2 rounded-md w-full sm:w-64 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-600"
                             />
-                            <Button
-                                type="primary"
-                                icon={<PlusOutlined />}
+                            <button
                                 onClick={handleAddEmployeeClick}
-                                style={{
-                                    backgroundColor: '#dc2626',
-                                    borderColor: '#dc2626',
-                                    color: 'white',
-                                }}
-                                className="hover:bg-red-700"
+                                className="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-md font-semibold shadow-sm w-full sm:w-auto transition-all duration-200"
                             >
-                                Add New Employee
-                            </Button>
+                                + Add New Employee
+                            </button>
                         </div>
-
                         {loading ? (
                             <div className="text-center py-4 text-gray-400">
                                 <LoadingOutlined className="animate-spin mr-2 inline-block" /> Loading employees...
@@ -326,7 +318,7 @@ const ViewEmployees = () => {
                                                         <td className="px-6 py-4 text-sm text-gray-300">{employee.fullname}</td>
                                                         <td className="px-6 py-4 text-sm text-gray-300">{employee.email}</td>
                                                         <td className="px-6 py-4 text-sm text-gray-300">{employee.phone}</td>
-                                                        
+
                                                         <td className="px-6 py-4 text-sm text-gray-300">
                                                             <Select
                                                                 value={employee.role}
@@ -354,8 +346,8 @@ const ViewEmployees = () => {
                                                             />
                                                         </td>
                                                         <td className="px-6 py-4 text-center">
-                                                            <button 
-                                                                onClick={() => handleHardDelete(employee.id, employee.fullname)} 
+                                                            <button
+                                                                onClick={() => handleHardDelete(employee.id, employee.fullname)}
                                                                 className="text-red-400 hover:text-red-500 text-xl"
                                                             >
                                                                 <FaTrash />
@@ -373,7 +365,7 @@ const ViewEmployees = () => {
                                     totalPages={totalPages}
                                     onPageChange={setCurrentPage}
                                 />
-                                
+
                             </>
                         )}
                     </div>

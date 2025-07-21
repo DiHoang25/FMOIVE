@@ -3,13 +3,16 @@ import { useNavigate, useLocation } from "react-router-dom";
 import SidebarLayout from "../../components/Sidebar-Employee";
 import { useSelector, useDispatch } from "react-redux";
 import { setSelectedSeats } from "../../redux/bookingSlice";
-
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import { useMediaQuery } from "react-responsive";
+import { Crown } from "lucide-react";
 
 const SeatSelection = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
   const dispatch = useDispatch();
   const selectedSeats = useSelector((state) => state.booking.selectedSeats);
+  const isMobile = useMediaQuery({ maxWidth: 768 });
 
   // isMobile flag is no longer needed as TransformWrapper and useMediaQuery are removed.
 
@@ -68,9 +71,18 @@ const SeatSelection = () => {
       return updated;
     });
   };
+  
+   const handleToggleSeat = (seat) => {
+    setSelectedSeatsState((prev) =>
+      prev.includes(seat.label)
+        ? prev.filter((s) => s !== seat.label)
+        : [...prev, seat.label]
+    );
+  };
 
   const getSeatClass = (seat) => {
     const isSelected = selectedSeatsState.includes(seat.label);
+    
     // Base classes for all seats, simplified as mobile-specific scaling classes are removed
     const base =
       "w-10 h-10 text-xs rounded-lg flex items-center justify-center font-bold transition-all duration-200 transform hover:scale-110 hover:shadow-lg border-2";
@@ -153,83 +165,131 @@ ticketPrice: calculateTotalTicketPrice(),
           </p>
           <div className="h-1 w-full bg-white mb-6" />
 
+          
           {roomData ? (
-            // Unified view for both mobile and desktop with horizontal scrolling
-            <div className="overflow-x-auto text-center">
-              <div className="inline-block space-y-3 min-w-[320px] mx-auto">
-                {" "}
-                {/* min-w to ensure content width, inline-block to allow centering with mx-auto */}
-                {[...Array(roomData.rows)].map((_, rowIndex) => {
-                  const rowLetter = String.fromCharCode(65 + rowIndex);
-                  const rowSeats = roomData.seats.filter(
-                    (s) => Number(s.row) === rowIndex + 1
-                  );
-
-                  return (
-                    <div
-                      key={rowLetter}
-                      className="flex items-center justify-center gap-2"
-                    >
-                      {" "}
-                      {/* Adjusted gap for consistent look */}
-                      <div className="w-8 flex items-center justify-center">
-                        <span className="text-slate-400 font-bold text-sm">
-                          {rowLetter}
-                        </span>
+            isMobile ? (
+              <div className="relative w-full overflow-hidden rounded-lg border border-gray-600">
+                <TransformWrapper
+                  initialScale={0.8}
+                  minScale={0.5}
+                  maxScale={2}
+                  wheel={{ step: 0.1 }}
+                  doubleClick={{ disabled: true }}
+                >
+                  {({ zoomIn, zoomOut, resetTransform }) => (
+                    <>
+                      <div className="absolute top-2 right-2 z-10 flex gap-2">
+                        <button 
+                          onClick={() => zoomIn()} 
+                          className="bg-gray-700/80 text-white p-1 rounded"
+                        >
+                          +
+                        </button>
+                        <button 
+                          onClick={() => zoomOut()} 
+                          className="bg-gray-700/80 text-white p-1 rounded"
+                        >
+                          -
+                        </button>
+                        <button 
+                          onClick={() => resetTransform()} 
+                          className="bg-gray-700/80 text-white p-1 rounded"
+                        >
+                          Reset
+                        </button>
                       </div>
-                      <div className="flex gap-2 justify-center">
-                        {" "}
-                        {/* Adjusted gap for consistent look */}
-                        {[...Array(roomData.columns)].map((_, colIndex) => {
-                          const seat = rowSeats.find(
-                            (s) => Number(s.column) === colIndex + 1
-                          );
-                          if (!seat)
+                      <TransformComponent wrapperClass="!w-full !h-full">
+                        <div className="w-max mx-auto p-4">
+                          {[...Array(roomData.rows)].map((_, rIdx) => {
+                            const rowLetter = String.fromCharCode(65 + rIdx);
+                            const rowSeats = roomData.seats.filter((s) => Number(s.row) === rIdx + 1);
+
                             return (
-                              <div
-                                key={`empty-${colIndex}`}
-                                className="w-10 h-10"
-                              />
-                            ); // Keep consistent size
-
-                          return (
-                            <button
-                              key={seat.label}
-                              disabled={seat.status === "booked"}
-                              onClick={() => toggleSeat(seat)}
-                              className={getSeatClass(seat)}
-                              title={`Seat ${seat.label} - ${
-                                seat.type
-                              } - ${seat.price.toLocaleString("vi-VN")} VND`}
-                            >
-                              {/* Replaced Crown icon with text for VIP seats */}
-                              {seat.type === "VIP" ? (
-                                <>
-                                  <span className="text-xs">{seat.label}</span>
-                                  
-                                </>
-                              ) : (
-                                seat.label
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <div className="w-8 flex items-center justify-center">
-                        <span className="text-slate-400 font-bold text-sm">
-                          {rowLetter}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
+                              <div key={rowLetter} className="flex items-center justify-center gap-1 sm:gap-2 mb-1">
+                                <div className="w-6 sm:w-8 flex items-center justify-center">
+                                  <span className="text-slate-400 font-bold text-xs sm:text-sm">{rowLetter}</span>
+                                </div>
+                                <div className="flex gap-1 sm:gap-2">
+                                  {[...Array(roomData.columns)].map((_, cIdx) => {
+                                    const seat = rowSeats.find((s) => Number(s.column) === cIdx + 1);
+                                    return seat ? (
+                                      <button
+                                        key={seat.label}
+                                        onClick={() => handleToggleSeat(seat)}
+                                        className={getSeatClass(seat)}
+                                        title={`Seat ${seat.label} - ${seat.type} - ${seat.price.toLocaleString('vi-VN')} VND`}
+                                      >
+                                        {seat.type === "VIP" ? (
+                                          <Crown className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                        ) : (
+                                          <span className="text-xs sm:text-sm">{seat.label}</span>
+                                        )}
+                                      </button>
+                                    ) : (
+                                      <div key={`empty-${cIdx}`} className="w-8 h-8 sm:w-10 sm:h-10" />
+                                    );
+                                  })}
+                                </div>
+                                <div className="w-6 sm:w-8 flex items-center justify-center">
+                                  <span className="text-slate-400 font-bold text-xs sm:text-sm">{rowLetter}</span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </TransformComponent>
+                    </>
+                  )}
+                </TransformWrapper>
               </div>
-            </div>
+            ) : (
+              <div className="w-full overflow-x-auto">
+                <div className="w-max mx-auto">
+                  {[...Array(roomData.rows)].map((_, rIdx) => {
+                    const rowLetter = String.fromCharCode(65 + rIdx);
+                    const rowSeats = roomData.seats.filter((s) => Number(s.row) === rIdx + 1);
+
+                    return (
+                      <div key={rowLetter} className="flex items-center justify-center gap-2 mb-2">
+                        <div className="w-8 flex items-center justify-center">
+                          <span className="text-slate-400 font-bold text-sm">{rowLetter}</span>
+                        </div>
+                        <div className="flex gap-2">
+                          {[...Array(roomData.columns)].map((_, cIdx) => {
+                            const seat = rowSeats.find((s) => Number(s.column) === cIdx + 1);
+                            return seat ? (
+                              <button
+                                key={seat.label}
+                                onClick={() => handleToggleSeat(seat)}
+                                className={getSeatClass(seat)}
+                                title={`Seat ${seat.label} - ${seat.type} - ${seat.price.toLocaleString('vi-VN')} VND`}
+                              >
+                                {seat.type === "VIP" ? (
+                                  <Crown className="w-3 h-3" />
+                                ) : (
+                                  seat.label
+                                )}
+                              </button>
+                            ) : (
+                              <div key={`empty-${cIdx}`} className="w-10 h-10" />
+                            );
+                          })}
+                        </div>
+                        <div className="w-8 flex items-center justify-center">
+                          <span className="text-slate-400 font-bold text-sm">{rowLetter}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )
           ) : (
-            <div className="text-center text-gray-400 py-6">
-              Loading seat data...
+            <div className="text-center py-8 sm:py-12 text-slate-400">
+              Loading seats...
             </div>
           )}
+
 
           {/* Legend */}
           <div className="flex justify-around text-sm mt-6 flex-wrap gap-y-2">
