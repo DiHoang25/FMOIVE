@@ -253,9 +253,9 @@ function SeatSelectionPage() {
             isMobile ? (
               <div className="relative w-full overflow-hidden rounded-lg border border-gray-600">
                 <TransformWrapper
-                  initialScale={0.8}
-                  minScale={0.5}
-                  maxScale={2}
+                  initialScale={0.5}
+                  minScale={0.3}
+                  maxScale={2.5}
                   wheel={{ step: 0.1 }}
                   doubleClick={{ disabled: true }}
                 >
