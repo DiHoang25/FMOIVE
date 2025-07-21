@@ -49,7 +49,6 @@ const MovieList = () => {
   const totalMovies = movies.length;
   const nowShowing = movies.filter(movie => getCalculatedStatus(movie) === 'now_showing').length;
   const upcomingMovies = movies.filter(movie => getCalculatedStatus(movie) === 'coming_soon').length;
-  const todaysShowtimes = movies.reduce((total, movie) => total + (movie.showtime || 0), 0);
 
   const confirmDelete = async (movie) => {
     Modal.confirm({
@@ -131,10 +130,6 @@ const MovieList = () => {
           <div className="bg-yellow-600 rounded-lg p-4 text-center shadow">
             <p className="text-sm text-gray-100">Coming Soon</p>
             <h2 className="text-xl font-bold">{upcomingMovies}</h2>
-          </div>
-          <div className="bg-blue-600 rounded-lg p-4 text-center shadow">
-            <p className="text-sm text-gray-100">Today's Showtimes</p>
-            <h2 className="text-xl font-bold">{todaysShowtimes}</h2>
           </div>
         </div>
 

@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom"
 import { useState, useEffect } from "react"
 import SidebarLayout from "../../components/Sidebar-Employee"
+import axios from "axios";
 
 const formatCinemaRoomName = (roomName) => {
   if (!roomName) return "N/A"
@@ -35,9 +36,6 @@ const CounterConfirmBooking = () => {
   const [voucherDiscount, setVoucherDiscount] = useState(0)
   const [promotions, setPromotions] = useState([])
   const [roomName, setRoomName] = useState("Loading...");
-
-
-
 
   const {
     movieDetails = {},
