@@ -85,8 +85,8 @@ code {
 
 .custom-rate .ant-rate-star:hover svg,
 .custom-rate .ant-rate-star.ant-rate-star-full svg {
-  fill: #ef4444 !important; /* red-500 */
-  stroke: #ef4444 !important;
+  fill: #eafa08 !important; /* red-500 */
+  stroke: #eafa08 !important;
   transform: scale(1.1);
 }
 
@@ -143,7 +143,7 @@ code {
 }
 
 .small-rate .ant-rate-star.ant-rate-star-full svg {
-  fill: #ef4444 !important;
+  fill: #eafa08 !important;
   stroke: #ef4444 !important;
 }
 
