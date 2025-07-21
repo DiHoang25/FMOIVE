@@ -13,6 +13,7 @@ const MovieNewsList = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedNews, setSelectedNews] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
   const itemsPerPage = 6;
 
   const token = localStorage.getItem('token');
@@ -32,6 +33,8 @@ const MovieNewsList = () => {
     };
     fetchNews();
   }, []);
+
+  const handleSearch = (e) => setSearchTerm(e.target.value);
 
   const handleDelete = async (item) => {
     Modal.confirm({
@@ -65,11 +68,23 @@ const MovieNewsList = () => {
   return (
     <SidebarLayout>
       <div className="p-6 text-white">
-        <div className="relative flex items-center justify-center mb-4">
-          <h2 className="text-2xl font-bold">Movie News Management</h2>
+        <div className="p-4 flex items-center justify-between">
+          <div className="flex-1 text-center">
+            <h2 className="text-2xl font-bold">Movie News Management</h2>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+          <input
+            type="text"
+            placeholder="Search movie news..."
+            value={searchTerm}
+            onChange={handleSearch}
+            className="bg-gray-700 text-white px-4 py-2 rounded-md w-full sm:w-64 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-600"
+          />
           <Link
             to="/admin/add-movienews"
-            className="absolute right-0 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md shadow flex items-center"
+            className="bg-red-600 hover:bg-red-700 text-white hover:text-white px-5 py-2.5 rounded-md text-center font-semibold shadow-sm transition-all duration-200 w-full sm:w-auto"
           >
             + Add News
           </Link>

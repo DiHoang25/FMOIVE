@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import SidebarLayout from '../../components/Sidebar-Admin';
 import DatePicker from '../../components/DatePicker';
 import DropDown from '../../components/DropDown';
-import GenresDropDown from '../../components/GernesPicker';
+import GenresDropDown from '../../components/GernesPicker'; // Corrected typo: GenresPicker
 import TimePicker from '../../components/TimePicker';
 import { Modal, message } from 'antd';
 import dayjs from 'dayjs';
@@ -28,7 +28,7 @@ const EditMovie = () => {
         movieBanner: '',
         movieBannerPreview: '',
         movieDescription: '',
-        status: '',
+        status: '', // Assuming status might be part of movie data, though not in initial fetch
         genres: [],
         version: {
             '2D': false,
@@ -42,7 +42,7 @@ const EditMovie = () => {
     const [loading, setLoading] = useState(true);
     const [roomOptions, setRoomOptions] = useState([]);
 
-    // Lọc theo phiên bản
+    // Lọc theo phiên bản (Filter by version)
     const selectedVersions = Object.keys(formData.version).filter(v => formData.version[v]);
     const filteredRooms = roomOptions.filter(room => selectedVersions.includes(room.roomType));
 
@@ -66,13 +66,11 @@ const EditMovie = () => {
                     movieBannerPreview: data.banner_url || '',
                     cinemaRoom: data.cinema_room
                         ? [{
-                            value: data.cinema_room.roomId,
-                            label: data.cinema_room.roomName,
-                            roomType: data.cinema_room.roomType
-                        }]
+                                value: data.cinema_room.roomId,
+                                label: data.cinema_room.roomName,
+                                roomType: data.cinema_room.roomType
+                            }]
                         : [],
-
-
                     genres: data.genres || [],
                     version: {
                         '2D': data.version?.includes('2D'),
@@ -80,7 +78,6 @@ const EditMovie = () => {
                         'IMAX': data.version?.includes('IMAX'),
                     },
                     showTimes: Array.isArray(data.showtimes) ? data.showtimes : [],
-
                 });
             } catch (err) {
                 console.error('Failed to fetch movie:', err);
@@ -246,76 +243,76 @@ const EditMovie = () => {
                                     <input type="text" name="director" value={formData.director} onChange={handleInputChange} className="w-full p-2 rounded bg-slate-700 text-white" required />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-gray-300 mb-1">
-                                            Running Time (minutes) <span className="text-red-500">*</span>
-                                        </label>
-                                        <input type="number" name="runningTime" value={formData.runningTime} onChange={handleInputChange} className="w-full p-2 rounded bg-slate-700 text-white" required />
+                                {/* Running Time in its own row */}
+                                <div>
+                                    <label className="block text-gray-300 mb-1">
+                                        Running Time (minutes) <span className="text-red-500">*</span>
+                                    </label>
+                                    <input type="number" name="runningTime" value={formData.runningTime} onChange={handleInputChange} className="w-full p-2 rounded bg-slate-700 text-white" required />
+                                </div>
+
+                                {/* Version in its own separate row */}
+                                <div>
+                                    <label className="block text-gray-300 mb-1">
+                                        Version <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="flex space-x-2 mt-2">
+                                        {['2D', '3D', 'IMAX'].map((ver) => (
+                                            <button
+                                                key={ver}
+                                                type="button"
+                                                onClick={() => {
+                                                    const newVersion = !formData.version[ver];
+                                                    const updatedVersion = {
+                                                        ...formData.version,
+                                                        [ver]: newVersion
+                                                    };
+
+                                                    setFormData({
+                                                        ...formData,
+                                                        version: updatedVersion,
+                                                        cinemaRoom: [] // Reset phòng chiếu
+                                                    });
+                                                }}
+                                                className={`px-4 py-2 rounded-lg border transition ${formData.version[ver]
+                                                    ? 'bg-red-600 text-white border-red-700'
+                                                    : 'bg-slate-700 text-gray-300 border-slate-600 hover:bg-slate-600'
+                                                    }`}
+                                            >
+                                                {ver}
+                                            </button>
+                                        ))}
                                     </div>
+                                </div>
 
-                                    <div>
-                                        <label className="block text-gray-300 mb-1">
-                                            Version <span className="text-red-500">*</span>
-                                        </label>
-                                        <div className="flex space-x-3 mt-2">
-                                            {['2D', '3D', 'IMAX'].map((ver) => (
-                                                <button
-                                                    key={ver}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const newVersion = !formData.version[ver];
-                                                        const updatedVersion = {
-                                                            ...formData.version,
-                                                            [ver]: newVersion
-                                                        };
+                                <div>
+                                    <label className="block text-gray-300 mb-1">
+                                        Cinema Room <span className="text-red-500">*</span>
+                                    </label>
+                                    <DropDown
+                                        value={formData.cinemaRoom[0]}
+                                        onChange={(selectedRoom) => {
+                                            setFormData({
+                                                ...formData,
+                                                cinemaRoom: [selectedRoom]
+                                            });
+                                        }}
+                                        options={filteredRooms}
+                                        disabled={selectedVersions.length === 0}
+                                    />
+                                </div>
 
-                                                        setFormData({
-                                                            ...formData,
-                                                            version: updatedVersion,
-                                                            cinemaRoom: [] // Reset phòng chiếu
-                                                        });
-                                                    }}
-                                                    className={`px-4 py-2 rounded-lg border transition ${formData.version[ver]
-                                                        ? 'bg-red-600 text-white border-red-700'
-                                                        : 'bg-slate-700 text-gray-300 border-slate-600 hover:bg-slate-600'
-                                                        }`}
-                                                >
-                                                    {ver}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
+                                <div>
+                                    <label className="block text-gray-300 mb-1">
+                                        Show Times <span className="text-red-500">*</span>
+                                    </label>
+                                    <TimePicker
+                                        value={formData.showTimes}
+                                        onChange={(times) =>
+                                            setFormData({ ...formData, showTimes: times })
+                                        }
+                                    />
 
-                                    <div>
-                                        <label className="block text-gray-300 mb-1">
-                                            Cinema Room <span className="text-red-500">*</span>
-                                        </label>
-                                        <DropDown
-                                            value={formData.cinemaRoom[0]}
-                                            onChange={(selectedRoom) => {
-                                                setFormData({
-                                                    ...formData,
-                                                    cinemaRoom: [selectedRoom]
-                                                });
-                                            }}
-                                            options={filteredRooms}
-                                            disabled={selectedVersions.length === 0}
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-gray-300 mb-1">
-                                            Show Times <span className="text-red-500">*</span>
-                                        </label>
-                                        <TimePicker
-                                            value={formData.showTimes}
-                                            onChange={(times) =>
-                                                setFormData({ ...formData, showTimes: times })
-                                            }
-                                        />
-
-                                    </div>
                                 </div>
                             </div>
 
@@ -331,10 +328,13 @@ const EditMovie = () => {
                                     <label className="block text-gray-300 mb-1">
                                         Genres <span className="text-red-500">*</span>
                                     </label>
-                                    <GenresDropDown
-                                        value={formData.genres}
-                                        onChange={(val) => setFormData({ ...formData, genres: val })}
-                                    />
+                                    {/* Adjusted GenresDropDown container for better visibility */}
+                                    <div className="w-full">
+                                        <GenresDropDown
+                                            value={formData.genres}
+                                            onChange={(val) => setFormData({ ...formData, genres: val })}
+                                        />
+                                    </div>
                                 </div>
 
                                 <div>

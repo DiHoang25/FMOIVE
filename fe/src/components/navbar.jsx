@@ -10,28 +10,28 @@ const Navbar = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const scrollToSection = (sectionId) => {
-    
+
     if (location.pathname === '/') {
       const element = document.getElementById(sectionId);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
       }
     } else {
-      
+
       navigate(`/#${sectionId}`);
     }
   };
 
-  
+
   useEffect(() => {
     if (location.pathname === '/' && location.hash) {
-      const id = location.hash.substring(1); 
+      const id = location.hash.substring(1);
       setTimeout(() => {
         const element = document.getElementById(id);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth' });
         }
-      }, 500); 
+      }, 500);
     }
   }, [location]);
 
@@ -77,7 +77,7 @@ const Navbar = () => {
           </div>
         </div>
 
-        
+
         {isMobileOpen && (
           <div className="md:hidden px-4 pb-4">
             {links.map((item, idx) =>
@@ -124,11 +124,16 @@ const Navbar = () => {
 };
 
 const NavItem = ({ label, link = '#', icon = null }) => (
-  <Link to={link} className="flex items-center space-x-1 hover:text-blue-500 text-black font-medium">
-    {icon && icon}
-    <span>{label}</span>
-  </Link>
+<Link
+  to={link}
+  className="flex items-center space-x-1 text-black font-medium hover:text-red-700 transition-colors duration-200"
+>
+  {icon && icon}
+  <span>{label}</span>
+</Link>
+
 );
+
 
 const DropdownItem = ({ label, items, isShowtimePage }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -151,10 +156,12 @@ const DropdownItem = ({ label, items, isShowtimePage }) => {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="flex items-center space-x-1 cursor-pointer hover:text-blue-500 text-black font-medium">
-        <span>{label}</span>
-        <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-      </div>
+<div className="flex items-center space-x-1 cursor-pointer text-black font-medium hover:text-red-700 transition-colors duration-200">
+  <span>{label}</span>
+  <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+</div>
+
+
       {isOpen && (
         <div className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 w-44 bg-white text-black shadow-lg rounded-md border ${isShowtimePage ? 'z-50' : 'z-30'} animate-fade-in`}>
           <ul className="py-2">
@@ -163,21 +170,23 @@ const DropdownItem = ({ label, items, isShowtimePage }) => {
                 {item.href ? (
                   <Link
                     to={item.href}
-                    className="block px-4 py-2 hover:bg-blue-50 hover:text-blue-600 text-sm"
+                    className="block px-4 py-2 hover:bg-red-600 hover:text-white text-sm transition-colors duration-200 rounded"
                     onClick={() => setIsOpen(false)}
                   >
                     {item.label}
                   </Link>
+
                 ) : (
                   <button
                     onClick={() => {
                       item.onClick();
                       setIsOpen(false);
                     }}
-                    className="block w-full text-left px-4 py-2 hover:bg-blue-50 hover:text-blue-600 text-sm"
+                    className="block w-full text-left px-4 py-2 hover:bg-red-600 hover:text-white text-sm transition-colors duration-200 rounded"
                   >
                     {item.label}
                   </button>
+
                 )}
               </li>
             ))}
