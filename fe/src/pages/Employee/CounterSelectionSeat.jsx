@@ -55,6 +55,11 @@ const SeatSelection = () => {
   }, [roomId]);
 
   const handleToggleSeat = (seat) => {
+  const isOccupied = roomData?.occupiedSeats?.some(
+    (os) => os.seatLabel === seat.label
+  );
+  if (isOccupied) return;
+
   setSelectedSeatsState((prev) => {
     const updated = prev.includes(seat.label)
       ? prev.filter((s) => s !== seat.label)
