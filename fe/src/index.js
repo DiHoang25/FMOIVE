@@ -5,12 +5,15 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { Provider } from 'react-redux';
 import { store } from './redux/store';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <Provider store={store}>
+      <GoogleOAuthProvider clientId="464233585984-7oh5hvjrupic465df4nh7055bfcic47m.apps.googleusercontent.com"> {/* Thay bằng Client ID của bạn */}
       <App />
+      </GoogleOAuthProvider>
     </Provider>
   </React.StrictMode>
 );
