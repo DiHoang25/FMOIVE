@@ -4,13 +4,40 @@ import SidebarLayoutEmployee from '../../components/Sidebar-Employee';
 import axios from 'axios';
 import prevbanner from '../../assets/prevbanner.png';
 import nextbanner from '../../assets/nextbanner.png';
+import dayjs from 'dayjs';
 
 function EmployeeDashboard() {
+  const [movies, setMovies] = useState([]);
+  const [totalMovies, setTotalMovies] = useState(0);
+  const [nowShowing, setNowShowing] = useState(0);
+  const [comingSoon, setComingSoon] = useState(0);
+
+  useEffect(() => {
+    const fetchMovies = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/movies');
+        const sortedMovies = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setMovies(sortedMovies);
+
+        const today = dayjs();
+        setTotalMovies(sortedMovies.length);
+        setNowShowing(sortedMovies.filter(movie => {
+          const start = dayjs(movie.start_date);
+          const end = dayjs(movie.end_date);
+          return today.isAfter(start) && today.isBefore(end);
+        }).length);
+        setComingSoon(sortedMovies.filter(movie => dayjs(movie.start_date).isAfter(today)).length);
+      } catch (error) {
+        console.error('Error fetching movies:', error);
+      }
+    };
+    fetchMovies();
+  }, []);
+
   const stats = [
-    { value: 24, label: 'Total Movies' },
-    { value: 18, label: 'Now Showing' },
-    { value: 6, label: 'Coming Soon' },
-    { value: 156, label: 'Today\'s Shows' }
+    { value: totalMovies, label: 'Total Movies' },
+    { value: nowShowing, label: 'Now Showing' },
+    { value: comingSoon, label: 'Coming Soon' },
   ];
 
   const [comingSoonBanners, setComingSoonBanners] = useState([]);
@@ -62,13 +89,12 @@ function EmployeeDashboard() {
 
             {/* 🎞 Banner section */}
             {banners.length > 0 && (
-              <div className="relative w-full h-[300px] mb-8 overflow-hidden rounded-lg shadow-lg bg-black">
+              <div className="relative w-full h-[200px] md:h-[240px] lg:h-[360px] mb-8 overflow-hidden rounded-lg shadow-lg bg-black">
                 <img
                   src={banners[currentBanner]}
                   alt="Featured Poster"
                   className={`w-full h-full object-cover transition-opacity duration-500 ${fade ? 'opacity-0' : 'opacity-100'}`}
                 />
-
                 <button
                   onClick={() => setCurrentBanner((prev) => (prev === 0 ? banners.length - 1 : prev - 1))}
                   className="absolute left-4 top-1/2 transform -translate-y-1/2"
@@ -94,11 +120,15 @@ function EmployeeDashboard() {
 
 
             {/* 📊 Stats Cards */}
-            <div className="grid grid-cols-4 gap-4 mb-6">
-              {stats.map((stat, index) => (
-                <div key={index} className="bg-gray-800 p-6 rounded-md text-center">
-                  <h2 className="text-3xl font-bold text-white">{stat.value}</h2>
-                  <p className="text-gray-400 text-sm mt-1">{stat.label}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+              {stats.map((stat, i) => (
+                <div
+                  key={i}
+                  className={`rounded-lg p-4 text-center shadow ${i === 0 ? 'bg-gray-700' : i === 1 ? 'bg-red-700' : i === 2 ? 'bg-yellow-600' : 'bg-blue-600'
+                    }`}
+                >
+                  <p className="text-sm text-white">{stat.label}</p>
+                  <h2 className="text-xl font-bold text-white">{stat.value}</h2>
                 </div>
               ))}
             </div>
@@ -107,11 +137,11 @@ function EmployeeDashboard() {
             <div className="bg-gray-800 p-4 rounded-md mb-6">
               <h2 className="text-xl text-gray-300 mb-4">Quick Actions</h2>
               <div className="grid grid-cols-2 gap-4">
-                <Link to="/employee/add-combo" className="bg-green-500 hover:bg-green-600 text-white p-3 rounded-md text-center">
-                  Add Combo Popcorn & Drinks
+                <Link to="/employee/counter-booking-list" className="bg-green-500 hover:bg-green-600 text-white hover:text-white p-3 rounded-md text-center">
+                  Booking List
                 </Link>
-                <Link to="/employee/add-product" className="bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-md text-center">
-                  Add Products
+                <Link to="/employee/counter-showtimes" className="bg-orange-500 hover:bg-orange-600 text-white hover:text-white p-3 rounded-md text-center">
+                  Show Time
                 </Link>
               </div>
             </div>

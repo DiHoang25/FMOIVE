@@ -143,11 +143,14 @@ const AddMovie = () => {
             });
             const data = await res.json();
             if (data.rooms) {
-                const options = data.rooms.map(room => ({
-                    value: room.roomId,
-                    label: room.roomName,
-                    roomType: room.roomType
-                }));
+                const options = data.rooms
+                    .filter(room => room.is_actived) // chỉ lấy phòng đang hoạt động
+                    .map(room => ({
+                        value: room.roomId,
+                        label: room.roomName,
+                        roomType: room.roomType
+                    }));
+
                 setRoomOptions(options);
             }
         };

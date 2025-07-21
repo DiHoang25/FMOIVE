@@ -4,14 +4,15 @@ import MovieCard from "../../components/MovieCard";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
-
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import { useMediaQuery } from "react-responsive";
 import { useRef } from "react";
 import { useDispatch } from "react-redux";
 import {
   setMovieAndDateTime,
   setSelectedSeats,
 } from "../../redux/bookingSlice";
-
+import LoadingSpinner from "../../components/LoadingSpinner";
 function getWeekDates(startDate) {
   const dates = [];
   const start = new Date(startDate);
@@ -30,14 +31,12 @@ function formatDateLabel(date) {
 }
 
 function formatDateForNavigation(date) {
-  const options = {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  };
-  return date.toLocaleDateString("en-US", options);
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`; // trả về "17/07/2025"
 }
+
 
 function ShowtimePage() {
   const navigate = useNavigate();
@@ -46,7 +45,7 @@ function ShowtimePage() {
 
   // Add this ref to track if we've restored scroll
   const hasRestoredScroll = useRef(false);
-
+  
   const dispatch = useDispatch();
 
   const [startDate, setStartDate] = useState(new Date());
@@ -131,7 +130,7 @@ function ShowtimePage() {
 
       return () => clearTimeout(timeout);
     }
-  }, [movies]);
+  }, [movies]); 
 
   const handleMovieCardShowtimeClick = (movieDetailsFromCard, timeClicked) => {
     const todayParts = selectedDate.split("/");
@@ -192,8 +191,8 @@ function ShowtimePage() {
   
 
   return (
-    <div className="bg-black min-h-screen text-white">
-      <div className="px-7 invisible">Spacer cho navbar</div>
+    <div className="pt-[60px] bg-black min-h-screen text-white"> {/* Add padding-top equal to NotificationBar height */}
+     
 
       <div className="fixed top-[100px] left-0 right-0 z-20 bg-black shadow-md">
         <div className="px-6 py-4">

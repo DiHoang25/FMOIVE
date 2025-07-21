@@ -65,12 +65,16 @@ const MovieNewsList = () => {
   return (
     <SidebarLayout>
       <div className="p-6 text-white">
-        <div className="flex justify-between items-center mb-4">
+        <div className="relative flex items-center justify-center mb-4">
           <h2 className="text-2xl font-bold">Movie News Management</h2>
-          <Link to="/admin/add-movienews" className="bg-red-600 px-4 py-2 rounded hover:bg-red-700">
+          <Link
+            to="/admin/add-movienews"
+            className="absolute right-0 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md shadow flex items-center"
+          >
             + Add News
           </Link>
         </div>
+
 
         <div className="overflow-x-auto bg-gray-800 rounded-lg">
           <table className="min-w-full divide-y divide-gray-700">

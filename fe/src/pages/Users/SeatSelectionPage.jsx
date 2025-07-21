@@ -6,8 +6,18 @@ import {
   setSelectedSeats,
   setSelectedCombos,
   setMovieDetails,
-} from "../../redux/bookingSlice";
-import LoadingSpinner from "../../components/LoadingSpinner"; // import đầu file
+} from '../../redux/bookingSlice';
+import LoadingSpinner from '../../components/LoadingSpinner'; // import đầu file
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
+import { useMediaQuery } from "react-responsive";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+
 
 const formatMinutesToHoursMinutes = (minutes) => {
   if (typeof minutes !== "number" || minutes < 0) return "N/A";
@@ -32,10 +42,11 @@ function SeatSelectionPage() {
 
   const roomId = state?.roomId;
   const movieId = state?.movieId;
-
+  const isMobile = useMediaQuery({ maxWidth: 768 });
   const bookingState = useSelector((state) => state.booking);
   const movieDetails = bookingState.movieDetails;
   const [isLoading, setIsLoading] = useState(true);
+  const [occupiedSeats, setOccupiedSeats] = useState([]);
 
   const [roomData, setRoomDataState] = useState(null);
   const [selectedSeatsState, setSelectedSeatsState] = useState(
@@ -45,15 +56,15 @@ function SeatSelectionPage() {
   const movie = movieDetails?.name
     ? movieDetails
     : {
-        name: "Movie Title N/A",
-        image_url: "https://placehold.co/120x180/000000/FFFFFF?text=No+Poster",
-        version: "N/A",
-        running_time: "N/A",
-        time: "N/A",        
-        cinema_room: "N/A",
-        rating: "N/A",
-        genres: [],
-      };
+      name: "Movie Title N/A",
+      image_url: "https://placehold.co/120x180/000000/FFFFFF?text=No+Poster",
+      version: "N/A",
+      running_time: "N/A",
+      time: "N/A",
+      cinema_room: "N/A",
+      rating: "N/A",
+      genres: [],
+    };
 
   useEffect(() => {
     dispatch(setSelectedCombos({ combos: [], totalPrice: 0 }));
@@ -80,6 +91,18 @@ function SeatSelectionPage() {
           throw new Error(movieData.message || "Failed to fetch movie");
 
         setRoomDataState(roomData.room);
+        const occupiedRes = await fetch(
+          `http://localhost:5000/api/theater/rooms/${roomId}/occupied-seats`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const occupiedData = await occupiedRes.json();
+        if (!occupiedRes.ok)
+          throw new Error(occupiedData.message || "Failed to fetch occupied seats");
+
+        setOccupiedSeats(occupiedData.occupiedSeats || []);
+
         dispatch(setMovieDetails(movieData));
       } catch (error) {
         console.error("❌ Error fetching data:", error.message);
@@ -93,6 +116,27 @@ function SeatSelectionPage() {
     }
   }, [roomId, movieId, dispatch]);
 
+  // ✅ CHUẨN HÓA THỜI GIAN THEO MÚI GIỜ VIỆT NAM
+const standardizedMovieTime = dayjs(movieDetails?.time, "DD/MM/YYYY, HH:mm", true).isValid()
+  ? dayjs(movieDetails?.time, "DD/MM/YYYY, HH:mm").tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DDTHH:mm")
+  : "Invalid Time";
+console.log("✅ standardizedMovieTime:", standardizedMovieTime);
+
+
+
+  const occupiedLabels = occupiedSeats
+    ?.filter((os) => {
+      const occupiedTimeVN = dayjs.utc(os.showtime).tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DDTHH:mm");
+      return occupiedTimeVN === standardizedMovieTime;
+    })
+    .map((os) => os.seatLabel) || [];
+  console.log("🎫 Fetched occupiedSeats:", occupiedSeats);
+  console.log("🕒 Current movieTime:", standardizedMovieTime);
+  console.log("🧪 movieDetails.time =", movieDetails?.time);
+
+
+
+
   const handleToggleSeat = (seat) => {
     setSelectedSeatsState((prev) =>
       prev.includes(seat.label)
@@ -102,17 +146,34 @@ function SeatSelectionPage() {
   };
 
   const getSeatClass = (seat) => {
-    const isSelected = selectedSeatsState.includes(seat.label);
-    const base =
-      "w-9 h-9 text-xs sm:w-8 sm:h-8 sm:text-[10px] md:w-10 md:h-10 md:text-xs rounded-lg flex items-center justify-center font-bold transition-all duration-200 transform hover:scale-110 hover:shadow-lg border-2";
+  const isSelected = selectedSeatsState.includes(seat.label);
+  const isOccupied = occupiedLabels.includes(seat.label);
+  
+  // Base classes without any animations for mobile
+  const baseMobile = `
+    w-9 h-9 text-xs 
+    sm:w-8 sm:h-8 sm:text-[10px] 
+    md:w-10 md:h-10 md:text-xs 
+    rounded-lg flex items-center justify-center 
+    font-bold border-2
+  `;
+  
+  // Desktop version with animations
+  const baseDesktop = `
+    ${baseMobile}
+    transition-all duration-200 
+    transform hover:scale-110 hover:shadow-lg
+  `;
 
-    if (isSelected)
-      return `${base} bg-gradient-to-br from-red-500 to-red-600 text-white border-red-400 shadow-lg scale-105`;
-    if (seat.type === "VIP")
-      return `${base} bg-gradient-to-br from-amber-400 to-yellow-500 text-gray-900 border-amber-300`;
+  const base = isMobile ? baseMobile : baseDesktop;
 
-    return `${base} bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 border-gray-300`;
-  };
+  if (isOccupied) return `${base} bg-gray-600 text-white border-gray-500 cursor-not-allowed`;
+  if (isSelected) return `${base} bg-gradient-to-br from-red-500 to-red-600 text-white border-red-400 ${isMobile ? '' : 'shadow-lg scale-105'}`;
+  if (seat.type === "VIP") return `${base} bg-gradient-to-br from-amber-400 to-yellow-500 text-gray-900 border-amber-300`;
+
+  return `${base} bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 border-gray-300`;
+};
+
 
   const getTotalPrice = () => {
     if (!roomData) return 0;
@@ -152,7 +213,7 @@ function SeatSelectionPage() {
           <button
             onClick={() => {
               // Save current scroll position before going back
-             
+
               navigate(-1);
             }}
             className="text-sm text-white bg-gray-700 hover:bg-gray-600 px-4 py-1 rounded"
@@ -190,68 +251,130 @@ function SeatSelectionPage() {
             <div className="h-2 bg-gradient-to-r from-transparent via-white to-transparent rounded-full mt-2 mb-4 opacity-80" />
           </div>
 
-          {roomData ? (
-            <div className="overflow-x-auto text-center">
-              <div className="inline-block space-y-3 min-w-[320px] mx-auto">
-                {[...Array(roomData.rows)].map((_, rIdx) => {
-                  const rowLetter = String.fromCharCode(65 + rIdx);
-                  const rowSeats = roomData.seats.filter(
-                    (s) => Number(s.row) === rIdx + 1
-                  );
+         {roomData ? (
+            isMobile ? (
+              <div className="relative w-full overflow-hidden rounded-lg border border-gray-600">
+                <TransformWrapper
+                  initialScale={0.8}
+                  minScale={0.5}
+                  maxScale={2}
+                  wheel={{ step: 0.1 }}
+                  doubleClick={{ disabled: true }}
+                >
+                  {({ zoomIn, zoomOut, resetTransform }) => (
+                    <>
+                      <div className="absolute top-2 right-2 z-10 flex gap-2">
+                        <button 
+                          onClick={() => zoomIn()} 
+                          className="bg-gray-700/80 text-white p-1 rounded"
+                        >
+                          +
+                        </button>
+                        <button 
+                          onClick={() => zoomOut()} 
+                          className="bg-gray-700/80 text-white p-1 rounded"
+                        >
+                          -
+                        </button>
+                        <button 
+                          onClick={() => resetTransform()} 
+                          className="bg-gray-700/80 text-white p-1 rounded"
+                        >
+                          Reset
+                        </button>
+                      </div>
+                      <TransformComponent wrapperClass="!w-full !h-full">
+                        <div className="w-max mx-auto p-4">
+                          {[...Array(roomData.rows)].map((_, rIdx) => {
+                            const rowLetter = String.fromCharCode(65 + rIdx);
+                            const rowSeats = roomData.seats.filter((s) => Number(s.row) === rIdx + 1);
 
-                  return (
-                    <div
-                      key={rowLetter}
-                      className="flex items-center justify-center gap-2"
-                    >
-                      <div className="w-8 flex items-center justify-center">
-                        <span className="text-slate-400 font-bold text-sm">
-                          {rowLetter}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 justify-center">
-                        {[...Array(roomData.columns)].map((_, cIdx) => {
-                          const seat = rowSeats.find(
-                            (s) => Number(s.column) === cIdx + 1
-                          );
-                          return seat ? (
-                            <button
-                              key={seat.label}
-                              onClick={() => handleToggleSeat(seat)}
-                              className={getSeatClass(seat)}
-                              title={`Seat ${seat.label} - ${
-                                seat.type
-                              } - ${seat.price.toLocaleString("vi-VN")} VND`}
-                            >
-                              {seat.type === "VIP" ? (
-                                <Crown className="w-3 h-3" />
-                              ) : (
-                                seat.label
-                              )}
-                            </button>
-                          ) : (
-                            <div
-                              key={`empty-${cIdx}`}
-                              className="w-9 h-9 sm:w-8 sm:h-8 md:w-10 md:h-10"
-                            />
-                          );
-                        })}
-                      </div>
-                      <div className="w-8 flex items-center justify-center">
-                        <span className="text-slate-400 font-bold text-sm">
-                          {rowLetter}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
+                            return (
+                              <div key={rowLetter} className="flex items-center justify-center gap-1 sm:gap-2 mb-1">
+                                <div className="w-6 sm:w-8 flex items-center justify-center">
+                                  <span className="text-slate-400 font-bold text-xs sm:text-sm">{rowLetter}</span>
+                                </div>
+                                <div className="flex gap-1 sm:gap-2">
+                                  {[...Array(roomData.columns)].map((_, cIdx) => {
+                                    const seat = rowSeats.find((s) => Number(s.column) === cIdx + 1);
+                                    return seat ? (
+                                      <button
+                                        key={seat.label}
+                                        onClick={() => handleToggleSeat(seat)}
+                                        className={getSeatClass(seat)}
+                                        title={`Seat ${seat.label} - ${seat.type} - ${seat.price.toLocaleString('vi-VN')} VND`}
+                                      >
+                                        {seat.type === "VIP" ? (
+                                          <Crown className="w-2.5 h   -2.5 sm:w-3 sm:h-3" />
+                                        ) : (
+                                          <span className="text-xs sm:text-sm">{seat.label}</span>
+                                        )}
+                                      </button>
+                                    ) : (
+                                      <div key={`empty-${cIdx}`} className="w-8 h-8 sm:w-10 sm:h-10" />
+                                    );
+                                  })}
+                                </div>
+                                <div className="w-6 sm:w-8 flex items-center justify-center">
+                                  <span className="text-slate-400 font-bold text-xs sm:text-sm">{rowLetter}</span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </TransformComponent>
+                    </>
+                  )}
+                </TransformWrapper>
               </div>
-            </div>
+            ) : (
+              <div className="w-full overflow-x-auto">
+                <div className="w-max mx-auto">
+                  {[...Array(roomData.rows)].map((_, rIdx) => {
+                    const rowLetter = String.fromCharCode(65 + rIdx);
+                    const rowSeats = roomData.seats.filter((s) => Number(s.row) === rIdx + 1);
+
+                    return (
+                      <div key={rowLetter} className="flex items-center justify-center gap-2 mb-2">
+                        <div className="w-8 flex items-center justify-center">
+                          <span className="text-slate-400 font-bold text-sm">{rowLetter}</span>
+                        </div>
+                        <div className="flex gap-2">
+                          {[...Array(roomData.columns)].map((_, cIdx) => {
+                            const seat = rowSeats.find((s) => Number(s.column) === cIdx + 1);
+                            return seat ? (
+                              <button
+                                key={seat.label}
+                                onClick={() => handleToggleSeat(seat)}
+                                className={getSeatClass(seat)}
+                                title={`Seat ${seat.label} - ${seat.type} - ${seat.price.toLocaleString('vi-VN')} VND`}
+                              >
+                                {seat.type === "VIP" ? (
+                                  <Crown className="w-3 h-3" />
+                                ) : (
+                                  seat.label
+                                )}
+                              </button>
+                            ) : (
+                              <div key={`empty-${cIdx}`} className="w-10 h-10" />
+                            );
+                          })}
+                        </div>
+                        <div className="w-8 flex items-center justify-center">
+                          <span className="text-slate-400 font-bold text-sm">{rowLetter}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )
           ) : (
-            <div className="text-center py-12 text-slate-400">
+            <div className="text-center py-8 sm:py-12 text-slate-400">
               Loading seats...
             </div>
           )}
+
 
           <div className="mt-10 space-y-6">
             <div className="flex justify-center gap-4 sm:gap-8 flex-wrap text-sm sm:text-base">
@@ -268,6 +391,10 @@ function SeatSelectionPage() {
                   <Crown className="w-3 h-3" />
                 </div>
                 <span className="text-slate-300 font-medium">VIP</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-gray-600 rounded-lg border-2 border-gray-500"></div>
+                <span className="text-slate-300 font-medium">Occupied</span>
               </div>
             </div>
 

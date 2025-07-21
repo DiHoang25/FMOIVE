@@ -18,7 +18,7 @@ const ViewCombo = () => {
 
   const formatVND = (value) => {
   if (typeof value !== 'number') return '';
-  return `${value.toLocaleString('vi-VN')}₫`;
+  return `${value.toLocaleString('vi-VN')} VND`;
 };
 
 
@@ -162,7 +162,7 @@ const ViewCombo = () => {
             onChange={handleSearch}
             className="bg-gray-700 text-white px-3 py-2 rounded-md w-64"
           />
-          <Link to="/employee/add-combo" className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md">
+          <Link to="/employee/add-combo" className="bg-red-600 hover:bg-red-700 text-white hover:text-white px-4 py-2 rounded-md">
             + Add New Combo
           </Link>
         </div>
@@ -230,42 +230,69 @@ const ViewCombo = () => {
         </div>
 
         <Modal
-          title="Combo Details"
           open={modalVisible}
-          onOk={() => setModalVisible(false)}
           onCancel={() => setModalVisible(false)}
-          width={700}
-          bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
-          footer={[
-            <button key="close" className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md" onClick={() => setModalVisible(false)}>
-              Close
-            </button>,
-          ]}
+          footer={null}
+          centered
+          width={800}
+          className="custom-modal"
         >
           {selectedCombo && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-black">
-                <div><p className="text-gray-400">Combo Name:</p><p>{selectedCombo.comboName}</p></div>
-                <div><p className="text-gray-400">Price:</p><p>{formatVND(selectedCombo.price)}</p></div>
-                <div><p className="text-gray-400">Description:</p><p>{selectedCombo.description}</p></div>
-                <div><p className="text-gray-400">Start Date:</p><p>{dayjs(selectedCombo.startDate).format('DD/MM/YYYY')}</p></div>
-                <div><p className="text-gray-400">End Date:</p><p>{dayjs(selectedCombo.endDate).format('DD/MM/YYYY')}</p></div>
-                <div><p className="text-gray-400">Status:</p><p>{formatStatusLabel(getComboStatus(selectedCombo))}</p></div>
-                <div className="col-span-2">
-                  <p className="text-gray-400">Items:</p>
-                  <ul className="list-disc pl-5">
-                    {selectedCombo.items.map((item, index) => (
-                      <li key={index}>
-                        {item.productName} (x{item.quantity})
-                      </li>
-                    ))}
-                  </ul>
+            <div className="bg-gradient-to-br from-gray-900 to-black p-8 rounded-2xl text-white">
+              <div className="flex flex-col lg:flex-row gap-8">
+                <div className="flex-shrink-0">
+                  <img
+                    src={selectedCombo.image_url || "/placeholder.svg"}
+                    alt="Combo"
+                    onError={(e) => e.target.src = "/placeholder.svg"}
+                    className="w-64 h-64 object-cover rounded-xl border-2 border-gray-700 shadow-lg"
+                  />
                 </div>
-                <div className="col-span-2">
-                  <p className="text-gray-400">Image:</p>
-                  <img src={selectedCombo.image_url} alt="Combo" className="max-w-xs w-full h-auto rounded-md shadow mx-auto" />
+                <div className="flex-1 space-y-6">
+                  <div>
+                    <h2 className="text-3xl font-bold mb-2">{selectedCombo.comboName}</h2>
+                    <div className="w-16 h-1 bg-red-600 rounded-full"></div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <p className="text-gray-400 text-sm">Price</p>
+                      <p className="font-semibold">{formatVND(selectedCombo.price)}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm">Status</p>
+                      <p className="font-semibold">{formatStatusLabel(getComboStatus(selectedCombo))}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm">Start Date</p>
+                      <p className="font-semibold">{dayjs(selectedCombo.startDate).format('DD/MM/YYYY')}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm">End Date</p>
+                      <p className="font-semibold">{dayjs(selectedCombo.endDate).format('DD/MM/YYYY')}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-sm">Description</p>
+                    <p className="font-medium leading-relaxed">{selectedCombo.description}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-sm">Items</p>
+                    <ul className="list-disc pl-5 font-medium">
+                      {selectedCombo.items.map((item, index) => (
+                        <li key={index}>
+                          {item.productName} (x{item.quantity})
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </div>
+              <button
+                onClick={() => setModalVisible(false)}
+                className="mt-8 w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-[1.02]"
+              >
+                Close
+              </button>
             </div>
           )}
         </Modal>

@@ -34,6 +34,7 @@ function AdminDashboard() {
         const bookings = data.bookings;
         const revenueMap = {}, countMap = {}, dailyMap = {}, monthlyMap = {};
 
+
         bookings.forEach(b => {
           const name = b.movieDetails?.name;
           const rev = b.grandTotal ?? b.totalPrice ?? 0;
@@ -88,12 +89,13 @@ function AdminDashboard() {
     fetchData();
   }, []);
 
+  const top5BookedFilms = topBookedFilms.slice(0, 5);
   const pieData = {
-    labels: topBookedFilms.map(f => f.name),
+    labels: top5BookedFilms.map(f => f.name),
     datasets: [
       {
-        data: topBookedFilms.map(f => f.count),
-        backgroundColor: ['#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'],
+        data: top5BookedFilms.map(f => f.count),
+        backgroundColor: ['#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6'],
         borderColor: '#0f172a',
         borderWidth: 1,
       },
@@ -181,9 +183,9 @@ function AdminDashboard() {
     <SidebarLayout>
       <div className="p-1">
         <main className="mt-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
             {stats.map((s, i) => (
-              <div key={i} className={`rounded-lg p-4 text-center shadow ${i === 0 ? 'bg-gray-700' : i === 1 ? 'bg-green-700' : i === 2 ? 'bg-yellow-600' : 'bg-blue-600'}`}>
+              <div key={i} className={`rounded-lg p-4 text-center shadow ${i === 0 ? 'bg-gray-700' : i === 1 ? 'bg-red-700' : i === 2 ? 'bg-yellow-600' : 'bg-blue-600'}`}>
                 <p className="text-sm text-white">{s.label}</p>
                 <h2 className="text-xl font-bold text-white">{s.value}</h2>
               </div>
@@ -191,17 +193,17 @@ function AdminDashboard() {
           </div>
           <div className="bg-slate-800 p-4 rounded-md mb-6">
             <h2 className="text-xl text-white mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <Link to="/admin/add-movie" className="bg-green-500 hover:bg-green-600 text-white p-3 rounded-md text-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Link to="/admin/add-movie" className="bg-red-500 hover:bg-red-600 text-white hover:text-white p-3 rounded-md text-center">
                 Add Movie
               </Link>
-              <Link to="/admin/view-members" className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-md text-center">
+              <Link to="/admin/view-members" className="bg-blue-500 hover:bg-blue-600 text-white hover:text-white p-3 rounded-md text-center">
                 View Accounts
               </Link>
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div className="bg-slate-800 p-4 rounded-md">
               <h2 className="text-base text-white mb-4 text-center font-semibold">Most Booked Movies (Last 30 Days)</h2>
               <div className="flex justify-center">
@@ -248,7 +250,7 @@ function AdminDashboard() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-slate-800 p-4 rounded-md">
               <h2 className="text-white mb-4 text-center font-semibold">Daily Revenue</h2>
               <Chart options={dailyOptions} series={dailyOptions.series} type="area" height={300} />
