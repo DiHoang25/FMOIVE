@@ -115,7 +115,7 @@ const SeatSelection = () => {
         movieDetails,
         selectedShowtimeTime,
         fullShowtimeDate,
-        selectedSeats: roomData.seats.filter(seat => selectedSeats.includes(seat.label)),
+        selectedSeats: roomData.seats.filter(seat => selectedSeatsState.includes(seat.label)),
 ticketPrice: calculateTotalTicketPrice(),
         userInformation,
       },
