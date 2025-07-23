@@ -50,11 +50,107 @@ code {
   color: #fff !important;
   border: 1px solid #334155 !important; /* slate-700 */
 }
+/* Tailwind utilities vẫn dùng được nếu bạn cài Tailwind */
+
+/* Container layout */
+.comment-container {
+  @apply max-w-4xl mx-auto mt-8 space-y-10;
+}
+
+.comment-card {
+  @apply bg-gray-900 border border-gray-700 p-6 rounded-xl shadow-xl space-y-4;
+}
+
+.card-title {
+  @apply text-white text-xl font-semibold flex items-center gap-2 mb-2;
+}
+
+.icon {
+  @apply text-red-500;
+}
+
+.rating-box {
+  @apply text-center;
+}
+
+/* Rating Stars */
+.custom-rate .ant-rate-star {
+  transition: transform 0.2s ease;
+}
+
+.custom-rate .ant-rate-star svg {
+  fill: white !important;
+  stroke: white !important;
+}
+
+.custom-rate .ant-rate-star:hover svg,
+.custom-rate .ant-rate-star.ant-rate-star-full svg {
+  fill: #eafa08 !important; /* red-500 */
+  stroke: #eafa08 !important;
+  transform: scale(1.1);
+}
+
+.rating-label {
+  @apply mt-2 text-sm text-red-400 font-medium;
+}
+
+/* Textarea: Không bị đổi màu trắng khi hover, font đậm hơn */
+.comment-textarea {
+  @apply bg-gray-800 focus:bg-gray-800 hover:bg-gray-800 text-white font-semibold 
+         placeholder-gray-400 border-gray-600 rounded-lg 
+         focus:border-red-500 focus:ring-1 focus:ring-red-500;
+}
 
 
+/* Nút gửi bình luận: hover đỏ đậm hơn */
+.comment-button {
+  @apply w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded-lg transition;
+}
 
+.login-reminder {
+  @apply text-yellow-400 text-center text-sm mt-2;
+}
 
+.no-comments {
+  @apply text-gray-400 text-sm text-center;
+}
 
+.comment-list {
+  @apply space-y-6;
+}
 
+.comment-item {
+  @apply flex items-start gap-4 border border-gray-700 rounded-xl p-4 bg-gray-800 hover:border-gray-600 transition;
+}
 
+.avatar img {
+  @apply w-10 h-10 rounded-full ring-2 ring-gray-600;
+}
 
+.comment-content {
+  @apply flex-1;
+}
+
+.comment-header {
+  @apply flex items-center gap-2 flex-wrap mb-2;
+}
+
+.small-rate .ant-rate-star svg {
+  width: 16px;
+  height: 16px;
+  fill: white !important;
+  stroke: white !important;
+}
+
+.small-rate .ant-rate-star.ant-rate-star-full svg {
+  fill: #eafa08 !important;
+  stroke: #ef4444 !important;
+}
+
+.badge {
+  @apply text-xs px-2 py-1 bg-red-500/20 text-red-300 rounded-full;
+}
+
+.date {
+  @apply text-xs text-gray-400 ml-auto;
+}

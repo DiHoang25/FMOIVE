@@ -138,22 +138,21 @@ const CinemaRooms = () => {
           </div>
         </div>
 
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
           <input
             type="text"
-            placeholder="Search..."
+            placeholder="Search cinema room..."
             value={searchTerm}
             onChange={handleSearch}
-            className="bg-gray-800 text-gray-300 pl-4 pr-10 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-700 w-64"
+            className="bg-gray-700 text-white px-4 py-2 rounded-md w-full sm:w-64 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-600"
           />
           <Link
             to="/admin/cinema-rooms/add-new-cinema-room"
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md shadow flex items-center"
+            className="bg-red-600 hover:bg-red-700 text-white hover:text-white px-5 py-2.5 rounded-md text-center font-semibold shadow-sm transition-all duration-200 w-full sm:w-auto"
           >
-            <span className="mr-2">+</span> Add new
+            + Add New Cinema Room
           </Link>
         </div>
-
 
         <div className="overflow-x-auto bg-gray-800 rounded-lg shadow">
           {loading ? (

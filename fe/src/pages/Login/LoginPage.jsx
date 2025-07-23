@@ -2,11 +2,16 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../../contexts/AuthContext';
-import { message } from 'antd'; 
+import { message } from 'antd';
+import { useLocation } from 'react-router-dom';
+
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth(); // 
+  const location = useLocation();
+  const from = location.state?.from || '/';
+
 
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [errors, setErrors] = useState({ username: '', password: '', general: '' });
@@ -54,7 +59,7 @@ const LoginPage = () => {
         return;
       }
 
-      
+
       localStorage.setItem('token', data.token);
       login(data.token);
 
@@ -68,8 +73,9 @@ const LoginPage = () => {
       } else if (role === 'employee') {
         navigate('/employee');
       } else {
-        navigate('/');
+        navigate(from); // 🔁 quay lại nơi user đang comment
       }
+
 
     } catch (error) {
       console.error('Login error:', error);
