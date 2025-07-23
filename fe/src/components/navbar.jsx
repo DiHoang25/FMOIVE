@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, Fragment } from 'react';
 import { ChevronDown, Menu } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FaHome } from 'react-icons/fa';
+import UserNotification from './UserNotification';
 
 const Navbar = () => {
   const location = useLocation();
@@ -75,6 +76,7 @@ const Navbar = () => {
               )
             )}
           </div>
+
         </div>
 
 

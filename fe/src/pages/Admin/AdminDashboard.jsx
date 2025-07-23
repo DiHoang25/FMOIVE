@@ -34,7 +34,6 @@ function AdminDashboard() {
         const bookings = data.bookings;
         const revenueMap = {}, countMap = {}, dailyMap = {}, monthlyMap = {};
 
-
         bookings.forEach(b => {
           const name = b.movieDetails?.name;
           const rev = b.grandTotal ?? b.totalPrice ?? 0;
@@ -74,11 +73,17 @@ function AdminDashboard() {
         setTopBookedFilms(countArr);
         setDailyRevenue({
           categories: dailySorted.map(([d]) => d),
-          revenueArr: dailySorted.map(([, r]) => +(r / 1e6).toFixed(2)),
+          revenueArr: dailySorted.map(([, r]) => {
+            const val = +(r / 1e6).toFixed(2);
+            return isNaN(val) ? 0 : val;
+          }),
         });
-        setMonthlyRevenue({
+setMonthlyRevenue({
           categories: monthlySorted.map(([m]) => m),
-          revenueArr: monthlySorted.map(([, r]) => +(r / 1e6).toFixed(2)),
+          revenueArr: monthlySorted.map(([, r]) => {
+            const val = +(r / 1e6).toFixed(2);
+            return isNaN(val) ? 0 : val;
+          }),
         });
 
       } catch (err) {
@@ -103,7 +108,7 @@ function AdminDashboard() {
   };
 
   const baseChartOptions = {
-    chart: { type: "area", toolbar: { show: false }, fontFamily: "Inter, sans-serif" },
+    chart: { toolbar: { show: false }, fontFamily: "Inter, sans-serif" },
     tooltip: {
       enabled: true,
       style: {
@@ -136,15 +141,48 @@ function AdminDashboard() {
 
   const dailyOptions = {
     ...baseChartOptions,
-    xaxis: { ...baseChartOptions.xaxis, categories: dailyRevenue.categories },
-    series: [{ name: "Doanh thu (triệu)", data: dailyRevenue.revenueArr }],
+    chart: {
+      ...baseChartOptions.chart,
+      type: 'area',
+    },
+    xaxis: {
+      ...baseChartOptions.xaxis,
+      categories: dailyRevenue.categories || [],
+    },
   };
+
+  const dailySeries = [
+    {
+      name: "Revenue (million)",
+      data: dailyRevenue.revenueArr || [],
+    },
+  ];
 
   const monthlyOptions = {
     ...baseChartOptions,
-    xaxis: { ...baseChartOptions.xaxis, categories: monthlyRevenue.categories },
-    series: [{ name: "Doanh thu (triệu)", data: monthlyRevenue.revenueArr }],
+    chart: {
+      ...baseChartOptions.chart,
+      type: 'bar',
+    },
+    xaxis: {
+      ...baseChartOptions.xaxis,
+      categories: monthlyRevenue.categories || [],
+    },
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        columnWidth: '25%',
+        borderRadius: 4,
+      },
+    },
   };
+
+  const monthlySeries = [
+    {
+      name: "Revenue (million)",
+      data: monthlyRevenue.revenueArr || [],
+    },
+  ];
 
   const [movies, setMovies] = useState([]);
   const [totalMovies, setTotalMovies] = useState(0);
@@ -159,7 +197,7 @@ function AdminDashboard() {
         setMovies(sortedMovies);
 
         const today = dayjs();
-        setTotalMovies(sortedMovies.length);
+setTotalMovies(sortedMovies.length);
         setNowShowing(sortedMovies.filter(movie => {
           const start = dayjs(movie.start_date);
           const end = dayjs(movie.end_date);
@@ -191,6 +229,7 @@ function AdminDashboard() {
               </div>
             ))}
           </div>
+
           <div className="bg-slate-800 p-4 rounded-md mb-6">
             <h2 className="text-xl text-white mb-4">Quick Actions</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -229,7 +268,7 @@ function AdminDashboard() {
               <h2 className="text-base text-white mb-4 text-center font-semibold">Top 6 Highest Grossing Movies (Last 30 Days)</h2>
               <div className="space-y-4">
                 {topRevenueFilms.map((film, i) => {
-                  const max = Math.max(...topRevenueFilms.map(f => f.revenue), 1);
+const max = Math.max(...topRevenueFilms.map(f => f.revenue), 1);
                   return (
                     <div key={i} className="flex items-center">
                       <div className="w-1/3 text-right pr-4 text-gray-300">{film.name}</div>
@@ -239,25 +278,30 @@ function AdminDashboard() {
                           style={{ width: `${(film.revenue / max) * 100}%` }}
                         ></div>
                         <div className="absolute inset-0 flex items-center justify-end pr-2 text-white font-medium">
-                          {film.revenue.toLocaleString('vi-VN')} triệu
+                          {film.revenue.toLocaleString('vi-VN')} 
                         </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
-              <div className="mt-4 text-right text-xs text-gray-400">Doanh thu (triệu đồng)</div>
+              <div className="mt-4 text-right text-xs text-gray-400">Revenue (million VND)</div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-slate-800 p-4 rounded-md">
               <h2 className="text-white mb-4 text-center font-semibold">Daily Revenue</h2>
-              <Chart options={dailyOptions} series={dailyOptions.series} type="area" height={300} />
+              {dailyRevenue.categories.length > 0 && dailyRevenue.revenueArr.length > 0 && (
+                <Chart options={dailyOptions} series={dailySeries} type="area" height={300} />
+              )}
             </div>
+
             <div className="bg-slate-800 p-4 rounded-md">
               <h2 className="text-white mb-4 text-center font-semibold">Monthly Revenue</h2>
-              <Chart options={monthlyOptions} series={monthlyOptions.series} type="area" height={300} />
+              {monthlyRevenue.categories.length > 0 && monthlyRevenue.revenueArr.length > 0 && (
+                <Chart options={monthlyOptions} series={monthlySeries} type="bar" height={300} />
+              )}
             </div>
           </div>
         </main>
