@@ -140,11 +140,11 @@ function AdminDashboard() {
     series: [{ name: "Doanh thu (triệu)", data: dailyRevenue.revenueArr }],
   };
 
-  const monthlyOptions = {
-    ...baseChartOptions,
-    xaxis: { ...baseChartOptions.xaxis, categories: monthlyRevenue.categories },
-    series: [{ name: "Doanh thu (triệu)", data: monthlyRevenue.revenueArr }],
-  };
+  // const monthlyOptions = {
+  //   ...baseChartOptions,
+  //   xaxis: { ...baseChartOptions.xaxis, categories: monthlyRevenue.categories },
+  //   series: [{ name: "Doanh thu (triệu)", data: monthlyRevenue.revenueArr }],
+  // };
 
   const [movies, setMovies] = useState([]);
   const [totalMovies, setTotalMovies] = useState(0);
@@ -255,10 +255,10 @@ function AdminDashboard() {
               <h2 className="text-white mb-4 text-center font-semibold">Daily Revenue</h2>
               <Chart options={dailyOptions} series={dailyOptions.series} type="area" height={300} />
             </div>
-            <div className="bg-slate-800 p-4 rounded-md">
+            {/* <div className="bg-slate-800 p-4 rounded-md">
               <h2 className="text-white mb-4 text-center font-semibold">Monthly Revenue</h2>
               <Chart options={monthlyOptions} series={monthlyOptions.series} type="area" height={300} />
-            </div>
+            </div> */}
           </div>
         </main>
       </div>
