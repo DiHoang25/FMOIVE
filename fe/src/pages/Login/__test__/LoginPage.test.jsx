@@ -3,10 +3,10 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import LoginPage from '../LoginPage';
 
-// ✅ Mock fetch global
+// Mock fetch global
 global.fetch = jest.fn();
 
-// ✅ Mock AuthContext
+// Mock AuthContext
 const mockLogin = jest.fn();
 jest.mock('../../../contexts/AuthContext', () => ({
   useAuth: () => ({
@@ -14,7 +14,7 @@ jest.mock('../../../contexts/AuthContext', () => ({
   }),
 }));
 
-// ✅ Mock jwt-decode đúng kiểu `import { jwtDecode }`
+//Mock jwt-decode 
 import { jwtDecode } from 'jwt-decode';
 jest.mock('jwt-decode', () => ({
   jwtDecode: jest.fn(() => ({
@@ -24,7 +24,7 @@ jest.mock('jwt-decode', () => ({
   })),
 }));
 
-// ✅ Mock antd message
+// Mock antd message
 jest.mock('antd', () => {
   const original = jest.requireActual('antd');
   return {
@@ -37,12 +37,12 @@ jest.mock('antd', () => {
 });
 const mockMessage = require('antd').message;
 
-// ✅ Helper render with router
+// Helper render with router
 const renderWithRouter = (ui) => {
   return render(<BrowserRouter>{ui}</BrowserRouter>);
 };
 
-// ✅ Reset mocks mỗi test
+// Reset mocks mỗi test
 beforeEach(() => {
   fetch.mockReset();
   mockLogin.mockReset();
