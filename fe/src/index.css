@@ -96,7 +96,7 @@ code {
 
 /* Textarea: Không bị đổi màu trắng khi hover, font đậm hơn */
 .comment-textarea {
-  @apply bg-gray-800 focus:bg-gray-800 hover:bg-gray-800 text-white font-semibold 
+  @apply bg-gray-800 focus:bg-gray-800 text-white font-semibold 
          placeholder-gray-400 border-gray-600 rounded-lg 
          focus:border-red-500 focus:ring-1 focus:ring-red-500;
 }
@@ -153,4 +153,9 @@ code {
 
 .date {
   @apply text-xs text-gray-400 ml-auto;
+}
+
+
+.custom-rate-white .ant-rate-star-zero svg {
+  color: white !important;
 }

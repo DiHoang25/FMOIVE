@@ -219,11 +219,10 @@ const ViewsBookedTicket = () => {
                           <Clock className="w-5 h-5 text-yellow-500" />
                         )}
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            ticket.status === "CONFIRMED"
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${ticket.status === "CONFIRMED"
                               ? "bg-green-900/30 text-green-400 border border-green-800"
                               : "bg-yellow-900/30 text-yellow-400 border border-yellow-800"
-                          }`}
+                            }`}
                         >
                           {ticket.status}
                         </span>
@@ -239,7 +238,7 @@ const ViewsBookedTicket = () => {
                         <Eye className="w-4 h-4 group-hover:scale-110 transition-transform" />
                         <span>More Details</span>
                       </button>
-                      
+
                     </div>
                   </div>
                 </div>
@@ -337,12 +336,12 @@ const ViewsBookedTicket = () => {
                       <div>
                         <p className="text-gray-400 text-sm">Total Price</p>
                         <p className="text-white font-semibold text-lg">
-  {formatCurrency(
-    typeof viewModal.ticketPrice === "string"
-      ? viewModal.ticketPrice.replace(/[^\d.-]/g, "")
-      : viewModal.ticketPrice
-  )}
-</p>
+                          {formatCurrency(
+                            typeof viewModal.ticketPrice === "string"
+                              ? viewModal.ticketPrice.replace(/[^\d.-]/g, "")
+                              : viewModal.ticketPrice
+                          )}
+                        </p>
 
                       </div>
                     </div>
@@ -365,109 +364,15 @@ const ViewsBookedTicket = () => {
               onClick={() => setViewModal(null)}
               className="mt-8 w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-[1.02]"
             >
-              Đóng
+              Close
             </button>
           </div>
         )}
       </Modal>
 
-      {/* Cancel Ticket Modal */}
-      <Modal open={!!cancelModal && !success} onCancel={() => setCancelModal(null)} footer={null} centered width={500}>
-        <div className="bg-gradient-to-br from-gray-900 to-black p-8 rounded-2xl">
-          <div className="text-center space-y-6">
-            <div className="w-16 h-16 bg-red-600/20 rounded-full flex items-center justify-center mx-auto">
-              <AlertCircle className="w-8 h-8 text-red-500" />
-            </div>
 
-            <div>
-              <h3 className="text-2xl font-bold text-white mb-2">Xác nhận hủy vé</h3>
-              <p className="text-gray-400">Bạn có chắc chắn muốn hủy vé này không?</p>
-            </div>
 
-            <div className="bg-gray-800/50 p-6 rounded-lg border border-gray-700 space-y-4">
-              <div className="text-left">
-                <label className="block text-sm font-medium text-gray-300 mb-2">Nhập mã xác thực:</label>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="flex-1 bg-gray-700 px-4 py-3 font-mono rounded-lg text-white text-center text-lg tracking-widest select-none border border-gray-600">
-                    {captcha}
-                  </div>
-                  <button
-                    onClick={() => setCaptcha(generateCaptcha())}
-                    className="p-3 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg transition-colors"
-                    title="Tải lại mã"
-                  >
-                    <RefreshCw className="w-5 h-5" />
-                  </button>
-                </div>
-                <input
-                  type="text"
-                  value={inputCaptcha}
-                  onChange={(e) => setInputCaptcha(e.target.value)}
-                  className="w-full bg-gray-700 border border-gray-600 px-4 py-3 rounded-lg text-white placeholder-gray-400 focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
-                  placeholder="Nhập mã ở trên"
-                />
-                {captchaError && (
-                  <p className="text-red-400 text-sm mt-2 flex items-center space-x-2">
-                    <AlertCircle className="w-4 h-4" />
-                    <span>{captchaError}</span>
-                  </p>
-                )}
-              </div>
-            </div>
 
-            <button
-              onClick={() => {
-                if (inputCaptcha.toLowerCase() !== captcha.toLowerCase()) {
-                  setCaptchaError("Mã xác thực không chính xác.")
-                  return
-                }
-                setSuccess(true)
-              }}
-              className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-[1.02]"
-            >
-              Xác nhận hủy vé
-            </button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Success Modal */}
-      <Modal
-        open={success}
-        onCancel={() => {
-          setSuccess(false)
-          setCancelModal(null)
-          window.location.reload()
-        }}
-        footer={null}
-        centered
-        width={450}
-      >
-        <div className="bg-gradient-to-br from-gray-900 to-black p-8 rounded-2xl text-center">
-          <div className="w-20 h-20 bg-green-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-10 h-10 text-green-500" />
-          </div>
-
-          <h3 className="text-2xl font-bold text-white mb-4">Hủy vé thành công!</h3>
-
-          <div className="bg-green-900/20 border border-green-800 rounded-lg p-4 mb-6">
-            <p className="text-green-400 text-sm">
-              80% giá trị vé sẽ được hoàn lại vào tài khoản của bạn trong vài ngày tới.
-            </p>
-          </div>
-
-          <button
-            onClick={() => {
-              setSuccess(false)
-              setCancelModal(null)
-              window.location.reload()
-            }}
-            className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-[1.02]"
-          >
-            Đóng
-          </button>
-        </div>
-      </Modal>
     </UserDashboardLayout>
   )
 }

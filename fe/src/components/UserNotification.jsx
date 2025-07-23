@@ -78,7 +78,7 @@ const UserNotification = () => {
                         }
                     />
                     {hasNew && (
-                        <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-green-500 rounded-full border border-white" />
+                        <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-blue-500 rounded-full border border-white" />
                     )}
                 </div>
             </motion.div>
