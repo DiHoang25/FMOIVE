@@ -54,31 +54,28 @@ const SeatSelection = () => {
     fetchRoomData();
   }, [roomId]);
 
-  const toggleSeat = (seat) => {
-    setSelectedSeatsState((prev) => {
-      const updated = prev.includes(seat.label)
-        ? prev.filter((s) => s !== seat.label)
-        : [...prev, seat.label];
+  const handleToggleSeat = (seat) => {
+  const isOccupied = roomData?.occupiedSeats?.some(
+    (os) => os.seatLabel === seat.label
+  );
+  if (isOccupied) return;
 
-      const selectedSeatObjects =
-        roomData?.seats?.filter((s) => updated.includes(s.label)) || [];
-      const totalPrice = selectedSeatObjects.reduce(
-        (sum, s) => sum + s.price,
-        0
-      );
+  setSelectedSeatsState((prev) => {
+    const updated = prev.includes(seat.label)
+      ? prev.filter((s) => s !== seat.label)
+      : [...prev, seat.label];
 
-      dispatch(setSelectedSeats({ seats: updated, totalPrice }));
-      return updated;
-    });
-  };
-  
-   const handleToggleSeat = (seat) => {
-    setSelectedSeatsState((prev) =>
-      prev.includes(seat.label)
-        ? prev.filter((s) => s !== seat.label)
-        : [...prev, seat.label]
+    const selectedSeatObjects =
+      roomData?.seats?.filter((s) => updated.includes(s.label)) || [];
+    const totalPrice = selectedSeatObjects.reduce(
+      (sum, s) => sum + s.price,
+      0
     );
-  };
+
+    dispatch(setSelectedSeats({ seats: updated, totalPrice }));
+    return updated;
+  });
+};
 
   const getSeatClass = (seat) => {
   const isSelected = selectedSeatsState.includes(seat.label);

@@ -48,12 +48,18 @@ function ShowtimePage() {
   const dispatch = useDispatch();
 
   const [startDate, setStartDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(formatDateLabel(new Date()));
   const [movies, setMovies] = useState([]);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const hasRestoredScroll = useRef(false);
   const prevWeekStart = new Date(startDate);
   prevWeekStart.setDate(startDate.getDate() - 6);
+
+  const getInitialSelectedDate = () => {
+    const stored = sessionStorage.getItem("selectedShowtimeDate");
+    return stored || formatDateLabel(new Date());
+  };
+  const [selectedDate, setSelectedDate] = useState(getInitialSelectedDate());
+
 
   const weekDates = getWeekDates(startDate);
 
@@ -62,11 +68,12 @@ function ShowtimePage() {
     const newStart = new Date(startDate);
     newStart.setDate(startDate.getDate() - 6);
 
-    // ✅ Chặn nếu lùi về quá hôm nay
     if (isBeforeToday(newStart)) return;
 
     setStartDate(newStart);
     setSelectedDate(formatDateLabel(newStart));
+    sessionStorage.setItem("selectedShowtimeDate", formatDateLabel(newStart));
+
 
     sessionStorage.removeItem("shouldRestoreScroll");
     sessionStorage.removeItem("showtimeScrollPosition");
@@ -81,6 +88,7 @@ function ShowtimePage() {
     newStart.setDate(startDate.getDate() + 6);
     setStartDate(newStart);
     setSelectedDate(formatDateLabel(newStart));
+    sessionStorage.setItem("selectedShowtimeDate", formatDateLabel(newStart));
 
     sessionStorage.removeItem("shouldRestoreScroll");
     sessionStorage.removeItem("showtimeScrollPosition");
@@ -90,6 +98,7 @@ function ShowtimePage() {
 
   const handleSelectDate = (label) => {
     setSelectedDate(label);
+    sessionStorage.setItem("selectedShowtimeDate", label);
     sessionStorage.removeItem("shouldRestoreScroll");
     sessionStorage.removeItem("showtimeScrollPosition");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -216,7 +225,7 @@ function ShowtimePage() {
     });
   };
 
-  
+
 
   return (
     <div className="bg-black min-h-screen text-white">
