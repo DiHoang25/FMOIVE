@@ -34,7 +34,6 @@ function AdminDashboard() {
         const bookings = data.bookings;
         const revenueMap = {}, countMap = {}, dailyMap = {}, monthlyMap = {};
 
-
         bookings.forEach(b => {
           const name = b.movieDetails?.name;
           const rev = b.grandTotal ?? b.totalPrice ?? 0;
@@ -74,11 +73,17 @@ function AdminDashboard() {
         setTopBookedFilms(countArr);
         setDailyRevenue({
           categories: dailySorted.map(([d]) => d),
-          revenueArr: dailySorted.map(([, r]) => +(r / 1e6).toFixed(2)),
+          revenueArr: dailySorted.map(([, r]) => {
+            const val = +(r / 1e6).toFixed(2);
+            return isNaN(val) ? 0 : val;
+          }),
         });
         setMonthlyRevenue({
           categories: monthlySorted.map(([m]) => m),
-          revenueArr: monthlySorted.map(([, r]) => +(r / 1e6).toFixed(2)),
+          revenueArr: monthlySorted.map(([, r]) => {
+            const val = +(r / 1e6).toFixed(2);
+            return isNaN(val) ? 0 : val;
+          }),
         });
 
       } catch (err) {
@@ -103,7 +108,7 @@ function AdminDashboard() {
   };
 
   const baseChartOptions = {
-    chart: { type: "area", toolbar: { show: false }, fontFamily: "Inter, sans-serif" },
+    chart: { toolbar: { show: false }, fontFamily: "Inter, sans-serif" },
     tooltip: {
       enabled: true,
       style: {
@@ -136,15 +141,52 @@ function AdminDashboard() {
 
   const dailyOptions = {
     ...baseChartOptions,
-    xaxis: { ...baseChartOptions.xaxis, categories: dailyRevenue.categories },
-    series: [{ name: "Doanh thu (triệu)", data: dailyRevenue.revenueArr }],
+    chart: {
+      ...baseChartOptions.chart,
+      type: 'area',
+    },
+    xaxis: {
+      ...baseChartOptions.xaxis,
+      categories: dailyRevenue.categories || [],
+    },
   };
+
+  const dailySeries = [
+    {
+      name: "Doanh thu (triệu)",
+      data: dailyRevenue.revenueArr || [],
+    },
+  ];
 
   const monthlyOptions = {
     ...baseChartOptions,
-    xaxis: { ...baseChartOptions.xaxis, categories: monthlyRevenue.categories },
-    series: [{ name: "Doanh thu (triệu)", data: monthlyRevenue.revenueArr }],
+    chart: {
+      ...baseChartOptions.chart,
+      type: 'bar',
+    },
+    xaxis: {
+      ...baseChartOptions.xaxis,
+      categories: monthlyRevenue.categories || [],
+    },
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        columnWidth: '25%',
+        borderRadius: 4,
+      },
+    },
+    fill: {
+      opacity: 1,
+      colors: ["#3b82f6"],
+    },
   };
+
+  const monthlySeries = [
+    {
+      name: "Doanh thu (triệu)",
+      data: monthlyRevenue.revenueArr || [],
+    },
+  ];
 
   const [movies, setMovies] = useState([]);
   const [totalMovies, setTotalMovies] = useState(0);
@@ -191,6 +233,7 @@ function AdminDashboard() {
               </div>
             ))}
           </div>
+
           <div className="bg-slate-800 p-4 rounded-md mb-6">
             <h2 className="text-xl text-white mb-4">Quick Actions</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -253,11 +296,16 @@ function AdminDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-slate-800 p-4 rounded-md">
               <h2 className="text-white mb-4 text-center font-semibold">Daily Revenue</h2>
-              <Chart options={dailyOptions} series={dailyOptions.series} type="area" height={300} />
+              {dailyRevenue.categories.length > 0 && dailyRevenue.revenueArr.length > 0 && (
+                <Chart options={dailyOptions} series={dailySeries} type="area" height={300} />
+              )}
             </div>
+
             <div className="bg-slate-800 p-4 rounded-md">
               <h2 className="text-white mb-4 text-center font-semibold">Monthly Revenue</h2>
-              <Chart options={monthlyOptions} series={monthlyOptions.series} type="area" height={300} />
+              {monthlyRevenue.categories.length > 0 && monthlyRevenue.revenueArr.length > 0 && (
+                <Chart options={monthlyOptions} series={monthlySeries} type="bar" height={300} />
+              )}
             </div>
           </div>
         </main>

@@ -87,6 +87,7 @@ import EditAdminProfile from './pages/Admin/EditAdminProfile';
 import ChangeAdminPassword from './pages/Admin/ChangeAdminPassword';
 import EditEmProfile from './pages/Employee/EditEmProfile';
 import ChangeEmPassword from './pages/Employee/ChangeEmPassword';
+import CounterPaymentStatus from './pages/Employee/CounterPaymentStatus';
 
 
 function AppContent() {
@@ -152,10 +153,10 @@ function AppContent() {
           <Route path="/combo-selection" element={<RequireRole allowedRoles={['customer']}><ComboSelection /></RequireRole>} />
           <Route path="/confirm-booking" element={<RequireRole allowedRoles={['customer']}><ConfirmBooking /></RequireRole>} />
           <Route path="/payment" element={<RequireRole allowedRoles={['customer']}><PaymentPage /></RequireRole>} />
-          <Route path="/payment-status" element={<RequireRole allowedRoles={['customer']}><PaymentStatusPage /></RequireRole>} /> 
+          <Route path="/payment-status" element={<PaymentStatusPage />} />
           <Route path="/ticket-detail" element={<RequireRole allowedRoles={['customer']}><TicketDetail /></RequireRole>} />
-
-
+          <Route path="/counter-payment-status" element={<RequireRole allowedRoles={['employee']}><CounterPaymentStatus /></RequireRole>} />
+          
           {/* Admin */}
           <Route path="/admin" element={<RequireRole allowedRoles={['admin']}><AdminDashboard /></RequireRole>} />
           <Route path="/admin/view-members" element={<RequireRole allowedRoles={['admin']}><ViewMembers /></RequireRole>} />

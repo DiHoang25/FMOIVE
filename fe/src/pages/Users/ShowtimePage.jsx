@@ -273,29 +273,25 @@ function ShowtimePage() {
       </div>
 
       <div className="pt-44 px-6 pb-10" style={{ zIndex: 10 }}>
-        {" "}
-        {/* Giảm z-index của phần nội dung */}
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {movies.length > 0 ? (
             movies.map((movie, index) => (
               <MovieCard
                 key={index}
                 title={movie.name}
                 poster={movie.image_url}
-                info={`${movie.version || "2D"} • ${movie.running_time} min • ${movie.type || "Movie"
-                  }`}
+                info={`${movie.version || "2D"} • ${movie.running_time} min • ${movie.type || "Movie"}`}
                 showtimes={movie.showtimes}
                 movie={movie}
                 onShowtimeClick={handleMovieCardShowtimeClick}
               />
             ))
           ) : (
-            <p className="text-center text-gray-400">
-              No movies available for this day.
-            </p>
+            <p className="text-center text-gray-400">No movies available for this day.</p>
           )}
         </div>
       </div>
+
 
       {showBackToTop && (
         <button

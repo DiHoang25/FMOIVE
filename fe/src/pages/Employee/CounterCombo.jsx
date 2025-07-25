@@ -184,6 +184,7 @@ const CounterCombo = () => {
             selectedCombos: selectedComboList,
             combosTotal: totalComboPrice,
             selectedProducts,
+            totalProductsPrice,
             productsTotal: totalProductsPrice,
             finalTotal: total,
             userInformation

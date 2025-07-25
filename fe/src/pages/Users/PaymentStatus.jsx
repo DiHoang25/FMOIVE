@@ -1,8 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react'; // Thêm useRef
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { resetBooking } from '../../redux/bookingSlice';
 import axios from 'axios';
+import {
+  setUser,
+} from "../../redux/bookingSlice";
 
 const PaymentStatusPage = () => {
     const location = useLocation();
@@ -13,12 +16,41 @@ const PaymentStatusPage = () => {
     const [message, setMessage] = useState('Verifying payment status with the server...');
     const [bookingRef, setBookingRef] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+    const user = useSelector((state) => state.booking.user);
+    const roleRef = useRef(user?.role || 'customer');
+
 
     // Sử dụng useRef để tạo cờ chỉ gọi một lần, không kích hoạt re-render
     const hasFetched = useRef(false);
 
     // Đảm bảo URL này CHÍNH XÁC là URL của BACKEND của bạn
-    const BACKEND_BASE_URL = 'http://localhost:5000'; 
+    const BACKEND_BASE_URL = 'http://localhost:5000';
+
+
+const loadAllData = async () => {
+    try {
+    const token = localStorage.getItem("token");
+        if (token) {
+          const response = await axios.get("http://localhost:5000/api/user/profile", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const fetchedUser = response.data.user;
+          dispatch(setUser({
+            name: fetchedUser.fullname,
+            email: fetchedUser.email,
+            _id: fetchedUser._id,
+            phone: fetchedUser.phone,
+            username: fetchedUser.username,
+            gender: fetchedUser.gender,
+            address: fetchedUser.address,
+            id_card: fetchedUser.id_card,
+            role: fetchedUser.role,
+          }));
+        }
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+    }
+}
 
     useEffect(() => {
         // console.count('useEffect triggered'); // Dùng để debug số lần useEffect chạy
@@ -53,12 +85,12 @@ const PaymentStatusPage = () => {
 
                 const queryString = new URLSearchParams(vnpayQueryParams).toString();
                 const requestUrl = `${BACKEND_BASE_URL}/api/payment/vnpay_return?${queryString}`;
-                
+
                 console.log('Frontend is attempting to call Backend URL:', requestUrl); // Giữ lại log này
 
                 // Lời gọi axios.get ĐÚNG ĐỊA CHỈ
-                const response = await axios.get(requestUrl); 
-                
+                const response = await axios.get(requestUrl);
+
                 // Logic xử lý phản hồi từ Backend (status 200 OK)
                 const statusParam = queryParams.get('vnp_ResponseCode');
                 console.log("statusParam:", statusParam);
@@ -101,16 +133,27 @@ const PaymentStatusPage = () => {
 
         verifyPaymentWithBackend();
 
-    }, [location.search, dispatch, navigate]); // hasFetched không cần trong dependencies vì nó là useRef
+    }, [location.search, dispatch, navigate]);
+
+    // hasFetched không cần trong dependencies vì nó là useRef
 
     // ... (các hàm handleGoToBookings, handleGoHome và JSX render phần còn lại) ...
     const handleGoToBookings = () => {
-        navigate('/viewbookedticket');
+        if (roleRef.current === 'employee') {
+            navigate('/employee/counter-booking-list');
+        } else {
+            navigate('/viewbookedticket');
+        }
     };
 
     const handleGoHome = () => {
-        navigate('/');
+        if (roleRef.current === 'employee') {
+            navigate('/employee');
+        } else {
+            navigate('/');
+        }
     };
+
 
     return (
         <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center py-10 px-4">
@@ -130,7 +173,7 @@ const PaymentStatusPage = () => {
                         {bookingRef !== 'N/A' && (
                             <p className="text-gray-400">Transaction Reference: <span className="font-semibold">{bookingRef}</span></p>
                         )}
-                        
+
                         <div className="flex justify-center gap-4 mt-8">
                             <button
                                 onClick={handleGoToBookings}

@@ -6,6 +6,14 @@ import { setSelectedSeats } from "../../redux/bookingSlice";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { useMediaQuery } from "react-responsive";
 import { Crown } from "lucide-react";
+import { notification } from "antd";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import { ExclamationCircleOutlined } from '@ant-design/icons';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const SeatSelection = () => {
   const navigate = useNavigate();
@@ -13,8 +21,6 @@ const SeatSelection = () => {
   const dispatch = useDispatch();
   const selectedSeats = useSelector((state) => state.booking.selectedSeats);
   const isMobile = useMediaQuery({ maxWidth: 768 });
-
-  // isMobile flag is no longer needed as TransformWrapper and useMediaQuery are removed.
 
   const {
     movieDetails = {},
@@ -25,68 +31,229 @@ const SeatSelection = () => {
   } = state || {};
 
   const [roomData, setRoomDataState] = useState(null);
+  const [occupiedSeats, setOccupiedSeats] = useState([]);
   const [selectedSeatsState, setSelectedSeatsState] = useState(
     selectedSeats || []
   );
 
+  // DEBUG: Log incoming data
   useEffect(() => {
-    const fetchRoomData = async () => {
+    console.log("🔍 DEBUG - Incoming state data:");
+    console.log("movieDetails:", movieDetails);
+    console.log("selectedShowtimeTime:", selectedShowtimeTime);
+    console.log("fullShowtimeDate:", fullShowtimeDate);
+    console.log("roomId:", roomId);
+  }, [movieDetails, selectedShowtimeTime, fullShowtimeDate, roomId]);
+
+  useEffect(() => {
+    const fetchAllData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch(
-          `http://localhost:5000/api/theater/rooms/${roomId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
 
-        const data = await res.json();
-        if (!res.ok)
-          throw new Error(data.message || "Failed to load room data");
-        setRoomDataState(data.room);
+        console.log("🚀 Fetching data for roomId:", roomId);
+
+        // Fetch room data and occupied seats in parallel
+        const [roomRes, occupiedRes] = await Promise.all([
+          fetch(`http://localhost:5000/api/theater/rooms/${roomId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`http://localhost:5000/api/theater/rooms/${roomId}/occupied-seats`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        ]);
+
+        const roomData = await roomRes.json();
+        const occupiedData = await occupiedRes.json();
+
+        console.log("📦 Raw API responses:");
+        console.log("roomData:", roomData);
+        console.log("occupiedData:", occupiedData);
+
+        if (!roomRes.ok) {
+          throw new Error(roomData.message || "Failed to load room data");
+        }
+        if (!occupiedRes.ok) {
+          throw new Error(occupiedData.message || "Failed to fetch occupied seats");
+        }
+
+        setRoomDataState(roomData.room);
+        setOccupiedSeats(occupiedData.occupiedSeats || []);
+
+        console.log("✅ Data set to state:");
+        console.log("roomData.room:", roomData.room);
+        console.log("occupiedSeats:", occupiedData.occupiedSeats);
+
       } catch (err) {
-        console.error("❌ Error fetching room data:", err.message);
+        console.error("❌ Error fetching data:", err.message);
       }
     };
 
-    fetchRoomData();
+    if (roomId) {
+      fetchAllData();
+    }
   }, [roomId]);
 
-  const handleToggleSeat = (seat) => {
-  setSelectedSeatsState((prev) => {
-    const updated = prev.includes(seat.label)
-      ? prev.filter((s) => s !== seat.label)
-      : [...prev, seat.label];
+  // Tạo standardized movie time (improved version)
+  const standardizedMovieTime = (() => {
+    if (!selectedShowtimeTime || !fullShowtimeDate) {
+      console.log("⚠️ Missing time data:", { selectedShowtimeTime, fullShowtimeDate });
+      return null;
+    }
 
-    const selectedSeatObjects =
-      roomData?.seats?.filter((s) => updated.includes(s.label)) || [];
-    const totalPrice = selectedSeatObjects.reduce(
-      (sum, s) => sum + s.price,
-      0
-    );
+    console.log("🕐 Input data:", {
+      fullShowtimeDate,
+      selectedShowtimeTime,
+      roomId
+    });
 
-    dispatch(setSelectedSeats({ seats: updated, totalPrice }));
-    return updated;
+    // Thử parse với các format khác nhau
+    const cleanDate = fullShowtimeDate.trim();
+    const cleanTime = selectedShowtimeTime.trim();
+
+    const attempts = [
+      `${cleanDate} ${cleanTime}`,
+      `${cleanDate}, ${cleanTime}`,
+      `${cleanDate}T${cleanTime}`
+    ];
+
+    for (const attempt of attempts) {
+      const parsed = dayjs(attempt);
+      if (parsed.isValid()) {
+        const result = parsed.tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DDTHH:mm");
+        console.log(`✅ Parsed successfully: "${attempt}" -> "${result}"`);
+        return result;
+      }
+    }
+
+    console.log("❌ Could not parse time");
+    return null;
+  })();
+
+  // Lọc ghế occupied theo BOTH suất chiếu và phòng
+  const occupiedLabels = occupiedSeats
+    ?.filter((os) => {
+      console.log("🔍 Processing occupied seat:", {
+        seatLabel: os.seatLabel,
+        showtime: os.showtime,
+        roomId: os.roomId || 'No roomId in data'
+      });
+
+      // Kiểm tra có showtime không
+      if (!os.showtime) {
+        console.log("⚠️ No showtime for seat:", os.seatLabel);
+        return false;
+      }
+
+      // Kiểm tra có roomId không (nếu API trả về roomId)
+      if (os.roomId && os.roomId !== roomId) {
+        console.log(`🏠 Different room: seat ${os.seatLabel} is in room ${os.roomId}, current room is ${roomId}`);
+        return false;
+      }
+
+      // Kiểm tra standardizedMovieTime có hợp lệ không
+      if (!standardizedMovieTime) {
+        console.log("⚠️ Invalid standardizedMovieTime, cannot compare");
+        return false;
+      }
+
+      try {
+        // Convert occupied seat time to Vietnam timezone
+        const occupiedTimeVN = dayjs.utc(os.showtime).tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DDTHH:mm");
+
+        console.log(`🕒 Time comparison for seat ${os.seatLabel}:`);
+        console.log(`   Occupied: "${occupiedTimeVN}"`);
+        console.log(`   Target:   "${standardizedMovieTime}"`);
+
+        const isTimeMatch = occupiedTimeVN === standardizedMovieTime;
+        console.log(`   Match: ${isTimeMatch}`);
+
+        if (isTimeMatch) {
+          console.log(`✅ OCCUPIED SEAT FOUND: ${os.seatLabel} for showtime ${standardizedMovieTime}`);
+        }
+
+        return isTimeMatch;
+
+      } catch (error) {
+        console.error("❌ Error processing occupied seat time:", error);
+        return false;
+      }
+    })
+    .map((os) => os.seatLabel) || [];
+
+  console.log("🎯 FINAL RESULTS:");
+  console.log(`   Room ID: ${roomId}`);
+  console.log(`   Target showtime: ${standardizedMovieTime}`);
+  console.log(`   Total occupied seats in room: ${occupiedSeats?.length || 0}`);
+  console.log(`   Occupied seats for this showtime: ${occupiedLabels.length}`);
+  console.log(`   Seat labels: [${occupiedLabels.join(', ')}]`);
+
+  const showOccupiedSeatModal = (seatLabel) => {
+  notification.warning({
+    message: (
+      <span className="font-semibold text-red-500 flex items-center gap-2">
+        <ExclamationCircleOutlined className="text-red-500" />
+        Seat Already Booked
+      </span>
+    ),
+    description: (
+      <div className="text-sm text-gray-700 leading-relaxed">
+        Seat <strong>{seatLabel}</strong> has already been booked for this showtime.
+        <br />
+        Please choose a different seat.
+      </div>
+    ),
+    duration: 2,
+    placement: 'topRight',
+    className: 'custom-notification',
   });
 };
 
 
-  const getSeatClass = (seat) => {
-  const isSelected = selectedSeatsState.includes(seat.label);
-  const isOccupied = roomData?.occupiedSeats?.some(os => os.seatLabel === seat.label);
-  
-  const base = `
-    w-10 h-10 text-xs rounded-lg flex items-center justify-center 
-    font-bold border-2 ${isMobile ? '' : 'transition-all duration-200 transform hover:scale-110 hover:shadow-lg'}
-  `;
 
-  if (isOccupied) return `${base} bg-gray-600 text-white border-gray-500 cursor-not-allowed opacity-70`;
-  if (isSelected) return `${base} bg-gradient-to-br from-red-500 to-red-600 text-white border-red-400 ${isMobile ? '' : 'shadow-lg scale-105'}`;
-  if (seat.type === "VIP") return `${base} bg-gradient-to-br from-amber-400 to-yellow-500 text-gray-900 border-amber-300`;
-  return `${base} bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 border-gray-300`;
-};
+  const handleToggleSeat = (seat) => {
+    const isOccupied = occupiedLabels.includes(seat.label);
+    if (isOccupied) {
+      console.log("🚫 Seat is occupied for this showtime:", seat.label);
+      showOccupiedSeatModal(seat.label); // Sử dụng modal thay vì alert
+      return;
+    }
+
+    setSelectedSeatsState((prev) => {
+      const updated = prev.includes(seat.label)
+        ? prev.filter((s) => s !== seat.label)
+        : [...prev, seat.label];
+
+      const selectedSeatObjects =
+        roomData?.seats?.filter((s) => updated.includes(s.label)) || [];
+      const totalPrice = selectedSeatObjects.reduce(
+        (sum, s) => sum + s.price,
+        0
+      );
+
+      dispatch(setSelectedSeats({ seats: updated, totalPrice }));
+      return updated;
+    });
+  };
+
+  const getSeatClass = (seat) => {
+    const isSelected = selectedSeatsState.includes(seat.label);
+    const isOccupied = occupiedLabels.includes(seat.label);
+
+    // Log để debug
+    if (isOccupied) {
+      console.log(`🔴 Seat ${seat.label} is OCCUPIED for this showtime`);
+    }
+
+    const base = `
+      w-10 h-10 text-xs rounded-lg flex items-center justify-center 
+      font-bold border-2 ${isMobile ? '' : 'transition-all duration-200 transform hover:scale-110 hover:shadow-lg'}
+    `;
+
+    if (isOccupied) return `${base} bg-gray-600 text-white border-gray-500 cursor-not-allowed`;
+    if (isSelected) return `${base} bg-gradient-to-br from-red-500 to-red-600 text-white border-red-400 ${isMobile ? '' : 'shadow-lg scale-105'}`;
+    if (seat.type === "VIP") return `${base} bg-gradient-to-br from-amber-400 to-yellow-500 text-gray-900 border-amber-300`;
+    return `${base} bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 border-gray-300`;
+  };
 
   const calculateTotalTicketPrice = () => {
     if (!roomData) return 0;
@@ -97,24 +264,17 @@ const SeatSelection = () => {
 
   const handleContinue = () => {
     if (selectedSeatsState.length === 0) {
-      console.warn("Please select at least one seat to continue."); // Replaced message.warning
+      console.warn("Please select at least one seat to continue.");
       return;
     }
-
-    const selectedSeatObjects = roomData.seats.filter((seat) =>
-      selectedSeatsState.includes(seat.label)
-    );
-    const totalPrice = calculateTotalTicketPrice();
-
-    
 
     navigate("/employee/counter-combo", {
       state: {
         movieDetails,
         selectedShowtimeTime,
         fullShowtimeDate,
-        selectedSeats: roomData.seats.filter(seat => selectedSeats.includes(seat.label)),
-ticketPrice: calculateTotalTicketPrice(),
+        selectedSeats: roomData.seats.filter(seat => selectedSeatsState.includes(seat.label)),
+        ticketPrice: calculateTotalTicketPrice(),
         userInformation,
       },
     });
@@ -159,7 +319,6 @@ ticketPrice: calculateTotalTicketPrice(),
           </p>
           <div className="h-1 w-full bg-white mb-6" />
 
-          
           {roomData ? (
             isMobile ? (
               <div className="relative w-full overflow-hidden rounded-lg border border-gray-600">
@@ -173,20 +332,20 @@ ticketPrice: calculateTotalTicketPrice(),
                   {({ zoomIn, zoomOut, resetTransform }) => (
                     <>
                       <div className="absolute top-2 right-2 z-10 flex gap-2">
-                        <button 
-                          onClick={() => zoomIn()} 
+                        <button
+                          onClick={() => zoomIn()}
                           className="bg-gray-700/80 text-white p-1 rounded"
                         >
                           +
                         </button>
-                        <button 
-                          onClick={() => zoomOut()} 
+                        <button
+                          onClick={() => zoomOut()}
                           className="bg-gray-700/80 text-white p-1 rounded"
                         >
                           -
                         </button>
-                        <button 
-                          onClick={() => resetTransform()} 
+                        <button
+                          onClick={() => resetTransform()}
                           className="bg-gray-700/80 text-white p-1 rounded"
                         >
                           Reset
@@ -284,7 +443,6 @@ ticketPrice: calculateTotalTicketPrice(),
             </div>
           )}
 
-
           {/* Legend */}
           <div className="flex justify-around text-sm mt-6 flex-wrap gap-y-2">
             <div className="flex items-center gap-1">
@@ -297,13 +455,13 @@ ticketPrice: calculateTotalTicketPrice(),
             </div>
             <div className="flex items-center gap-1">
               <div className="w-4 h-4 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-lg border-2 border-amber-300 flex items-center justify-center">
-                {/* Replaced Crown icon with text for VIP legend */}
-                <span className="text-gray-900 font-bold text-[8px]"></span>
+                <Crown className="w-2 h-2" />
               </div>
               <span className="text-slate-300 font-medium">VIP</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-4 h-4 bg-gray-600 rounded" /> Booked
+              <div className="w-4 h-4 bg-slate-500 rounded-lg border-2 border-slate-600" />
+              <span className="text-slate-300 font-medium">Occupied</span>
             </div>
           </div>
 
@@ -313,7 +471,7 @@ ticketPrice: calculateTotalTicketPrice(),
               PRICE: {calculateTotalTicketPrice().toLocaleString("vi-VN")} VND
             </div>
             <button
-              className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded font-semibold disabled:opacity-50 flex-shrink-0 mt-4 md:mt-0" /* Added mt-4 for mobile spacing */
+              className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded font-semibold disabled:opacity-50 flex-shrink-0 mt-4 md:mt-0"
               disabled={selectedSeatsState.length === 0}
               onClick={handleContinue}
             >

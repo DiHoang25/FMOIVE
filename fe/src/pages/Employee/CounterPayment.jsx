@@ -1,224 +1,200 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { XCircle } from 'lucide-react';
-import SidebarLayout from '../../components/Sidebar-Employee';
+// Removed useSelector as data will now be passed via location.state
+// import { useSelector } from 'react-redux';
+import { message } from 'antd'; // Import Ant Design message for notifications
+
+// Path to your VNPAY icon (replace with actual path)
+import VnpayIcon from '../../assets/vnpay-icon.png'; // Example: Assuming you have an icon in assets
 
 const PaymentPage = () => {
-  const navigate = useNavigate();
-  const { state } = useLocation();
+    const navigate = useNavigate();
+    const location = useLocation();
 
-  const {
-    movieDetails = {},
-    selectedShowtimeTime = '',
-    fullShowtimeDate = '',
-    selectedSeats = [],
-    selectedCombos = [],
-    selectedProducts = [],
-    ticketPrice = 0,
-    // serviceFee = 2.50,
-    combosTotal = 0,
-    productsTotal = 0,
-    finalTotal = 0,
-    userInformation = {},
-  } = state || {};
+    const [selectedMethod, setSelectedMethod] = useState('vnpay'); // Mặc định VNPAY
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false); // Ngăn chặn nhấp đúp
 
-  const [selectedMethod, setSelectedMethod] = useState('vnpay');
-  const [showCashConfirmModal, setShowCashConfirmModal] = useState(false);
-
-  const displayTotal = finalTotal;
-  const displayTicketCount = selectedSeats.length;
-  const displayTicketPrice = ticketPrice;
-  const displayCombosTotal = combosTotal;
-  const displayProductsTotal = productsTotal;
-
-  const paymentMethods = [
-    {
-      id: 'vnpay',
-      label: 'VN Pay',
-      desc: 'Scan to pay with VN Pay (Online Payment)',
-
-    },
-    {
-      id: 'cash',
-      label: 'Cash Payment',
-      desc: 'Confirm payment with staff at the counter',
-
-    },
-  ];
-
-  const handlePayNow = () => {
-    if (selectedMethod === 'cash') {
-      setShowCashConfirmModal(true);
-    } else if (selectedMethod === 'vnpay') {
-      alert('Redirecting to VN Pay gateway (simulated)...');
-      handlePaymentConfirmed();
-    }
-  };
-
-  const handlePaymentConfirmed = () => {
-    setShowCashConfirmModal(false);
-    navigate('/employee/counter-payment-success', {
-      state: {
+    // Lấy TẤT CẢ booking details đã được tạo từ trang CounterConfirm thông qua location.state
+    const {
+        bookingId: confirmedBookingId,
+        grandTotal: grandTotalFromLocation, // This is the finalTotal passed from CounterConfirm
         movieDetails,
-        selectedShowtimeTime,
-        fullShowtimeDate,
         selectedSeats,
         selectedCombos,
-        selectedProducts,
-        ticketPrice,
-        // serviceFee,
-        combosTotal,
-        productsTotal,
-        finalTotal,
-        userInformation,
-      },
-    });
-  };
+        selectedProducts, // New: products passed from CounterConfirm
+        ticketPrice,      // New: ticketPrice from CounterConfirm
+        combosTotal,      // New: combosTotal from CounterConfirm
+        productsTotal,    // New: productsTotal from CounterConfirm
+        finalTotal,       // New: finalTotal from CounterConfirm (same as grandTotalFromLocation)
+        voucherCode,      // New: voucherCode from CounterConfirm
+        voucherDiscount,  // New: voucherDiscount from CounterConfirm
+    } = location.state || {};
 
-  const handleCloseModal = () => {
-    setShowCashConfirmModal(false);
-  };
+    // Use finalTotal from location.state as the primary source for the payment amount
+    const finalPaymentAmount = finalTotal || 0;
 
-  return (
-    <SidebarLayout>
-      <div className="min-h-screen text-white flex items-center justify-center py-10 px-4">
-        <div className="max-w-md w-full bg-slate-800 rounded-xl p-6 space-y-6 shadow-lg relative">
+    // Derived counts for display
+    const ticketCount = selectedSeats ? selectedSeats.length : 0;
+    const comboCount = selectedCombos ? selectedCombos.reduce((sum, combo) => sum + combo.quantity, 0) : 0;
+    const productCount = selectedProducts ? selectedProducts.reduce((sum, product) => sum + product.quantity, 0) : 0;
 
-          {/* Back Button */}
-          <button
-            onClick={() => navigate(-1)}
-            className="absolute top-4 left-4 text-white bg-gray-700 hover:bg-gray-600 px-4 py-1 rounded-md text-sm font-medium"
-          >
-            ← Back
-          </button>
 
-          <div className="pt-8">
-            <h1 className="text-2xl font-bold text-center mb-6">Complete Your Payment</h1>
-          </div>
+    const paymentMethods = [
+        {
+            id: 'vnpay',
+            label: 'VN Pay',
+            desc: 'Scan to pay with VN Pay (Sandbox)',
+            icon: VnpayIcon // Use the imported icon
+        },
+        // Thêm các phương thức khác (ví dụ: MoMo, Credit Card)
+    ];
 
-          {/* Payment Methods */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-200">Choose Payment Method:</h3>
-            {paymentMethods.map((method) => (
-              <button
-                key={method.id}
-                onClick={() => setSelectedMethod(method.id)}
-                className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 ${selectedMethod === method.id
-                  ? 'border-red-600 bg-slate-700 shadow-lg'
-                  : 'border-slate-700 bg-slate-900 hover:border-zinc-600'
-                  }`}
-              >
-                <span className="text-3xl">{method.icon}</span>
+    // useEffect to check if bookingId is missing
+    useEffect(() => {
+        if (!confirmedBookingId) {
+            message.error('Booking details missing. Please go back to confirm your booking.');
+            // Optionally navigate user back
+            // navigate('/employee/counter-confirm');
+        }
+    }, [confirmedBookingId, navigate]);
+
+
+    const handleInitiatePayment = async () => {
+        if (isProcessingPayment) return;
+
+        if (!confirmedBookingId) {
+            message.error('Booking ID is missing. Please go back to confirm your booking.');
+            return;
+        }
+
+        setIsProcessingPayment(true);
+
+        try {
+            const token = localStorage.getItem('token'); // Lấy JWT token
+            if (!token) {
+                message.error('Authentication required. Please log in.');
+                setIsProcessingPayment(false);
+                return;
+            }
+
+            const response = await fetch('http://localhost:5000/api/payment/create_payment_url', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` // Gửi token
+                },
+                body: JSON.stringify({
+                    bookingId: confirmedBookingId,
+                    grandTotal: finalPaymentAmount, // Gửi số tiền cuối cùng để thanh toán
+                    bankCode: selectedMethod === 'vnpay' ? '' : '', // Để trống nếu VNPAY sẽ hiển thị danh sách bank
+                    language: 'vn'
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                message.loading('Redirecting to VNPAY...', 1.5); // Show loading message
+                // Chuyển hướng người dùng đến URL VNPAY
+                window.location.href = data.paymentUrl;
+            } else {
+                message.error(data.message || 'Failed to initiate payment.');
+                console.error('Payment initiation failed:', data.message);
+            }
+        } catch (error) {
+            console.error('Error initiating payment:', error);
+            message.error('An unexpected error occurred. Please try again.');
+        } finally {
+            setIsProcessingPayment(false);
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-black text-white flex items-center justify-center py-10 px-4">
+            <div className="max-w-md w-full bg-neutral-900 rounded-xl p-6 space-y-6 shadow-lg relative">
+
+                {/* Back Button */}
+                <button
+                    onClick={() => navigate(-1)}
+                    className="absolute top-4 left-4 text-white bg-gray-700 hover:bg-gray-600 px-4 py-1 rounded"
+                >
+                    ← Back
+                </button>
+
                 <div>
-                  <p className="font-semibold text-lg">{method.label}</p>
-                  <p className="text-sm text-gray-400 mt-1">{method.desc}</p>
+                    <h1 className="text-xl font-bold text-center">Complete Your Payment</h1>
                 </div>
-              </button>
-            ))}
-          </div>
 
-          {/* Price Summary */}
-          <div className="bg-slate-700 rounded-lg p-5 text-base space-y-3 shadow-inner">
-            <h3 className="text-lg font-semibold text-gray-200 mb-2">Order Summary:</h3>
+                {/* Payment Methods */}
+                <div className="space-y-3">
+                    {paymentMethods.map((method) => (
+                        <button
+                            key={method.id}
+                            onClick={() => setSelectedMethod(method.id)}
+                            className={`w-full text-left px-4 py-3 rounded border ${
+                                selectedMethod === method.id
+                                    ? 'border-red-600 bg-zinc-900'
+                                    : 'border-zinc-800 bg-zinc-800'
+                            } flex items-center gap-3`}
+                        >
+                            {method.icon && <img src={method.icon} alt={method.label} className="w-8 h-8 object-contain" />}
+                            <div>
+                                <p className="font-semibold">{method.label}</p>
+                                <p className="text-sm text-gray-400">{method.desc}</p>
+                            </div>
+                        </button>
+                    ))}
+                </div>
 
-            {/* Movie Tickets */}
-            <div className="flex justify-between">
-              <span>Movie Tickets ({displayTicketCount})</span>
-              <span>{displayTicketPrice.toLocaleString('vi-VN')} VND</span>
+                {/* Price Summary */}
+                <div className="bg-zinc-800 rounded p-4 text-sm space-y-2">
+                    <div className="flex justify-between">
+                        <span>Movie Tickets ({ticketCount})</span>
+                        <span>{(ticketPrice || 0).toLocaleString('vi-VN')} VND</span>
+                    </div>
+                    {comboCount > 0 && (
+                        <div className="flex justify-between">
+                            <span>Popcorns & Drink ({comboCount})</span>
+                            <span>{(combosTotal || 0).toLocaleString('vi-VN')} VND</span>
+                        </div>
+                    )}
+                    {productCount > 0 && ( // Display products if available
+                        <div className="flex justify-between">
+                            <span>Additional Products ({productCount})</span>
+                            <span>{(productsTotal || 0).toLocaleString('vi-VN')} VND</span>
+                        </div>
+                    )}
+                    {voucherDiscount > 0 && (
+                        <div className="flex justify-between text-green-400">
+                            <span>Voucher Discount</span>
+                            <span>-${voucherDiscount.toLocaleString('vi-VN')} VND</span>
+                        </div>
+                    )}
+
+                    <hr className="border-gray-700" />
+                    <div className="flex justify-between font-bold text-base">
+                        <span>Total Amount</span>
+                        <span>{finalPaymentAmount.toLocaleString('vi-VN')} VND</span> {/* Display final amount */}
+                    </div>
+                </div>
+
+                {/* Confirm Notice */}
+                <p className="text-xs text-center text-white bg-red-600 rounded py-2 font-semibold">
+                    You'll be directed to the third-party payment gateway to complete your transaction.
+                </p>
+
+                {/* Payment Button */}
+                <button
+                    onClick={handleInitiatePayment}
+                    className={`w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg text-lg
+                                ${isProcessingPayment ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={isProcessingPayment}
+                >
+                    {isProcessingPayment ? 'Redirecting...' : `Pay ${finalPaymentAmount.toLocaleString('vi-VN')} VND`}
+                </button>
             </div>
-
-            {/* Combos */}
-            {selectedCombos.length > 0 && (
-              <div className="space-y-1">
-                <div className="text-sm font-medium text-gray-300">Combos & Snacks:</div>
-                {selectedCombos.map(combo => (
-                  <div key={combo.id} className="flex justify-between text-sm">
-                    <span>{combo.name} × {combo.quantity}</span>
-                    <span>{(combo.price * combo.quantity).toLocaleString('vi-VN')} VND</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Products */}
-            {selectedProducts.length > 0 && (
-              <div className="space-y-1 mt-2">
-                <div className="text-sm font-medium text-gray-300">Additional Products:</div>
-                {selectedProducts.map(product => (
-                  <div key={product.id} className="flex justify-between text-sm">
-                    <span>{product.name} × {product.quantity}</span>
-                    <span>{(product.price * product.quantity).toLocaleString('vi-VN')} VND</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <hr className="border-gray-700 my-2" />
-
-            {/* Total */}
-            <div className="flex justify-between font-bold text-xl text-red-400">
-              <span>Total Amount</span>
-              <span>{displayTotal.toLocaleString('vi-VN')} VND</span>
-            </div>
-          </div>
-
-
-          {/* Confirm Notice / Action Button */}
-          <div className="mt-6">
-            {selectedMethod === 'vnpay' && (
-              <p className="text-xs text-center text-white bg-gray-700 rounded-md py-3 px-4 font-semibold"> {/* Changed from blue to gray */}
-                You'll be directed to the VN Pay gateway to complete your transaction.
-              </p>
-            )}
-            {selectedMethod === 'cash' && (
-              <p className="text-xs text-center text-white bg-red-600 rounded-md py-3 px-4 font-semibold"> {/* Changed from green to red */}
-                Please collect cash from the customer and then confirm payment below.
-              </p>
-            )}
-
-            <button
-              onClick={handlePayNow}
-              className="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-bold text-lg mt-4 shadow-xl transform transition-transform duration-200 hover:scale-[1.02]"
-            >
-              Pay Now
-            </button>
-          </div>
         </div>
-
-        {/* Cash Payment Confirmation Modal */}
-        {showCashConfirmModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-            <div className="bg-neutral-800 rounded-xl p-8 shadow-2xl text-center relative max-w-sm w-full border border-gray-700">
-              <button
-                onClick={handleCloseModal}
-                className="absolute top-3 right-3 text-gray-400 hover:text-white"
-              >
-                <XCircle size={24} />
-              </button>
-              <h2 className="text-2xl font-bold text-red-500 mb-4">Confirm Cash Payment</h2>
-              <p className="text-gray-300 mb-6 text-base">
-                Has the customer paid the full amount of <span className="font-bold text-red-400">${displayTotal}</span> in cash?
-              </p>
-              <div className="flex justify-center gap-4">
-                <button
-                  onClick={handleCloseModal}
-                  className="bg-gray-700 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handlePaymentConfirmed}
-                  className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors" // Changed from green to red
-                >
-                  Confirm Paid
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </SidebarLayout>
-  );
+    );
 };
 
 export default PaymentPage;

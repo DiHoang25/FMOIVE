@@ -33,6 +33,7 @@ const initialState = {
     gender: 'male',
     address: '123 Main St',
     id_card: '0123456789',
+    role: null,
   },
 };
 
