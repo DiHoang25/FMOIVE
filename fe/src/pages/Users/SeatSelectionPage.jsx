@@ -137,12 +137,26 @@ function SeatSelectionPage() {
 
 
   const handleToggleSeat = (seat) => {
-    setSelectedSeatsState((prev) =>
-      prev.includes(seat.label)
-        ? prev.filter((s) => s !== seat.label)
-        : [...prev, seat.label]
+  const isOccupied = occupiedLabels.includes(seat.label);
+  if (isOccupied) return; // 🚫 Không cho chọn ghế đã bị chiếm
+
+  setSelectedSeatsState((prev) => {
+    const updated = prev.includes(seat.label)
+      ? prev.filter((s) => s !== seat.label)
+      : [...prev, seat.label];
+
+    const selectedSeatObjects =
+      roomData?.seats?.filter((s) => updated.includes(s.label)) || [];
+
+    const totalPrice = selectedSeatObjects.reduce(
+      (sum, s) => sum + s.price,
+      0
     );
-  };
+
+    dispatch(setSelectedSeats({ seats: updated, totalPrice }));
+    return updated;
+  });
+};
 
   const getSeatClass = (seat) => {
   const isSelected = selectedSeatsState.includes(seat.label);

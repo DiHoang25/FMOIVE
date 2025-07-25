@@ -100,11 +100,13 @@ function AppContent() {
     location.pathname.startsWith('/register') ||
     location.pathname.startsWith('/reset-password') ||
     location.pathname.startsWith('/forgot-password') ||
-    location.pathname.startsWith('/new-password');
+    location.pathname.startsWith('/new-password') ||
+    location.pathname.startsWith('/payment-status');
 
   const hideLayout =
     location.pathname.startsWith('/admin') ||
-    location.pathname.startsWith('/employee');
+    location.pathname.startsWith('/employee') ||
+    location.pathname.startsWith('/payment-status');
 
   return (
     <>

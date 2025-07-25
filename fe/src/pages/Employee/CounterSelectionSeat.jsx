@@ -22,12 +22,16 @@ const SeatSelection = () => {
   const selectedSeats = useSelector((state) => state.booking.selectedSeats);
   const isMobile = useMediaQuery({ maxWidth: 768 });
 
+  // Lấy thông tin user từ Redux store (quan trọng nhất!)
+  const user = useSelector((state) => state.booking.user);
+  console.log("🔍 DEBUG - User from Redux store on SeatSelection:", user);
+
   const {
     movieDetails = {},
     selectedShowtimeTime = "",
     fullShowtimeDate = "",
     roomId = "",
-    userInformation = {},
+    // userInformation = {}, // <--- XÓA DÒNG NÀY, không còn cần nữa
   } = state || {};
 
   const [roomData, setRoomDataState] = useState(null);
@@ -36,9 +40,9 @@ const SeatSelection = () => {
     selectedSeats || []
   );
 
-  // DEBUG: Log incoming data
+  // DEBUG: Log incoming data (cần kiểm tra xem movieDetails, time, roomId có đầy đủ không)
   useEffect(() => {
-    console.log("🔍 DEBUG - Incoming state data:");
+    console.log("🔍 DEBUG - Incoming state data to SeatSelection:");
     console.log("movieDetails:", movieDetails);
     console.log("selectedShowtimeTime:", selectedShowtimeTime);
     console.log("fullShowtimeDate:", fullShowtimeDate);
@@ -49,6 +53,13 @@ const SeatSelection = () => {
     const fetchAllData = async () => {
       try {
         const token = localStorage.getItem("token");
+
+        if (!token) {
+          console.error("❌ No token found. User might not be logged in.");
+          // Có thể điều hướng về trang login nếu không có token
+          // navigate('/employee/login');
+          return;
+        }
 
         console.log("🚀 Fetching data for roomId:", roomId);
 
@@ -85,13 +96,22 @@ const SeatSelection = () => {
 
       } catch (err) {
         console.error("❌ Error fetching data:", err.message);
+        notification.error({
+            message: 'Error',
+            description: `Failed to load seat data: ${err.message}. Please try again.`,
+            placement: 'topRight'
+        });
       }
     };
 
     if (roomId) {
       fetchAllData();
+    } else {
+        console.warn("Room ID is missing. Cannot fetch room data.");
+        // Điều hướng trở lại trang chọn suất chiếu nếu không có roomId
+        navigate('/employee/counter-showtimes');
     }
-  }, [roomId]);
+  }, [roomId, navigate]); // Thêm navigate vào dependency array
 
   // Tạo standardized movie time (improved version)
   const standardizedMovieTime = (() => {
@@ -132,27 +152,27 @@ const SeatSelection = () => {
   // Lọc ghế occupied theo BOTH suất chiếu và phòng
   const occupiedLabels = occupiedSeats
     ?.filter((os) => {
-      console.log("🔍 Processing occupied seat:", {
-        seatLabel: os.seatLabel,
-        showtime: os.showtime,
-        roomId: os.roomId || 'No roomId in data'
-      });
+      // console.log("🔍 Processing occupied seat:", {
+      //   seatLabel: os.seatLabel,
+      //   showtime: os.showtime,
+      //   roomId: os.roomId || 'No roomId in data'
+      // });
 
       // Kiểm tra có showtime không
       if (!os.showtime) {
-        console.log("⚠️ No showtime for seat:", os.seatLabel);
+        // console.log("⚠️ No showtime for seat:", os.seatLabel);
         return false;
       }
 
       // Kiểm tra có roomId không (nếu API trả về roomId)
       if (os.roomId && os.roomId !== roomId) {
-        console.log(`🏠 Different room: seat ${os.seatLabel} is in room ${os.roomId}, current room is ${roomId}`);
+        // console.log(`🏠 Different room: seat ${os.seatLabel} is in room ${os.roomId}, current room is ${roomId}`);
         return false;
       }
 
       // Kiểm tra standardizedMovieTime có hợp lệ không
       if (!standardizedMovieTime) {
-        console.log("⚠️ Invalid standardizedMovieTime, cannot compare");
+        // console.log("⚠️ Invalid standardizedMovieTime, cannot compare");
         return false;
       }
 
@@ -160,16 +180,14 @@ const SeatSelection = () => {
         // Convert occupied seat time to Vietnam timezone
         const occupiedTimeVN = dayjs.utc(os.showtime).tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DDTHH:mm");
 
-        console.log(`🕒 Time comparison for seat ${os.seatLabel}:`);
-        console.log(`   Occupied: "${occupiedTimeVN}"`);
-        console.log(`   Target:   "${standardizedMovieTime}"`);
+        // console.log(`🕒 Time comparison for seat ${os.seatLabel}:`);
+        // console.log(`   Occupied: "${occupiedTimeVN}"`);
+        // console.log(`   Target:   "${standardizedMovieTime}"`);
 
         const isTimeMatch = occupiedTimeVN === standardizedMovieTime;
-        console.log(`   Match: ${isTimeMatch}`);
-
-        if (isTimeMatch) {
-          console.log(`✅ OCCUPIED SEAT FOUND: ${os.seatLabel} for showtime ${standardizedMovieTime}`);
-        }
+        // if (isTimeMatch) {
+        //   console.log(`✅ OCCUPIED SEAT FOUND: ${os.seatLabel} for showtime ${standardizedMovieTime}`);
+        // }
 
         return isTimeMatch;
 
@@ -180,33 +198,33 @@ const SeatSelection = () => {
     })
     .map((os) => os.seatLabel) || [];
 
-  console.log("🎯 FINAL RESULTS:");
+  console.log("🎯 FINAL RESULTS for occupied seats:");
   console.log(`   Room ID: ${roomId}`);
   console.log(`   Target showtime: ${standardizedMovieTime}`);
-  console.log(`   Total occupied seats in room: ${occupiedSeats?.length || 0}`);
-  console.log(`   Occupied seats for this showtime: ${occupiedLabels.length}`);
-  console.log(`   Seat labels: [${occupiedLabels.join(', ')}]`);
+  console.log(`   Total occupied seats in room (raw): ${occupiedSeats?.length || 0}`);
+  console.log(`   Occupied seats for this showtime after filtering: ${occupiedLabels.length}`);
+  console.log(`   Seat labels for this showtime: [${occupiedLabels.join(', ')}]`);
 
   const showOccupiedSeatModal = (seatLabel) => {
-  notification.warning({
-    message: (
-      <span className="font-semibold text-red-500 flex items-center gap-2">
-        <ExclamationCircleOutlined className="text-red-500" />
-        Seat Already Booked
-      </span>
-    ),
-    description: (
-      <div className="text-sm text-gray-700 leading-relaxed">
-        Seat <strong>{seatLabel}</strong> has already been booked for this showtime.
-        <br />
-        Please choose a different seat.
-      </div>
-    ),
-    duration: 2,
-    placement: 'topRight',
-    className: 'custom-notification',
-  });
-};
+    notification.warning({
+      message: (
+        <span className="font-semibold text-red-500 flex items-center gap-2">
+          <ExclamationCircleOutlined className="text-red-500" />
+          Seat Already Booked
+        </span>
+      ),
+      description: (
+        <div className="text-sm text-gray-700 leading-relaxed">
+          Seat <strong>{seatLabel}</strong> has already been booked for this showtime.
+          <br />
+          Please choose a different seat.
+        </div>
+      ),
+      duration: 2,
+      placement: 'topRight',
+      className: 'custom-notification',
+    });
+  };
 
 
 
@@ -239,13 +257,8 @@ const SeatSelection = () => {
     const isSelected = selectedSeatsState.includes(seat.label);
     const isOccupied = occupiedLabels.includes(seat.label);
 
-    // Log để debug
-    if (isOccupied) {
-      console.log(`🔴 Seat ${seat.label} is OCCUPIED for this showtime`);
-    }
-
     const base = `
-      w-10 h-10 text-xs rounded-lg flex items-center justify-center 
+      w-10 h-10 text-xs rounded-lg flex items-center justify-center
       font-bold border-2 ${isMobile ? '' : 'transition-all duration-200 transform hover:scale-110 hover:shadow-lg'}
     `;
 
@@ -264,8 +277,25 @@ const SeatSelection = () => {
 
   const handleContinue = () => {
     if (selectedSeatsState.length === 0) {
-      console.warn("Please select at least one seat to continue.");
+      notification.warning({
+        message: 'No Seats Selected',
+        description: 'Please select at least one seat to continue.',
+        placement: 'topRight'
+      });
       return;
+    }
+
+    // Kiểm tra xem thông tin user có đủ không trước khi điều hướng
+    if (!user || !user.role) {
+        notification.error({
+            message: 'User Information Missing',
+            description: 'Cannot proceed. User information is not available. Please log in again.',
+            placement: 'topRight'
+        });
+        console.error("🔴 User information missing when attempting to continue from SeatSelection:", user);
+        // Có thể điều hướng về trang đăng nhập hoặc trang trước đó
+        // navigate('/employee/login');
+        return;
     }
 
     navigate("/employee/counter-combo", {
@@ -275,11 +305,10 @@ const SeatSelection = () => {
         fullShowtimeDate,
         selectedSeats: roomData.seats.filter(seat => selectedSeatsState.includes(seat.label)),
         ticketPrice: calculateTotalTicketPrice(),
-        userInformation,
+        userInformation: user, // <-- Truyền user từ Redux store
       },
     });
   };
-
   const handleBack = () => navigate(-1);
 
   return (
@@ -294,6 +323,7 @@ const SeatSelection = () => {
               ← Back
             </button>
           </div>
+
 
           <div className="flex items-center justify-center gap-4 mb-6 bg-slate-800 p-4 rounded-md">
             {movieDetails.image_url && (

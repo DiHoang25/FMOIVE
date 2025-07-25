@@ -78,7 +78,7 @@ function AdminDashboard() {
             return isNaN(val) ? 0 : val;
           }),
         });
-        setMonthlyRevenue({
+setMonthlyRevenue({
           categories: monthlySorted.map(([m]) => m),
           revenueArr: monthlySorted.map(([, r]) => {
             const val = +(r / 1e6).toFixed(2);
@@ -153,7 +153,7 @@ function AdminDashboard() {
 
   const dailySeries = [
     {
-      name: "Doanh thu (triệu)",
+      name: "Revenue (million)",
       data: dailyRevenue.revenueArr || [],
     },
   ];
@@ -175,15 +175,11 @@ function AdminDashboard() {
         borderRadius: 4,
       },
     },
-    fill: {
-      opacity: 1,
-      colors: ["#3b82f6"],
-    },
   };
 
   const monthlySeries = [
     {
-      name: "Doanh thu (triệu)",
+      name: "Revenue (million)",
       data: monthlyRevenue.revenueArr || [],
     },
   ];
@@ -201,7 +197,7 @@ function AdminDashboard() {
         setMovies(sortedMovies);
 
         const today = dayjs();
-        setTotalMovies(sortedMovies.length);
+setTotalMovies(sortedMovies.length);
         setNowShowing(sortedMovies.filter(movie => {
           const start = dayjs(movie.start_date);
           const end = dayjs(movie.end_date);
@@ -272,7 +268,7 @@ function AdminDashboard() {
               <h2 className="text-base text-white mb-4 text-center font-semibold">Top 6 Highest Grossing Movies (Last 30 Days)</h2>
               <div className="space-y-4">
                 {topRevenueFilms.map((film, i) => {
-                  const max = Math.max(...topRevenueFilms.map(f => f.revenue), 1);
+const max = Math.max(...topRevenueFilms.map(f => f.revenue), 1);
                   return (
                     <div key={i} className="flex items-center">
                       <div className="w-1/3 text-right pr-4 text-gray-300">{film.name}</div>
@@ -282,14 +278,14 @@ function AdminDashboard() {
                           style={{ width: `${(film.revenue / max) * 100}%` }}
                         ></div>
                         <div className="absolute inset-0 flex items-center justify-end pr-2 text-white font-medium">
-                          {film.revenue.toLocaleString('vi-VN')} triệu
+                          {film.revenue.toLocaleString('vi-VN')} 
                         </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
-              <div className="mt-4 text-right text-xs text-gray-400">Doanh thu (triệu đồng)</div>
+              <div className="mt-4 text-right text-xs text-gray-400">Revenue (million VND)</div>
             </div>
           </div>
 
