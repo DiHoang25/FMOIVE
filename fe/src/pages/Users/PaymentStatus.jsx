@@ -88,7 +88,7 @@ const PaymentStatusPage = () => {
                 hasFetched.current = true; // <-- Cập nhật cờ useRef
 
                 const queryString = new URLSearchParams(vnpayQueryParams).toString();
-                const requestUrl = `${BACKEND_BASE_URL}/api/payment/vnpay_return?${queryString}`;
+                const requestUrl = `${BACKEND_BASE_URL}/api/vnpay-payment/vnpay_return?${queryString}`;
 
                 console.log('Frontend is attempting to call Backend URL:', requestUrl);
 
