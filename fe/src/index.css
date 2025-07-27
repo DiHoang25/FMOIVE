@@ -155,6 +155,12 @@ code {
   @apply text-xs text-gray-400 ml-auto;
 }
 
+.custom-notification {
+  background-color: #fff7f7 !important;
+  border: 1px solid #f0a1a8;
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.1);
+  border-radius: 8px;
+}
 
 .custom-rate-white .ant-rate-star-zero svg {
   color: white !important;

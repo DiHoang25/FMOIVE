@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode'; // Vẫn cần để lấy role và username cho message
+import { useDispatch } from 'react-redux'; // Vẫn cần nếu bạn muốn dispatch các action khác sau này, nhưng không phải setUser ở đây
 import { useAuth } from '../../contexts/AuthContext';
 import { message } from 'antd';
-import { useLocation } from 'react-router-dom';
-
+// import { setUser } from '../../redux/bookingSlice'; // <-- KHÔNG CẦN IMPORT setUser Ở ĐÂY NỮA
 
 // Import GoogleLoginButton component
-import GoogleLoginButton from '../../components/GoogleLoginButton'; // Điều chỉnh đường dẫn nếu cần
+import GoogleLoginButton from '../../components/GoogleLoginButton';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login } = useAuth(); // 
+  const { login } = useAuth(); // Lấy hàm login từ AuthContext
   const location = useLocation();
   const from = location.state?.from || '/';
-
+  const dispatch = useDispatch(); // Vẫn giữ dispatch nếu cần cho các mục đích khác
 
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [errors, setErrors] = useState({ username: '', password: '', general: '' });
@@ -62,22 +62,29 @@ const LoginPage = () => {
         return;
       }
 
-      localStorage.setItem('token', data.token);
-      login(data.token); // Sử dụng hàm login từ AuthContext
+      // Lưu token vào localStorage và cập nhật trạng thái AuthContext
+      login(data.token); 
 
+      // Giải mã token để lấy thông tin người dùng cho mục đích hiển thị message và điều hướng
       const decoded = jwtDecode(data.token);
-      const role = decoded.user.role;
+      const userInformation = decoded.user; 
+      
+      // Dòng này đã được chuyển sang AuthContext.jsx để đảm bảo đồng bộ hóa
+      // dispatch(setUser(userInformation)); // <-- DÒNG NÀY ĐÃ BỊ LOẠI BỎ Ở ĐÂY
 
-      message.success(`Đăng nhập thành công! Chào mừng ${decoded.user.username}`, 3);
+      console.log("DEBUG: Login successful. AuthContext's useEffect will handle Redux dispatch.");
+
+      const role = userInformation.role;
+
+      message.success(`Đăng nhập thành công! Chào mừng ${userInformation.username}`, 3);
 
       if (role === 'admin') {
         navigate('/admin');
       } else if (role === 'employee') {
         navigate('/employee');
       } else {
-        navigate(from); // 🔁 quay lại nơi user đang comment
+        navigate(from); 
       }
-
 
     } catch (error) {
       console.error('Login error:', error);
@@ -134,15 +141,14 @@ const LoginPage = () => {
 
           <div className="flex items-center my-4">
             <div className="flex-1 border-t border-gray-600"></div>
-            <span className="mx-4 text-gray-400">OR</span> {/* Thay đổi từ div sang span cho rõ ràng */}
+            <span className="mx-4 text-gray-400">OR</span>
             <div className="flex-1 border-t border-gray-600"></div>
           </div>
 
-          {/* Thay thế button cũ bằng GoogleLoginButton component */}
-          <div className="flex justify-center"> {/* Thêm div để căn giữa nút Google */}
-              <GoogleLoginButton />
+          <div className="flex justify-center">
+            <GoogleLoginButton />
           </div>
-          
+
         </form>
         <div className="mt-4 text-center text-gray-400">
           <span>Not a member yet? </span>

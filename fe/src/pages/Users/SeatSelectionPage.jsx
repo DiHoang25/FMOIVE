@@ -136,7 +136,7 @@ function SeatSelectionPage() {
 
 
 
-const handleToggleSeat = (seat) => {
+  const handleToggleSeat = (seat) => {
   const isOccupied = occupiedLabels.includes(seat.label);
   if (isOccupied) return; // 🚫 Không cho chọn ghế đã bị chiếm
 

@@ -1,15 +1,23 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import darkknight from '../../assets/darkknight.jpg'; // fallback image
-import { useNavigate } from 'react-router-dom';
-import EmployeeSidebarLayout from '../../components/Sidebar-Employee';
-import { useDispatch } from 'react-redux';
-import { setSelectedSeats, setMovieAndDateTime } from '../../redux/bookingSlice';
+import { useState, useEffect } from "react";
+import axios from "axios";
+import darkknight from "../../assets/darkknight.jpg"; // fallback image
+import { useNavigate } from "react-router-dom";
+import EmployeeSidebarLayout from "../../components/Sidebar-Employee";
+import { useDispatch, useSelector } from "react-redux"; // Thêm useSelector ở đây
+import {
+  setSelectedSeats,
+  setMovieAndDateTime,
+} from "../../redux/bookingSlice";
 
 // Helper to format date
 function formatDateForNavigation(date) {
-  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  return date.toLocaleDateString('en-US', options);
+  const options = {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  };
+  return date.toLocaleDateString("en-US", options);
 }
 
 const CounterShowtimesPage = () => {
@@ -20,6 +28,10 @@ const CounterShowtimesPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  // Thêm useSelector để lấy thông tin người dùng từ Redux store
+  const user = useSelector((state) => state.booking.user);
+  console.log("Thông tin người dùng đang đăng nhập:", user); // Log để kiểm tra
+
   useEffect(() => {
     dispatch(setSelectedSeats({ seats: [], totalPrice: 0 }));
     const fetchMovies = async () => {
@@ -27,8 +39,8 @@ const CounterShowtimesPage = () => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const res = await axios.get('http://localhost:5000/api/movies');
-        const filtered = res.data.filter(movie => {
+        const res = await axios.get("http://localhost:5000/api/movies");
+        const filtered = res.data.filter((movie) => {
           if (movie.is_deleted) return false;
           const start = new Date(movie.start_date);
           const end = new Date(movie.end_date);
@@ -39,17 +51,21 @@ const CounterShowtimesPage = () => {
 
         const detailedMovies = await Promise.all(
           filtered.map(async (movie) => {
-            const detailRes = await axios.get(`http://localhost:5000/api/movies/${movie._id}`);
+            const detailRes = await axios.get(
+              `http://localhost:5000/api/movies/${movie._id}`
+            );
             return detailRes.data;
           })
         );
 
-        const formatted = detailedMovies.map(movie => ({
+        const formatted = detailedMovies.map((movie) => ({
           id: movie._id,
           title: movie.name,
           image: movie.image_url || darkknight,
           times: movie.showtimes || [],
-          genre: Array.isArray(movie.genres) ? movie.genres.join(', ') : 'Unknown',
+          genre: Array.isArray(movie.genres)
+            ? movie.genres.join(", ")
+            : "Unknown",
           duration: movie.running_time,
           movieDetails: movie,
         }));
@@ -66,33 +82,34 @@ const CounterShowtimesPage = () => {
     fetchMovies();
   }, []);
 
-
   const handleSelect = (movieId, time) => {
     setSelected({ movieId, time });
 
-    const movie = movies.find(m => m.id === movieId);
+    const movie = movies.find((m) => m.id === movieId);
     if (!movie) return;
 
     const today = new Date();
     const formattedDate = formatDateForNavigation(today);
     const cinemaRoom = movie.movieDetails.cinema_room;
 
-    dispatch(setMovieAndDateTime({
-      movieDetails: {
-        name: movie.title,
-        image_url: movie.image,
-        version: movie.movieDetails.version || '2D',
-        running_time: movie.duration,
-        cinema_room: cinemaRoom,
-        production_company: movie.movieDetails.production_company,
-        director: movie.movieDetails.director,
-        actors: movie.movieDetails.actors,
-        genres: movie.movieDetails.genres,
-        rating: movie.movieDetails.rating,
-        description: movie.movieDetails.description,
-        time: `${formattedDate}, ${time}`
-      }
-    }));
+    dispatch(
+      setMovieAndDateTime({
+        movieDetails: {
+          name: movie.title,
+          image_url: movie.image,
+          version: movie.movieDetails.version || "2D",
+          running_time: movie.duration,
+          cinema_room: cinemaRoom,
+          production_company: movie.movieDetails.production_company,
+          director: movie.movieDetails.director,
+          actors: movie.movieDetails.actors,
+          genres: movie.movieDetails.genres,
+          rating: movie.movieDetails.rating,
+          description: movie.movieDetails.description,
+          time: `${formattedDate}, ${time}`,
+        },
+      })
+    );
 
     navigate(`/employee/counter-seat/${cinemaRoom}`, {
       state: {
@@ -104,7 +121,6 @@ const CounterShowtimesPage = () => {
       },
     });
   };
-
 
   if (loading) {
     return (
@@ -140,8 +156,9 @@ const CounterShowtimesPage = () => {
     <EmployeeSidebarLayout>
       <div className="p-4 text-white min-h-screen">
         <h2 className="text-xl font-bold mb-4">Select Movie & Showtime</h2>
+
         <div className="grid grid-cols-1 gap-3">
-          {movies.map(movie => (
+          {movies.map((movie) => (
             <div key={movie.id} className="bg-gray-800 p-4 rounded">
               <div className="flex items-center gap-6">
                 <img
@@ -153,28 +170,34 @@ const CounterShowtimesPage = () => {
                   <h3 className="text-lg font-semibold">{movie.title}</h3>
                   <div className="text-sm text-gray-300 mt-1">
                     <span className="inline-block mr-4">
-                      🎬 <span className="font-medium">Genre:</span> {movie.genre}
+                      🎬 <span className="font-medium">Genre:</span>{" "}
+                      {movie.genre}
                     </span>
                     <span className="inline-block mr-4">
-                      ⏱️ <span className="font-medium">Duration:</span> {movie.duration} mins
+                      ⏱️ <span className="font-medium">Duration:</span>{" "}
+                      {movie.duration} mins
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-2 mt-3">
                     {movie.times.length > 0 ? (
-                      movie.times.map(time => (
+                      movie.times.map((time) => (
                         <button
                           key={time}
-                          className={`px-3 py-1 rounded ${selected.movieId === movie.id && selected.time === time
-                            ? 'bg-yellow-500 text-black'
-                            : 'bg-red-600 hover:bg-red-700'
-                            }`}
+                          className={`px-3 py-1 rounded ${
+                            selected.movieId === movie.id &&
+                            selected.time === time
+                              ? "bg-yellow-500 text-black"
+                              : "bg-red-600 hover:bg-red-700"
+                          }`}
                           onClick={() => handleSelect(movie.id, time)}
                         >
                           {time}
                         </button>
                       ))
                     ) : (
-                      <span className="text-gray-400">No showtimes available</span>
+                      <span className="text-gray-400">
+                        No showtimes available
+                      </span>
                     )}
                   </div>
                 </div>

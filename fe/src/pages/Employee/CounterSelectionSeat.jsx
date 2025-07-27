@@ -6,9 +6,11 @@ import { setSelectedSeats } from "../../redux/bookingSlice";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { useMediaQuery } from "react-responsive";
 import { Crown } from "lucide-react";
+import { notification } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { ExclamationCircleOutlined } from '@ant-design/icons';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -20,12 +22,16 @@ const SeatSelection = () => {
   const selectedSeats = useSelector((state) => state.booking.selectedSeats);
   const isMobile = useMediaQuery({ maxWidth: 768 });
 
+  // Lấy thông tin user từ Redux store (quan trọng nhất!)
+  const user = useSelector((state) => state.booking.user);
+  console.log("🔍 DEBUG - User from Redux store on SeatSelection:", user);
+
   const {
     movieDetails = {},
     selectedShowtimeTime = "",
     fullShowtimeDate = "",
     roomId = "",
-    userInformation = {},
+    // userInformation = {}, // <--- XÓA DÒNG NÀY, không còn cần nữa
   } = state || {};
 
   const [roomData, setRoomDataState] = useState(null);
@@ -34,9 +40,9 @@ const SeatSelection = () => {
     selectedSeats || []
   );
 
-  // DEBUG: Log incoming data
+  // DEBUG: Log incoming data (cần kiểm tra xem movieDetails, time, roomId có đầy đủ không)
   useEffect(() => {
-    console.log("🔍 DEBUG - Incoming state data:");
+    console.log("🔍 DEBUG - Incoming state data to SeatSelection:");
     console.log("movieDetails:", movieDetails);
     console.log("selectedShowtimeTime:", selectedShowtimeTime);
     console.log("fullShowtimeDate:", fullShowtimeDate);
@@ -47,6 +53,13 @@ const SeatSelection = () => {
     const fetchAllData = async () => {
       try {
         const token = localStorage.getItem("token");
+
+        if (!token) {
+          console.error("❌ No token found. User might not be logged in.");
+          // Có thể điều hướng về trang login nếu không có token
+          // navigate('/employee/login');
+          return;
+        }
 
         console.log("🚀 Fetching data for roomId:", roomId);
 
@@ -83,111 +96,101 @@ const SeatSelection = () => {
 
       } catch (err) {
         console.error("❌ Error fetching data:", err.message);
+        notification.error({
+            message: 'Error',
+            description: `Failed to load seat data: ${err.message}. Please try again.`,
+            placement: 'topRight'
+        });
       }
     };
 
     if (roomId) {
       fetchAllData();
+    } else {
+        console.warn("Room ID is missing. Cannot fetch room data.");
+        // Điều hướng trở lại trang chọn suất chiếu nếu không có roomId
+        navigate('/employee/counter-showtimes');
     }
-  }, [roomId]);
+  }, [roomId, navigate]); // Thêm navigate vào dependency array
 
-  // Create standardized movie time for comparison
+  // Tạo standardized movie time (improved version)
   const standardizedMovieTime = (() => {
     if (!selectedShowtimeTime || !fullShowtimeDate) {
       console.log("⚠️ Missing time data:", { selectedShowtimeTime, fullShowtimeDate });
-      return "Invalid Time";
+      return null;
     }
 
     console.log("🕐 Input data:", {
       fullShowtimeDate,
-      selectedShowtimeTime
+      selectedShowtimeTime,
+      roomId
     });
 
-    // Clean and normalize the inputs
+    // Thử parse với các format khác nhau
     const cleanDate = fullShowtimeDate.trim();
     const cleanTime = selectedShowtimeTime.trim();
 
-    // Try different date-time combination approaches
-    const combinationAttempts = [
-      // Direct combination with comma
-      `${cleanDate}, ${cleanTime}`,
-      // Direct combination with space
+    const attempts = [
       `${cleanDate} ${cleanTime}`,
-      // ISO-like format
-      `${cleanDate}T${cleanTime}`,
+      `${cleanDate}, ${cleanTime}`,
+      `${cleanDate}T${cleanTime}`
     ];
 
-    const formats = [
-      "DD/MM/YYYY, HH:mm",
-      "DD/MM/YYYY HH:mm",
-      "DD/MM/YYYYTHH:mm",
-      "YYYY-MM-DD, HH:mm",
-      "YYYY-MM-DD HH:mm",
-      "YYYY-MM-DDTHH:mm",
-      "MM/DD/YYYY, HH:mm",
-      "MM/DD/YYYY HH:mm",
-      "MM/DD/YYYYTHH:mm",
-      "DD-MM-YYYY, HH:mm",
-      "DD-MM-YYYY HH:mm",
-      "DD-MM-YYYYTHH:mm"
-    ];
-
-    // Try all combinations
-    for (const attempt of combinationAttempts) {
-      console.log("🔄 Trying combination:", attempt);
-
-      for (const format of formats) {
-        const parsed = dayjs(attempt, format, true);
-        if (parsed.isValid()) {
-          const result = parsed.tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DDTHH:mm");
-          console.log(`✅ SUCCESS! Format: "${format}" -> Result: "${result}"`);
-          return result;
-        }
-      }
-    }
-
-    // If all specific formats fail, try dayjs auto-parsing
-    console.log("🔄 Trying dayjs auto-parsing...");
-    for (const attempt of combinationAttempts) {
+    for (const attempt of attempts) {
       const parsed = dayjs(attempt);
       if (parsed.isValid()) {
         const result = parsed.tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DDTHH:mm");
-        console.log(`✅ AUTO-PARSE SUCCESS! Input: "${attempt}" -> Result: "${result}"`);
+        console.log(`✅ Parsed successfully: "${attempt}" -> "${result}"`);
         return result;
       }
     }
 
-    console.log("❌ All parsing attempts failed");
-    console.log("📋 Available data:", { cleanDate, cleanTime });
-    return "Invalid Time";
+    console.log("❌ Could not parse time");
+    return null;
   })();
 
-  // Also improve the occupied seats filtering logic:
+  // Lọc ghế occupied theo BOTH suất chiếu và phòng
   const occupiedLabels = occupiedSeats
     ?.filter((os) => {
-      console.log("🔍 Processing occupied seat:", os);
+      // console.log("🔍 Processing occupied seat:", {
+      //   seatLabel: os.seatLabel,
+      //   showtime: os.showtime,
+      //   roomId: os.roomId || 'No roomId in data'
+      // });
 
+      // Kiểm tra có showtime không
       if (!os.showtime) {
-        console.log("⚠️ No showtime in occupied seat data");
+        // console.log("⚠️ No showtime for seat:", os.seatLabel);
         return false;
       }
 
-      // Handle the showtime conversion more robustly
-      let occupiedTimeVN;
+      // Kiểm tra có roomId không (nếu API trả về roomId)
+      if (os.roomId && os.roomId !== roomId) {
+        // console.log(`🏠 Different room: seat ${os.seatLabel} is in room ${os.roomId}, current room is ${roomId}`);
+        return false;
+      }
+
+      // Kiểm tra standardizedMovieTime có hợp lệ không
+      if (!standardizedMovieTime) {
+        // console.log("⚠️ Invalid standardizedMovieTime, cannot compare");
+        return false;
+      }
+
       try {
-        // Parse the UTC time and convert to Vietnam timezone
-        occupiedTimeVN = dayjs.utc(os.showtime).tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DDTHH:mm");
-        console.log(`🕒 Occupied seat time (VN): "${occupiedTimeVN}"`);
-        console.log(`🕒 Movie time (standardized): "${standardizedMovieTime}"`);
+        // Convert occupied seat time to Vietnam timezone
+        const occupiedTimeVN = dayjs.utc(os.showtime).tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DDTHH:mm");
 
-        const isMatch = occupiedTimeVN === standardizedMovieTime;
-        console.log(`🔍 Times match: ${isMatch}`);
+        // console.log(`🕒 Time comparison for seat ${os.seatLabel}:`);
+        // console.log(`   Occupied: "${occupiedTimeVN}"`);
+        // console.log(`   Target:   "${standardizedMovieTime}"`);
 
-        if (isMatch) {
-          console.log("✅ MATCH found for seat:", os.seatLabel);
-        }
+        const isTimeMatch = occupiedTimeVN === standardizedMovieTime;
+        // if (isTimeMatch) {
+        //   console.log(`✅ OCCUPIED SEAT FOUND: ${os.seatLabel} for showtime ${standardizedMovieTime}`);
+        // }
 
-        return isMatch;
+        return isTimeMatch;
+
       } catch (error) {
         console.error("❌ Error processing occupied seat time:", error);
         return false;
@@ -195,13 +198,41 @@ const SeatSelection = () => {
     })
     .map((os) => os.seatLabel) || [];
 
-  console.log("🪑 Final occupied seats for current showtime:", occupiedLabels);
+  console.log("🎯 FINAL RESULTS for occupied seats:");
+  console.log(`   Room ID: ${roomId}`);
+  console.log(`   Target showtime: ${standardizedMovieTime}`);
+  console.log(`   Total occupied seats in room (raw): ${occupiedSeats?.length || 0}`);
+  console.log(`   Occupied seats for this showtime after filtering: ${occupiedLabels.length}`);
+  console.log(`   Seat labels for this showtime: [${occupiedLabels.join(', ')}]`);
+
+  const showOccupiedSeatModal = (seatLabel) => {
+    notification.warning({
+      message: (
+        <span className="font-semibold text-red-500 flex items-center gap-2">
+          <ExclamationCircleOutlined className="text-red-500" />
+          Seat Already Booked
+        </span>
+      ),
+      description: (
+        <div className="text-sm text-gray-700 leading-relaxed">
+          Seat <strong>{seatLabel}</strong> has already been booked for this showtime.
+          <br />
+          Please choose a different seat.
+        </div>
+      ),
+      duration: 2,
+      placement: 'topRight',
+      className: 'custom-notification',
+    });
+  };
+
+
 
   const handleToggleSeat = (seat) => {
-    // Check if seat is occupied for current showtime
     const isOccupied = occupiedLabels.includes(seat.label);
     if (isOccupied) {
-      console.log("🚫 Seat is occupied:", seat.label);
+      console.log("🚫 Seat is occupied for this showtime:", seat.label);
+      showOccupiedSeatModal(seat.label); // Sử dụng modal thay vì alert
       return;
     }
 
@@ -226,17 +257,12 @@ const SeatSelection = () => {
     const isSelected = selectedSeatsState.includes(seat.label);
     const isOccupied = occupiedLabels.includes(seat.label);
 
-    // DEBUG: Log seat status
-    if (isOccupied) {
-      console.log(`🔴 Seat ${seat.label} is OCCUPIED`);
-    }
-
     const base = `
-      w-10 h-10 text-xs rounded-lg flex items-center justify-center 
+      w-10 h-10 text-xs rounded-lg flex items-center justify-center
       font-bold border-2 ${isMobile ? '' : 'transition-all duration-200 transform hover:scale-110 hover:shadow-lg'}
     `;
 
-    if (isOccupied) return `${base} bg-slate-700 text-white border-slate-600 cursor-not-allowed opacity-90`;
+    if (isOccupied) return `${base} bg-gray-600 text-white border-gray-500 cursor-not-allowed`;
     if (isSelected) return `${base} bg-gradient-to-br from-red-500 to-red-600 text-white border-red-400 ${isMobile ? '' : 'shadow-lg scale-105'}`;
     if (seat.type === "VIP") return `${base} bg-gradient-to-br from-amber-400 to-yellow-500 text-gray-900 border-amber-300`;
     return `${base} bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 border-gray-300`;
@@ -251,8 +277,25 @@ const SeatSelection = () => {
 
   const handleContinue = () => {
     if (selectedSeatsState.length === 0) {
-      console.warn("Please select at least one seat to continue.");
+      notification.warning({
+        message: 'No Seats Selected',
+        description: 'Please select at least one seat to continue.',
+        placement: 'topRight'
+      });
       return;
+    }
+
+    // Kiểm tra xem thông tin user có đủ không trước khi điều hướng
+    if (!user || !user.role) {
+        notification.error({
+            message: 'User Information Missing',
+            description: 'Cannot proceed. User information is not available. Please log in again.',
+            placement: 'topRight'
+        });
+        console.error("🔴 User information missing when attempting to continue from SeatSelection:", user);
+        // Có thể điều hướng về trang đăng nhập hoặc trang trước đó
+        // navigate('/employee/login');
+        return;
     }
 
     navigate("/employee/counter-combo", {
@@ -262,7 +305,7 @@ const SeatSelection = () => {
         fullShowtimeDate,
         selectedSeats: roomData.seats.filter(seat => selectedSeatsState.includes(seat.label)),
         ticketPrice: calculateTotalTicketPrice(),
-        userInformation,
+        userInformation: user, // <-- Truyền user từ Redux store
       },
     });
   };
@@ -447,7 +490,7 @@ const SeatSelection = () => {
               <span className="text-slate-300 font-medium">VIP</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-4 h-4 bg-slate-700 rounded-lg border-2 border-slate-600" />
+              <div className="w-4 h-4 bg-slate-500 rounded-lg border-2 border-slate-600" />
               <span className="text-slate-300 font-medium">Occupied</span>
             </div>
           </div>
