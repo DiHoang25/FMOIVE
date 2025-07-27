@@ -36,7 +36,8 @@ router.post('/create-payment', async (req, res) => {
     }
 
     try {
-        const booking = await Booking.findById(bookingId).populate('user._id');
+        const booking = await Booking.findOne({ bookingId: bookingId });
+        // const booking = await Booking.findById(bookingId).populate('user._id');
 
         if (!booking) {
             return res.status(404).json({ message: 'Booking không tìm thấy.' });
@@ -55,7 +56,7 @@ router.post('/create-payment', async (req, res) => {
         console.log(`[PayOS] Mapping Booking ID ${booking._id} to PayOS Order Code: ${payosOrderCode}`);
 
         const amount = booking.grandTotal;
-        const description = `Thanh toán cho Booking ID: ${booking.bookingId || booking._id}`;
+        const description = `Thanh toán Thử nghiệm`;//`Thanh toán cho Booking ID: ${booking.bookingId || booking._id}`
 
         const { name: userName, email: userEmail } = booking.user; // Lấy thông tin user từ booking
 
