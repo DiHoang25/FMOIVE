@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react"; // Thêm useCallback
+// src/contexts/AuthContext.jsx
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { jwtDecode } from "jwt-decode";
 import { useDispatch } from 'react-redux';
 import { setUser as setReduxUser, resetBooking } from '../redux/bookingSlice';
@@ -13,7 +14,7 @@ export const AuthProvider = ({ children }) => {
 
   const dispatch = useDispatch();
 
-  // Sử dụng useCallback để đảm bảo hàm logout ổn định và không bị tạo lại không cần thiết
+  // Sửa lỗi: chỉ dispatch là dependency cần thiết
   const logout = useCallback(() => {
     localStorage.removeItem("token");
     sessionStorage.removeItem("showtimeScrollPosition");
@@ -23,7 +24,7 @@ export const AuthProvider = ({ children }) => {
     dispatch(setReduxUser(null));
     dispatch(resetBooking());
     console.log("User logged out. All states reset.");
-  }, [dispatch, setReduxUser, resetBooking]); // logout phụ thuộc vào dispatch và các action creators từ Redux
+  }, [dispatch]);
 
   useEffect(() => {
     setLoading(true);
@@ -39,11 +40,25 @@ export const AuthProvider = ({ children }) => {
           console.log("Token is valid. User data set:", decoded.user);
         } else {
           console.warn("Token expired. Logging out automatically.");
-          logout(); // Gọi logout ở đây
+          // Inline logout logic để tránh circular dependency
+          localStorage.removeItem("token");
+          sessionStorage.removeItem("showtimeScrollPosition");
+          setAuthToken(null);
+          setIsAuthenticated(false);
+          setUser(null);
+          dispatch(setReduxUser(null));
+          dispatch(resetBooking());
         }
       } catch (err) {
         console.error("Invalid token found in localStorage:", err);
-        logout(); // Gọi logout ở đây
+        // Inline logout logic
+        localStorage.removeItem("token");
+        sessionStorage.removeItem("showtimeScrollPosition");
+        setAuthToken(null);
+        setIsAuthenticated(false);
+        setUser(null);
+        dispatch(setReduxUser(null));
+        dispatch(resetBooking());
       }
     } else {
       console.log("No token found in localStorage. User not authenticated.");
@@ -54,7 +69,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     setLoading(false);
-  }, [authToken, dispatch, logout]); // Thêm 'logout' vào mảng dependencies
+  }, [authToken, dispatch]); // Sửa lỗi: loại bỏ logout khỏi dependencies
 
   const login = (token) => {
     if (!token) {

@@ -79,7 +79,7 @@ const PaymentPage = () => {
                 return;
             }
 
-            const response = await fetch(`${API_BASE_URL}/api/payment/create_payment_url`, {
+            const response = await fetch(`${API_BASE_URL}/api/vnpay-payment/create_payment_url`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
