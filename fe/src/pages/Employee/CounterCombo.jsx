@@ -184,6 +184,7 @@ const CounterCombo = () => {
             selectedCombos: selectedComboList,
             combosTotal: totalComboPrice,
             selectedProducts,
+            totalProductsPrice,
             productsTotal: totalProductsPrice,
             finalTotal: total,
             userInformation
@@ -199,81 +200,146 @@ const CounterCombo = () => {
 
     return (
         <SidebarLayout>
-            <div className="min-h-screen text-white py-8 px-4">
-                <div className="max-w-4xl mx-auto bg-slate-800 rounded-2xl p-6 shadow-md relative">
-                    <button onClick={() => navigate(-1)} className="absolute top-4 left-4 text-white bg-gray-700 hover:bg-gray-600 px-4 py-1 rounded">
-                        ← Back
-                    </button>
+            <div className="min-h-screen text-white py-6 px-4 sm:px-6 lg:px-8 relative">
+  <button
+    onClick={() => navigate(-1)}
+    className="absolute top-4 left-4 text-white bg-gray-700 hover:bg-gray-600 px-4 py-1 rounded z-10"
+  >
+    ← Back
+  </button>
 
-                    <h1 className="text-2xl font-bold text-center mb-6">COMBO POPCORN & DRINKS</h1>
-                    <hr className="border-gray-700 mb-4" />
+  <div className="max-w-4xl mx-auto bg-slate-800 rounded-2xl p-4 sm:p-6 shadow-md mt-12 sm:mt-0">
+    <h1 className="text-xl sm:text-2xl font-bold text-center mb-6">COMBO POPCORN & DRINKS</h1>
+    <hr className="border-gray-700 mb-4" />
 
-                    <div onClick={() => { setShowCombos(!showCombos); setShowProducts(false); }} className="cursor-pointer bg-gray-700 px-4 py-2 rounded-md text-white font-semibold mb-2">
-                        Choose Your Combo
-                    </div>
-                    {showCombos && (
-                        loadingCombos ? <div className="text-center text-gray-400">Loading combos...</div> :
-                            combos.length === 0 ? <div className="text-center text-gray-400">No active combos available.</div> :
-                                <div className="grid sm:grid-cols-2 gap-4 mb-6">
-                                    {combos.map(combo => (
-                                        <div key={combo.id} className="bg-slate-700 rounded-lg p-4 flex gap-4 items-center shadow">
-                                            <img src={combo.image} alt={combo.name} className="w-20 h-20 object-cover rounded" onError={(e) => { e.target.src = 'https://placehold.co/80x80/000000/FFFFFF?text=No+Image'; }} />
-                                            <div className="flex-1">
-                                                <p className="font-medium text-sm">{combo.name}</p>
-                                                <p className="text-sm text-gray-300">{combo.price.toLocaleString('vi-VN')} VND</p>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <button onClick={() => updateQuantity(combo.id, -1)} className="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center">
-                                                    <Minus className="w-4 h-4 text-white" />
-                                                </button>
-                                                <span className="w-6 text-center">{quantities[combo.id]}</span>
-                                                <button onClick={() => updateQuantity(combo.id, 1)} className="w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center">
-                                                    <Plus className="w-4 h-4 text-white" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                    )}
+    {/* COMBO SELECTION */}
+    <div
+      onClick={() => {
+        setShowCombos(!showCombos);
+        setShowProducts(false);
+      }}
+      className="cursor-pointer bg-gray-700 px-4 py-2 rounded-md text-white font-semibold mb-2"
+    >
+      Choose Your Combo
+    </div>
 
-                    <div onClick={() => { setShowProducts(!showProducts); setShowCombos(false); }} className="cursor-pointer bg-gray-700 px-4 py-2 rounded-md text-white font-semibold mb-2">
-                        Choose Product
-                    </div>
-                    {showProducts && (
-                        loadingProducts ? <div className="text-center text-gray-400">Loading products...</div> :
-                            products.length === 0 ? <div className="text-center text-gray-400">No active products available.</div> :
-                                <div className="grid sm:grid-cols-2 gap-4 mb-6">
-                                    {products.map(product => (
-                                        <div key={product._id} className="bg-slate-700 rounded-lg p-4 flex gap-4 items-center shadow">
-                                            <img src={product.image_url || 'https://placehold.co/80x80?text=No+Image'} alt={product.name} className="w-20 h-20 object-cover rounded" />
-                                            <div className="flex-1">
-                                                <p className="font-medium text-sm">{product.name}</p>
-                                                <p className="text-sm text-gray-300">{product.price.toLocaleString('vi-VN')} VND</p>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <button onClick={() => updateQuantity(product._id, -1)} className="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center">
-                                                    <Minus className="w-4 h-4 text-white" />
-                                                </button>
-                                                <span className="w-6 text-center">{quantities[product._id]}</span>
-                                                <button onClick={() => updateQuantity(product._id, 1)} className="w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center">
-                                                    <Plus className="w-4 h-4 text-white" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                    )}
-
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
-                        <div className="bg-gray-700 px-6 py-2 rounded text-sm font-medium">
-                            TOTAL: {finalTotal.toLocaleString('vi-VN')} VND
-                        </div>
-                        <button className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded font-semibold" onClick={handleContinue}>
-                            CONTINUE
-                        </button>
-                    </div>
-                </div>
+    {showCombos && (
+      loadingCombos ? (
+        <div className="text-center text-gray-400">Loading combos...</div>
+      ) : combos.length === 0 ? (
+        <div className="text-center text-gray-400">No active combos available.</div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          {combos.map((combo) => (
+            <div
+              key={combo.id}
+              className="bg-slate-700 rounded-lg p-4 flex flex-col sm:flex-row gap-4 items-center shadow"
+            >
+              <img
+                src={combo.image}
+                alt={combo.name}
+                className="w-24 h-24 object-cover rounded"
+                onError={(e) => {
+                  e.target.src = 'https://placehold.co/80x80/000000/FFFFFF?text=No+Image';
+                }}
+              />
+              <div className="flex-1 text-center sm:text-left">
+                <p className="font-medium text-sm">{combo.name}</p>
+                <p className="text-sm text-gray-300">
+                  {combo.price.toLocaleString('vi-VN')} VND
+                </p>
+              </div>
+              <div className="flex items-center justify-center sm:justify-start gap-2">
+                <button
+                  onClick={() => updateQuantity(combo.id, -1)}
+                  className="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center"
+                >
+                  <Minus className="w-4 h-4 text-white" />
+                </button>
+                <span className="w-6 text-center">{quantities[combo.id]}</span>
+                <button
+                  onClick={() => updateQuantity(combo.id, 1)}
+                  className="w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center"
+                >
+                  <Plus className="w-4 h-4 text-white" />
+                </button>
+              </div>
             </div>
+          ))}
+        </div>
+      )
+    )}
+
+    {/* PRODUCT SELECTION */}
+    <div
+      onClick={() => {
+        setShowProducts(!showProducts);
+        setShowCombos(false);
+      }}
+      className="cursor-pointer bg-gray-700 px-4 py-2 rounded-md text-white font-semibold mb-2"
+    >
+      Choose Product
+    </div>
+
+    {showProducts && (
+      loadingProducts ? (
+        <div className="text-center text-gray-400">Loading products...</div>
+      ) : products.length === 0 ? (
+        <div className="text-center text-gray-400">No active products available.</div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          {products.map((product) => (
+            <div
+              key={product._id}
+              className="bg-slate-700 rounded-lg p-4 flex flex-col sm:flex-row gap-4 items-center shadow"
+            >
+              <img
+                src={product.image_url || 'https://placehold.co/80x80?text=No+Image'}
+                alt={product.name}
+                className="w-24 h-24 object-cover rounded"
+              />
+              <div className="flex-1 text-center sm:text-left">
+                <p className="font-medium text-sm">{product.name}</p>
+                <p className="text-sm text-gray-300">
+                  {product.price.toLocaleString('vi-VN')} VND
+                </p>
+              </div>
+              <div className="flex items-center justify-center sm:justify-start gap-2">
+                <button
+                  onClick={() => updateQuantity(product._id, -1)}
+                  className="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center"
+                >
+                  <Minus className="w-4 h-4 text-white" />
+                </button>
+                <span className="w-6 text-center">{quantities[product._id]}</span>
+                <button
+                  onClick={() => updateQuantity(product._id, 1)}
+                  className="w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center"
+                >
+                  <Plus className="w-4 h-4 text-white" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )
+    )}
+
+    {/* TOTAL + CONTINUE */}
+    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
+      <div className="bg-gray-700 px-6 py-2 rounded text-sm font-medium text-center sm:text-left">
+        TOTAL: {finalTotal.toLocaleString('vi-VN')} VND
+      </div>
+      <button
+        className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded font-semibold w-full sm:w-auto"
+        onClick={handleContinue}
+      >
+        CONTINUE
+      </button>
+    </div>
+  </div>
+</div>
+
         </SidebarLayout>
     );
 };
