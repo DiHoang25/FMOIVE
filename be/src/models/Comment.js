@@ -20,6 +20,11 @@ const commentSchema = new mongoose.Schema(
       required: true,
       min: 1,
       max: 5,
+    },
+    movieId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Movie',
+      required: true,
     }
   },
   {

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Comment = require('../../models/comment');
+const Comment = require('../../models/Comment');
 
 /**
  * @swagger
@@ -49,13 +49,16 @@ const Comment = require('../../models/comment');
  */
 router.get('/', async (req, res) => {
   try {
-    const { movieName } = req.query;
+    const { movieName, movieId } = req.query;
+
+    let query = {};
+    if (movieName) query.movieName = movieName;
+    if (movieId) query.movieId = movieId;
     if (!movieName) {
       return res.status(400).json({ message: 'Thiếu tên phim (movieName)' });
     }
 
-    const comments = await Comment.find({ movieName }).sort({ createdAt: -1 });
-    res.json(comments);
+    const comments = await Comment.find(query).sort({ createdAt: -1 }); res.json(comments);
   } catch (error) {
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
@@ -95,17 +98,17 @@ router.get('/', async (req, res) => {
  */
 router.post('/', async (req, res) => {
   try {
-    const { movieName, author, message, rating } = req.body;
+    const { movieName, movieId, author, message, rating } = req.body;
 
-    if (!movieName || !author || !message) {
-      return res.status(400).json({ message: 'Thiếu thông tin cần thiết' });
+    if (!movieName || !movieId || !author || !message) {
+      return res.status(400).json({ message: 'Thiếu thông tin cần thiết (movieName, movieId, author, message)' });
     }
 
     if (rating !== undefined && (rating < 1 || rating > 5)) {
       return res.status(400).json({ message: 'Rating phải nằm trong khoảng từ 1 đến 5' });
     }
 
-    const newComment = new Comment({ movieName, author, message, rating });
+    const newComment = new Comment({ movieName, movieId, author, message, rating });
     await newComment.save();
 
     res.status(201).json(newComment);
@@ -113,6 +116,7 @@ router.post('/', async (req, res) => {
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 });
+
 
 /**
  * @swagger
