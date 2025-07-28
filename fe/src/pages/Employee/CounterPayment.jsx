@@ -1,70 +1,67 @@
+// src/pages/User/PaymentPage/paymentMethod.jsx
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { message } from 'antd'; // Import Ant Design message for notifications
 
-// Path to your VNPAY icon (replace with actual path)
-import VnpayIcon from '../../assets/vnpay-icon.png'; // Example: Assuming you have an icon in assets
+// icon
+import VnpayIcon from '../../assets/vnpay-icon.png';
+import PayosIcon from '../../assets/payos.png';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
-
 
 const PaymentPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const [selectedMethod, setSelectedMethod] = useState('vnpay'); // Mặc định VNPAY
-    const [isProcessingPayment, setIsProcessingPayment] = useState(false); // Ngăn chặn nhấp đúp
+    // Mặc định PayOS
+    const [selectedMethod, setSelectedMethod] = useState('payos');
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
-    // Lấy thông tin người dùng từ Redux store
-    const user = useSelector((state) => state.booking.user);
-    console.log("Thông tin người dùng trên PaymentPage:", user);
+    // Lấy bookingId và grandTotal đã được tạo từ trang CounterConfirm thông qua location.state
+    const { bookingId: confirmedBookingId, grandTotal: grandTotalFromLocation } = location.state || {};
 
-    // Lấy TẤT CẢ booking details đã được tạo từ trang CounterConfirm thông qua location.state
+    // Lấy thông tin booking từ Redux để hiển thị chi tiết đơn hàng
     const {
-        bookingId: confirmedBookingId,
-        grandTotal: grandTotalFromLocation, // This is the finalTotal passed from CounterConfirm
-        movieDetails,
+        grandTotal: grandTotalFromRedux, // Redux grandTotal for display
+        totalSeatPrice,
+        totalComboPrice,
         selectedSeats,
         selectedCombos,
-        selectedProducts, // New: products passed from CounterConfirm
-        ticketPrice,     // New: ticketPrice from CounterConfirm
-        combosTotal,     // New: combosTotal from CounterConfirm
-        productsTotal,   // New: productsTotal from CounterConfirm
-        finalTotal,      // New: finalTotal from CounterConfirm (same as grandTotalFromLocation)
-        voucherCode,     // New: voucherCode from CounterConfirm
-        voucherDiscount, // New: voucherDiscount from CounterConfirm
-        userInformation, // New: userInformation (from Redux, passed via state for consistency)
-    } = location.state || {};
+        user // Lấy thông tin user từ Redux booking slice
+    } = useSelector((state) => state.booking);
 
-    // Use finalTotal from location.state as the primary source for the payment amount
-    const finalPaymentAmount = finalTotal || 0;
+    // Sử dụng grandTotal từ location.state làm nguồn chính cho số tiền thanh toán
+    // Nếu không có trong location.state (trường hợp hiếm, ví dụ refresh trang), fallback về Redux
+    const finalPaymentAmount = grandTotalFromLocation || grandTotalFromRedux || 0;
 
-    // Derived counts for display
     const ticketCount = useMemo(() => selectedSeats ? selectedSeats.length : 0, [selectedSeats]);
     const comboCount = useMemo(() => selectedCombos ? selectedCombos.reduce((sum, combo) => sum + combo.quantity, 0) : 0, [selectedCombos]);
-    const productCount = useMemo(() => selectedProducts ? selectedProducts.reduce((sum, product) => sum + product.quantity, 0) : 0, [selectedProducts]);
-
 
     const paymentMethods = [
+        {
+            id: 'payos',
+            label: 'PayOS (Napas)',
+            desc: 'Secure payment via PayOS with various methods',
+            icon: PayosIcon // Use the imported PayOS icon
+        },
         {
             id: 'vnpay',
             label: 'VN Pay',
             desc: 'Scan to pay with VN Pay (Sandbox)',
-            icon: VnpayIcon // Use the imported icon
+            icon: VnpayIcon
         },
-        // Thêm các phương thức khác (ví dụ: MoMo, Credit Card)
+        // Thêm các phương thức khác (ví dụ: MoMo, Credit Card) nếu cần
     ];
 
-    // useEffect to check if bookingId is missing
+    // useEffect để kiểm tra nếu không có bookingId
     useEffect(() => {
         if (!confirmedBookingId) {
             message.error('Booking details missing. Please go back to confirm your booking.');
-            // Optionally navigate user back
+            // Có thể navigate người dùng trở lại trang CounterConfirm nếu muốn bắt buộc
             // navigate('/employee/counter-confirm');
         }
     }, [confirmedBookingId, navigate]);
-
 
     const handleInitiatePayment = async () => {
         if (isProcessingPayment) return;
@@ -74,18 +71,18 @@ const PaymentPage = () => {
             return;
         }
 
-        // Kiểm tra thông tin người dùng trước khi gửi yêu cầu thanh toán (tùy chọn)
-        // Prefer user from location state, fallback to Redux user if needed
-        const currentUser = userInformation || user;
+        if (finalPaymentAmount <= 0) {
+            message.error('Payment amount must be greater than zero.');
+            return;
+        }
 
-        if (!currentUser || !currentUser._id) { // Kiểm tra _id thay vì userId
+        // Kiểm tra thông tin người dùng từ Redux
+        if (!user || !user._id) {
             message.error('User information missing. Please ensure you are logged in correctly.');
-            setIsProcessingPayment(false);
             return;
         }
 
         setIsProcessingPayment(true);
-
         try {
             const token = localStorage.getItem('token'); // Lấy JWT token
             if (!token) {
@@ -94,31 +91,59 @@ const PaymentPage = () => {
                 return;
             }
 
-            const response = await fetch(`${API_BASE_URL}/api/payment/create_payment_url`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` // Gửi token
-                },
-                body: JSON.stringify({
-                    bookingId: confirmedBookingId,
-                    grandTotal: finalPaymentAmount, // Gửi số tiền cuối cùng để thanh toán
-                    bankCode: selectedMethod === 'vnpay' ? '' : '', // Để trống nếu VNPAY sẽ hiển thị danh sách bank
-                    language: 'vn',
-                    userId: currentUser._id, // Truyền userId từ thông tin người dùng
-                }),
-            });
+            let response;
+            let data;
 
-            const data = await response.json();
+            if (selectedMethod === 'vnpay') {
+                response = await fetch(`${API_BASE_URL}/api/vnpay-payment/create_payment_url`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        bookingId: confirmedBookingId,
+                        grandTotal: finalPaymentAmount,
+                        bankCode: '', // Để trống nếu VNPAY sẽ hiển thị danh sách bank
+                        language: 'vn',
+                        userId: user._id
+                    }),
+                });
+                data = await response.json();
 
-            if (response.ok) {
-                message.loading('Redirecting to VNPAY...', 1.5); // Show loading message
-                // Chuyển hướng người dùng đến URL VNPAY
-                window.location.href = data.paymentUrl;
+                if (response.ok) {
+                    message.loading('Redirecting to VNPAY...', 1.5);
+                    window.location.href = data.paymentUrl;
+                } else {
+                    message.error(data.message || 'Failed to initiate VNPAY payment.');
+                    console.error('VNPAY payment initiation failed:', data.message);
+                }
+            } else if (selectedMethod === 'payos') {
+                response = await fetch(`${API_BASE_URL}/api/payos-payment/create-payment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        bookingId: confirmedBookingId, // Gửi bookingId
+                        // grandTotal không cần gửi ở đây vì backend sẽ lấy từ booking
+                        // userId không cần gửi ở đây vì backend sẽ lấy từ booking
+                    }),
+                });
+                data = await response.json();
+
+                if (response.ok) {
+                    message.loading('Redirecting to PayOS...', 1.5);
+                    window.location.href = data.payosPaymentUrl; // PayOS trả về checkoutUrl
+                } else {
+                    message.error(data.message || 'Failed to initiate PayOS payment.');
+                    console.error('PayOS payment initiation failed:', data.message);
+                }
             } else {
-                message.error(data.message || 'Failed to initiate payment.');
-                console.error('Payment initiation failed:', data.message);
+                message.error('Please select a payment method.');
             }
+
         } catch (error) {
             console.error('Error initiating payment:', error);
             message.error('An unexpected error occurred. Please try again.');
@@ -187,24 +212,12 @@ const PaymentPage = () => {
                     <h2 className="text-xl font-semibold text-gray-200 mb-4">Order Summary</h2>
                     <div className="flex justify-between items-center text-gray-300">
                         <span>Movie Tickets ({ticketCount})</span>
-                        <span>{(ticketPrice || 0).toLocaleString('vi-VN')} VND</span>
+                        <span>{(totalSeatPrice || 0).toLocaleString('vi-VN')} VND</span>
                     </div>
                     {comboCount > 0 && (
                         <div className="flex justify-between items-center text-gray-300">
                             <span>Popcorns & Drinks ({comboCount})</span>
-                            <span>{(combosTotal || 0).toLocaleString('vi-VN')} VND</span>
-                        </div>
-                    )}
-                    {productCount > 0 && (
-                        <div className="flex justify-between items-center text-gray-300">
-                            <span>Additional Products ({productCount})</span>
-                            <span>{(productsTotal || 0).toLocaleString('vi-VN')} VND</span>
-                        </div>
-                    )}
-                    {voucherDiscount > 0 && (
-                        <div className="flex justify-between items-center text-green-400 font-medium border-t border-slate-600/50 pt-3 mt-3">
-                            <span>Voucher Discount</span>
-                            <span>-${voucherDiscount.toLocaleString('vi-VN')} VND</span>
+                            <span>{(totalComboPrice || 0).toLocaleString('vi-VN')} VND</span>
                         </div>
                     )}
 
