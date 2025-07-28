@@ -4,7 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import { useDispatch } from 'react-redux';
 import { setUser as setReduxUser, resetBooking } from '../redux/bookingSlice';
 
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [authToken, setAuthToken] = useState(localStorage.getItem("token"));
