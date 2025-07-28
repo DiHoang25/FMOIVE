@@ -273,9 +273,7 @@ function ShowtimePage() {
       </div>
 
       <div className="pt-44 px-6 pb-10" style={{ zIndex: 10 }}>
-        {" "}
-        {/* Giảm z-index của phần nội dung */}
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {movies.length > 0 ? (
             movies.map((movie, index) => (
               <MovieCard
@@ -290,9 +288,7 @@ function ShowtimePage() {
               />
             ))
           ) : (
-            <p className="text-center text-gray-400">
-              No movies available for this day.
-            </p>
+            <p className="text-center text-gray-400">No movies available for this day.</p>
           )}
         </div>
       </div>
