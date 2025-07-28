@@ -8,6 +8,9 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 // Mock fetch global
 global.fetch = jest.fn();
 
+jest.mock('react-redux', () => ({
+  useDispatch: () => jest.fn(),
+}));
 // Mock AuthContext
 const mockLogin = jest.fn();
 jest.mock('../../../contexts/AuthContext', () => ({
