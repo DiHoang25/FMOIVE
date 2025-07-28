@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaEye, FaEdit, FaTrash, FaSpinner } from 'react-icons/fa';
 import { Modal, message, Tag } from 'antd';
-import Pagination from '../../components/PaginationHomepage';
+import Pagination from '../../components/PaginationHomepage'; // Assuming this is a custom component
 import SidebarLayout from '../../components/Sidebar-Admin';
 import dayjs from 'dayjs';
 import axios from 'axios';
+import { motion } from 'framer-motion'; // Import motion for animations
+
 
 const MovieList = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,6 +26,7 @@ const MovieList = () => {
         setMovies(sortedMovies);
       } catch (error) {
         console.error('Error fetching movies:', error);
+        message.error('Failed to fetch movies. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -75,6 +78,7 @@ const MovieList = () => {
           message.error(`Failed to delete "${movie.name}": ${error.message}`);
         }
       },
+      className: 'custom-ant-modal', // Apply custom modal styling
     });
   };
 
@@ -92,8 +96,10 @@ const MovieList = () => {
   const totalPages = Math.ceil(filteredMovies.length / itemsPerPage);
 
   useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(1);
+    if (currentPage >= totalPages && totalPages > 0) { // Adjusted condition for 0-indexed page
+      setCurrentPage(totalPages - 1);
+    } else if (totalPages === 0 && currentPage !== 0) {
+      setCurrentPage(0);
     }
   }, [totalPages, currentPage]);
 
@@ -103,192 +109,292 @@ const MovieList = () => {
   );
 
   const handlePageChange = page => {
-    if (page < 0 || page >= totalPages) return;
+    // Page from PaginationHomepage is 0-indexed, so no change needed here
     setCurrentPage(page);
   };
 
   return (
     <SidebarLayout>
-      <div className="p-6 text-white">
-        <div className="p-4 flex items-center justify-between">
-          <div className="flex-1 text-center">
-            <h2 className="text-2xl font-bold">Movie Management</h2>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-gray-700 rounded-lg p-4 text-center shadow">
-            <p className="text-sm text-gray-300">Total Movies</p>
-            <h2 className="text-xl font-bold">{totalMovies}</h2>
-          </div>
-          <div className="bg-red-700 rounded-lg p-3 text-center shadow">
-            <p className="text-sm text-gray-100">Now Showing</p>
-            <h2 className="text-xl font-bold">{nowShowing}</h2>
-          </div>
-          <div className="bg-yellow-600 rounded-lg p-3 text-center shadow">
-            <p className="text-sm text-gray-100">Coming Soon</p>
-            <h2 className="text-xl font-bold">{upcomingMovies}</h2>
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-          <input
-            type="text"
-            placeholder="Search movie..."
-            value={searchTerm}
-            onChange={handleSearch}
-            className="bg-gray-700 text-white px-4 py-2 rounded-md w-full sm:w-64 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-600"
-          />
-          <Link
-            to="/admin/add-movie"
-            className="bg-red-600 hover:bg-red-700 text-white hover:text-white px-5 py-2.5 rounded-md text-center font-semibold shadow-sm transition-all duration-200 w-full sm:w-auto"
-          >
-            + Add New Movie
-          </Link>
-        </div>
-
-
-        <div className="overflow-x-auto bg-gray-800 rounded-lg shadow">
-          <table className="min-w-full divide-y divide-gray-700">
-            <thead className="bg-gray-900 text-gray-300 text-sm uppercase">
-              <tr>
-                <th className="px-4 py-3 text-left">ID</th>
-                <th className="px-4 py-3 text-left">Name</th>
-                <th className="px-4 py-3 text-left">Genres</th>
-                <th className="px-4 py-3 text-left">Duration</th>
-                <th className="px-4 py-3 text-left">Status</th>
-                <th className="px-4 py-3 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-700 text-gray-300 text-sm">
-              {loading ? (
-                <tr>
-                  <td colSpan="6" className="text-center py-4">
-                    <FaSpinner className="animate-spin mr-2" /> Loading movies...
-                  </td>
-                </tr>
-              ) : paginatedMovies.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className="text-center py-4 text-gray-400">No movies found.</td>
-                </tr>
-              ) : (
-                paginatedMovies.map((movie, index) => {
-                  const status = getCalculatedStatus(movie);
-                  return (
-                    <tr key={movie._id} className="hover:bg-gray-700 transition">
-                      <td className="px-4 py-2">{(currentPage * itemsPerPage + index + 1)}</td>
-                      <td className="px-4 py-2">{movie.name}</td>
-                      <td className="px-4 py-2">{movie.genres}</td>
-                      <td className="px-4 py-2">{movie.running_time} min</td>
-                      <td className="px-4 py-2">
-                        {status === 'now_showing' && <Tag color="green">Now Showing</Tag>}
-                        {status === 'coming_soon' && <Tag color="orange">Coming Soon</Tag>}
-                        {status === 'ended' && <Tag color="red">Ended</Tag>}
-                      </td>
-                      <td className="px-4 py-2 text-center">
-                        <div className="flex justify-center gap-4">
-                          <button onClick={() => showMovieDetails(movie)} className="text-blue-400 hover:text-blue-600 text-xl"><FaEye /></button>
-                          <button onClick={() => window.location.href = '/admin/movie-list/edit-movie/' + movie._id} className="text-yellow-400 hover:text-yellow-600 text-xl"><FaEdit /></button>
-                          <button onClick={() => confirmDelete(movie)} className="text-red-400 hover:text-red-600 text-xl"><FaTrash /></button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-          {totalPages > 0 && (
-            <div className="py-4">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Movie Detail Modal */}
-        <Modal
-          open={modalVisible}
-          onCancel={() => setModalVisible(false)}
-          footer={null}
-          centered
-          width={800}
-          className="custom-modal"
+      {/* Custom Ant Design Modal styles */}
+      <style>{`
+          .custom-ant-modal .ant-modal-content {
+              background-color: #1e293b !important; /* slate-800 */
+              border-radius: 12px !important;
+              border: 1px solid rgba(71, 85, 105, 0.4) !important; /* slate-600/40 */
+              backdrop-filter: blur(10px) !important;
+              -webkit-backdrop-filter: blur(10px) !important;
+              box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1) !important;
+              color: #e2e8f0 !important; /* gray-200 */
+          }
+          .custom-ant-modal .ant-modal-confirm-title {
+              color: #e2e8f0 !important; /* gray-200 */
+          }
+          .custom-ant-modal .ant-modal-confirm-content {
+              color: #cbd5e1 !important; /* gray-300 */
+          }
+          .custom-ant-modal .ant-modal-confirm-btns .ant-btn-primary {
+              background-color: #dc2626 !important; /* red-600 */
+              border-color: #dc2626 !important;
+              color: white !important;
+          }
+          .custom-ant-modal .ant-modal-confirm-btns .ant-btn-default {
+              background-color: #475569 !important; /* slate-600 */
+              border-color: #475569 !important;
+              color: white !important;
+          }
+          .custom-ant-modal .ant-modal-confirm-btns .ant-btn-default:hover {
+              background-color: #64748b !important; /* slate-500 */
+              border-color: #64748b !important;
+          }
+          .custom-ant-modal .ant-modal-confirm-btns .ant-btn-primary:hover {
+              background-color: #b91c1c !important; /* red-700 */
+              border-color: #b91c1c !important;
+          }
+      `}</style>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-red-900 to-slate-900 p-4 md:p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="max-w-6xl mx-auto"
         >
-          {selectedMovie && (
-            <div className="bg-gradient-to-br from-gray-900 to-black p-8 rounded-2xl text-white">
-              <div className="flex flex-col lg:flex-row gap-8">
-                <div className="flex-shrink-0">
-                  <img
-                    src={selectedMovie.image_url || "/placeholder.svg"}
-                    alt="Banner"
-                    className="w-64 h-96 rounded-xl object-cover shadow-2xl border-2 border-gray-700"
-                  />
+          <div className="text-center mb-8">
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ duration: 0.5 }}>
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent rounded-20">
+                Movie Management
+              </h1>
+            </motion.div>
+          </div>
+
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}>
+            <div
+              className="w-full max-w-full mx-auto px-4 bg-slate-800/70 backdrop-blur-lg border border-slate-600/40 shadow-2xl overflow-visible"
+              style={{ borderRadius: '20px' }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/8 via-transparent to-cyan-600/8 pointer-events-none" />
+              <div className="relative p-5 lg:p-6">
+
+                {/* Stats cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                    className="bg-slate-900/30 backdrop-blur-sm rounded-2xl p-6 text-center border border-slate-600/30 transition-all duration-300 hover:scale-[1.02] shadow-md"
+                  >
+                    <div className="w-12 h-12 bg-gradient-to-r from-gray-500 to-gray-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
+                      {/* Icon for Total Movies */}
+                    </div>
+                    <p className="text-slate-300 text-sm md:text-base">Total Movies</p>
+                    <h2 className="text-xl md:text-3xl font-bold text-white mt-1">{totalMovies}</h2>
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    className="bg-slate-900/30 backdrop-blur-sm rounded-2xl p-6 text-center border border-slate-600/30 transition-all duration-300 hover:scale-[1.02] shadow-md"
+                  >
+                    <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
+                      {/* Icon for Now Showing */}
+                    </div>
+                    <p className="text-slate-300 text-sm md:text-base">Now Showing</p>
+                    <h2 className="text-xl md:text-3xl font-bold text-white mt-1">{nowShowing}</h2>
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                    className="bg-slate-900/30 backdrop-blur-sm rounded-2xl p-6 text-center border border-slate-600/30 transition-all duration-300 hover:scale-[1.02] shadow-md"
+                  >
+                    <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
+                      {/* Icon for Coming Soon */}
+                    </div>
+                    <p className="text-slate-300 text-sm md:text-base">Coming Soon</p>
+                    <h2 className="text-xl md:text-3xl font-bold text-white mt-1">{upcomingMovies}</h2>
+                  </motion.div>
                 </div>
-                <div className="flex-1 space-y-6">
+
+                {/* Search and Add Movie */}
+                <div className="mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <input
+                    type="text"
+                    placeholder="Search movie..."
+                    value={searchTerm}
+                    onChange={handleSearch}
+                    className="bg-slate-900/50 text-white px-4 py-3 rounded-xl w-full sm:w-80 border border-slate-600/50 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all duration-200"
+                  />
+                  <Link
+                    to="/admin/add-movie"
+                    className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border-none text-white hover:text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 rounded-xl text-center flex items-center justify-center"
+                    style={{ height: '48px' }}
+                  >
+                    + Add New Movie
+                  </Link>
+                </div>
+
+                {/* Movie List Table */}
+                {loading ? (
+                  <div className="text-center py-8 text-gray-400 flex flex-col items-center justify-center">
+                    <FaSpinner className="animate-spin inline mr-2 text-3xl text-blue-400 mb-3" />
+                    <span className="text-lg">Loading movies...</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-sm text-gray-400 mb-4">
+                      Showing {filteredMovies.length} movies
+                    </div>
+
+                    <div className="bg-slate-900/30 rounded-xl overflow-hidden overflow-x-auto border border-slate-600/30 shadow-inner">
+                      <table className="min-w-full divide-y divide-slate-700">
+                        <thead className="bg-slate-700/50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">ID</th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Name</th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Genres</th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Duration</th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Status</th>
+                            <th className="px-6 py-3 text-center text-xs font-bold text-gray-300 uppercase tracking-wider">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-slate-800/40 divide-y divide-slate-700">
+                          {paginatedMovies.length === 0 ? (
+                            <tr>
+                              <td colSpan="6" className="px-6 py-8 text-sm text-gray-400 text-center">No movies found.</td>
+                            </tr>
+                          ) : (
+                            paginatedMovies.map((movie, index) => {
+                              const status = getCalculatedStatus(movie);
+                              return (
+                                <tr key={movie._id} className="hover:bg-slate-700/60 transition-colors duration-200">
+                                  <td className="px-6 py-4 text-sm text-gray-300">{(currentPage * itemsPerPage + index + 1)}</td>
+                                  <td className="px-6 py-4 text-sm text-white font-medium">{movie.name}</td>
+                                  <td className="px-6 py-4 text-sm text-gray-300">{Array.isArray(movie.genres) ? movie.genres.join(', ') : movie.genres}</td>
+                                  <td className="px-6 py-4 text-sm text-gray-300">{movie.running_time} min</td>
+                                  <td className="px-6 py-4">
+                                    {status === 'now_showing' && <Tag color="#22c55e" className="rounded-full px-3 py-1 font-semibold text-white border border-green-600">Now Showing</Tag>}
+                                    {status === 'coming_soon' && <Tag color="#f97316" className="rounded-full px-3 py-1 font-semibold text-white border border-orange-600">Coming Soon</Tag>}
+                                    {status === 'ended' && <Tag color="#ef4444" className="rounded-full px-3 py-1 font-semibold text-white border border-red-600">Ended</Tag>}
+                                  </td>
+                                  <td className="px-6 py-4 text-center">
+                                    <div className="flex justify-center gap-4">
+                                      <button onClick={() => showMovieDetails(movie)} className="text-blue-400 hover:text-blue-500 text-xl transition-colors duration-200" title="View Details"><FaEye /></button>
+                                      <button onClick={() => window.location.href = '/admin/movie-list/edit-movie/' + movie._id} className="text-yellow-400 hover:text-yellow-500 text-xl transition-colors duration-200" title="Edit Movie"><FaEdit /></button>
+                                      <button onClick={() => confirmDelete(movie)} className="text-red-400 hover:text-red-500 text-xl transition-colors duration-200" title="Delete Movie"><FaTrash /></button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {totalPages > 0 && (
+                      <div className="mt-6 flex justify-center">
+                        <Pagination
+                          currentPage={currentPage}
+                          totalPages={totalPages}
+                          onPageChange={handlePageChange}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      </div>
+
+      {/* Movie Detail Modal */}
+      <Modal
+        open={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        footer={null}
+        centered
+        width={800}
+        className="custom-ant-modal" // Use the custom class for styling
+      >
+        {selectedMovie && (
+          <div className="bg-slate-800/90 backdrop-blur-lg border border-slate-600/40 p-8 rounded-2xl shadow-lg relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/8 via-transparent to-cyan-600/8 pointer-events-none" />
+            <div className="flex flex-col lg:flex-row gap-8 relative z-10">
+              <div className="flex-shrink-0">
+                <img
+                  src={selectedMovie.image_url || "https://placehold.co/256x384/1f2937/e2e8f0?text=No+Poster"}
+                  alt="Movie Poster"
+                  className="w-64 h-96 rounded-xl object-cover shadow-2xl border-2 border-slate-700"
+                  onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/256x384/1f2937/e2e8f0?text=No+Poster" }}
+                />
+              </div>
+              <div className="flex-1 space-y-6">
+                <div>
+                  <h2 className="text-3xl md:text-4xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    {selectedMovie.name}
+                  </h2>
+                  <div className="w-20 h-1 bg-red-600 rounded-full"></div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <h2 className="text-3xl font-bold mb-2">{selectedMovie.name}</h2>
-                    <div className="w-16 h-1 bg-red-600 rounded-full"></div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <p className="text-gray-400 text-sm">Genres</p>
-                      <p className="font-semibold">{Array.isArray(selectedMovie.genres) ? selectedMovie.genres.join(', ') : selectedMovie.genres}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-sm">Duration</p>
-                      <p className="font-semibold">{selectedMovie.running_time} minutes</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-sm">Version</p>
-                      <p className="font-semibold">{selectedMovie.version}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-sm">Director</p>
-                      <p className="font-semibold">{selectedMovie.director}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-sm">Actors</p>
-                      <p className="font-semibold">{selectedMovie.actors}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-sm">Company</p>
-                      <p className="font-semibold">{selectedMovie.production_company}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-sm">Start Date</p>
-                      <p className="font-semibold">{dayjs(selectedMovie.start_date).format('DD/MM/YYYY')}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-sm">End Date</p>
-                      <p className="font-semibold">{dayjs(selectedMovie.end_date).format('DD/MM/YYYY')}</p>
-                    </div>
+                    <p className="text-gray-400 text-sm">Genres</p>
+                    <p className="font-semibold text-white">{Array.isArray(selectedMovie.genres) ? selectedMovie.genres.join(', ') : selectedMovie.genres}</p>
                   </div>
                   <div>
-                    <p className="text-gray-400 text-sm">Trailer</p>
-                    <a href={selectedMovie.trailer_link} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">
-                      {selectedMovie.trailer_link}
-                    </a>
+                    <p className="text-gray-400 text-sm">Duration</p>
+                    <p className="font-semibold text-white">{selectedMovie.running_time} minutes</p>
                   </div>
                   <div>
-                    <p className="text-gray-400 text-sm">Description</p>
-                    <p className="font-medium leading-relaxed">{selectedMovie.description}</p>
+                    <p className="text-gray-400 text-sm">Version</p>
+                    <p className="font-semibold text-white">{selectedMovie.version}</p>
                   </div>
+                  <div>
+                    <p className="text-gray-400 text-sm">Director</p>
+                    <p className="font-semibold text-white">{selectedMovie.director}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-sm">Actors</p>
+                    <p className="font-semibold text-white">{selectedMovie.actors}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-sm">Company</p>
+                    <p className="font-semibold text-white">{selectedMovie.production_company}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-sm">Start Date</p>
+                    <p className="font-semibold text-white">{dayjs(selectedMovie.start_date).format('DD/MM/YYYY')}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-sm">End Date</p>
+                    <p className="font-semibold text-white">{dayjs(selectedMovie.end_date).format('DD/MM/YYYY')}</p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Trailer</p>
+                  <a href={selectedMovie.trailer_link} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-500 underline transition-colors duration-200">
+                    {selectedMovie.trailer_link}
+                  </a>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Description</p>
+                  <p className="font-medium leading-relaxed text-white">{selectedMovie.description}</p>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Cinema Room</p>
+                  <p className="font-medium leading-relaxed text-white">{selectedMovie.roomName}</p>
                 </div>
               </div>
-              <button
-                onClick={() => setModalVisible(false)}
-                className="mt-8 w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-[1.02]"
-              >
-                Close
-              </button>
             </div>
-          )}
-        </Modal>
-      </div>
+            <button
+              onClick={() => setModalVisible(false)}
+              className="mt-8 w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-3 px-8 rounded-lg font-semibold transition-all duration-300 transform hover:scale-[1.02] shadow-md hover:shadow-lg"
+              style={{ height: '48px', borderRadius: '12px' }}
+            >
+              Close
+            </button>
+          </div>
+        )}
+      </Modal>
     </SidebarLayout>
   );
 };
