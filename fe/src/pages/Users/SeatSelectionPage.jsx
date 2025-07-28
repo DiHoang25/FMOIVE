@@ -158,6 +158,7 @@ function SeatSelectionPage() {
   });
 };
 
+
   const getSeatClass = (seat) => {
   const isSelected = selectedSeatsState.includes(seat.label);
   const isOccupied = occupiedLabels.includes(seat.label);

@@ -7,6 +7,10 @@ const replySchema = new mongoose.Schema(
       ref: 'Comment',
       required: true,
     },
+    receiver: {
+      type: String, // hoặc ObjectId nếu bạn dùng User model
+    },
+
     author: { type: String, required: true },
     message: { type: String, required: true },
   },

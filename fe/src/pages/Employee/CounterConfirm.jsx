@@ -70,6 +70,7 @@ const CounterConfirm = () => {
   const [error, setError] = useState("");
   const [promotions, setPromotions] = useState([]);
   const [roomName, setRoomName] = useState("Loading...");
+  
 
   // Products state - consider moving to Redux for consistency
   const [selectedProducts, setSelectedProductsLocal] = useState([]);
@@ -187,6 +188,18 @@ const CounterConfirm = () => {
 
         setError("");
 
+                const savedState = {
+          movieDetails: JSON.parse(localStorage.getItem("movieDetails") || "null"),
+          selectedSeats: JSON.parse(localStorage.getItem("selectedSeats") || "[]"),
+          totalSeatPrice: parseInt(localStorage.getItem("totalSeatPrice") || "0"),
+          selectedCombos: JSON.parse(localStorage.getItem("selectedCombos") || "[]"),
+          totalComboPrice: parseInt(localStorage.getItem("totalComboPrice") || "0"),
+          user: JSON.parse(localStorage.getItem("user") || "null"),
+        };
+
+        const bookingState = JSON.parse(localStorage.getItem("bookingState") || "null");
+        const stateToUse = bookingState || savedState;
+
         // Load booking data from localStorage - FIX PARSING
 
         const savedMovieDetails = JSON.parse(
@@ -282,6 +295,16 @@ const CounterConfirm = () => {
         const savedUser = JSON.parse(
           localStorage.getItem("counterUser") || "null"
         );
+
+                if (stateToUse.movieDetails?.cinema_room) {
+          const token = localStorage.getItem("token");
+          const res = await fetch(
+            `http://localhost:5000/api/theater/rooms/${stateToUse.movieDetails.cinema_room}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          const data = await res.json();
+          setRoomName(data.room?.roomName || stateToUse.movieDetails.cinema_room);
+        }
 
         const token = localStorage.getItem("token");
 
