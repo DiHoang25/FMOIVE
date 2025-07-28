@@ -2,6 +2,8 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import LoginPage from '../LoginPage';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
 
 // Mock fetch global
 global.fetch = jest.fn();
@@ -39,8 +41,13 @@ const mockMessage = require('antd').message;
 
 // Helper render with router
 const renderWithRouter = (ui) => {
-  return render(<BrowserRouter>{ui}</BrowserRouter>);
+  return render(
+    <GoogleOAuthProvider clientId="test-client-id">
+      <BrowserRouter>{ui}</BrowserRouter>
+    </GoogleOAuthProvider>
+  );
 };
+
 
 // Reset mocks mỗi test
 beforeEach(() => {

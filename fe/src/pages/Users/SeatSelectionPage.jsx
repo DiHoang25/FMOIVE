@@ -137,7 +137,8 @@ function SeatSelectionPage() {
 
 
   const handleToggleSeat = (seat) => {
-
+  const isOccupied = occupiedLabels.includes(seat.label);
+  if (isOccupied) return; // 🚫 Không cho chọn ghế đã bị chiếm
 
   setSelectedSeatsState((prev) => {
     const updated = prev.includes(seat.label)
@@ -146,6 +147,7 @@ function SeatSelectionPage() {
 
     const selectedSeatObjects =
       roomData?.seats?.filter((s) => updated.includes(s.label)) || [];
+
     const totalPrice = selectedSeatObjects.reduce(
       (sum, s) => sum + s.price,
       0
@@ -155,6 +157,7 @@ function SeatSelectionPage() {
     return updated;
   });
 };
+
 
   const getSeatClass = (seat) => {
   const isSelected = selectedSeatsState.includes(seat.label);

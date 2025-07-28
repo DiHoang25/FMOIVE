@@ -194,9 +194,9 @@ async function removeOccupiedSeats(bookingId) {
 
 // hàm helper này tự chạy, khỏi gọi
 // Cron job để hủy các booking chưa thanh toán sau x phút
-cron.schedule('*/20 * * * *', async () => {
+cron.schedule('*/5 * * * *', async () => {
     try {
-        const expired = new Date(Date.now() - 20 * 60 * 1000);
+        const expired = new Date(Date.now() - 5 * 60 * 1000);
         const result = await Booking.updateMany(
             { status: 'PENDING_PAYMENT', createdAt: { $lte: expired } },
             { status: 'CANCELLED' },
