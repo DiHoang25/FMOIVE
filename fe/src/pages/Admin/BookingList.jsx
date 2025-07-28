@@ -323,7 +323,7 @@ const BookingList = () => {
                       <div>
                         <p className="text-gray-400 text-sm">Cinema Room</p>
                         <p className="text-white font-semibold">
-                          {getRoomName(selectedBooking.movieDetails?.roomName)}
+                          {getRoomName(selectedBooking.movieDetails?.cinema_room)}
                         </p>
                       </div>
                     </div>

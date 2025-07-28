@@ -20,7 +20,7 @@ import "../index.css"
 const desc = ["Terrible", "Bad", "Normal", "Good", "Wonderful"]
 const ratingColors = ["#ff4d4f", "#ff7a45", "#ffa940", "#52c41a", "#1890ff"]
 
-const CommentSection = ({ movieName }) => {
+const CommentSection = ({ movieName, movieId }) => {
     const { user } = useAuth()
     const navigate = useNavigate()
     const location = useLocation()
@@ -33,6 +33,7 @@ const CommentSection = ({ movieName }) => {
     const [replies, setReplies] = useState({})
     const [showReplyForm, setShowReplyForm] = useState({})
     const [likedComments, setLikedComments] = useState({})
+    
 
 
     const fetchComments = async () => {
@@ -61,6 +62,8 @@ const CommentSection = ({ movieName }) => {
         comments.forEach((comment) => fetchReplies(comment._id))
     }, [comments])
 
+
+
     const handleSubmit = async () => {
         if (!user) return setIsLoginModalOpen(true)
         if (!message.trim() || rating === 0) {
@@ -70,6 +73,7 @@ const CommentSection = ({ movieName }) => {
         try {
             await axios.post(`http://localhost:5000/api/comments`, {
                 movieName,
+                movieId,
                 author: user.username,
                 message,
                 rating,
@@ -311,7 +315,7 @@ const handleDeleteReply = async (replyId, commentId) => {
                     ) : (
                         <div className="space-y-8">
                             {comments.map((comment, index) => (
-                                <div key={comment._id} className="group">
+                                <div key={comment._id} className="group" id={`comment-${comment._id}`}>
                                     <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300">
                                         {/* Comment Header */}
                                         <div className="flex items-start justify-between mb-4">
