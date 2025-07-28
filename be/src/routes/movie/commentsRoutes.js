@@ -131,20 +131,27 @@ router.post('/', async (req, res) => {
  *       200:
  *         description: Xóa thành công
  */
+// DELETE /api/comments/:id
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    const { username } = req.body; // Gửi từ frontend
 
-    const deleted = await Comment.findByIdAndDelete(id);
-    if (!deleted) {
-      return res.status(404).json({ message: 'Không tìm thấy bình luận' });
+    const comment = await Comment.findById(id);
+    if (!comment) return res.status(404).json({ message: 'Comment not found' });
+
+    if (comment.author !== username) {
+      return res.status(403).json({ message: 'You can only delete your own comment' });
     }
 
-    res.json({ message: 'Xóa bình luận thành công' });
-  } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
+    await Comment.findByIdAndDelete(id);
+    res.status(200).json({ message: 'Comment deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 /**
  * @swagger

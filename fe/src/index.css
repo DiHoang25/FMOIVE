@@ -96,7 +96,7 @@ code {
 
 /* Textarea: Không bị đổi màu trắng khi hover, font đậm hơn */
 .comment-textarea {
-  @apply bg-gray-800 focus:bg-gray-800 hover:bg-gray-800 text-white font-semibold 
+  @apply bg-gray-800 focus:bg-gray-800 text-white font-semibold 
          placeholder-gray-400 border-gray-600 rounded-lg 
          focus:border-red-500 focus:ring-1 focus:ring-red-500;
 }
@@ -153,4 +153,15 @@ code {
 
 .date {
   @apply text-xs text-gray-400 ml-auto;
+}
+
+.custom-notification {
+  background-color: #fff7f7 !important;
+  border: 1px solid #f0a1a8;
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.custom-rate-white .ant-rate-star-zero svg {
+  color: white !important;
 }
