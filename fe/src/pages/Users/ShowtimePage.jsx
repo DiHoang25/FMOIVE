@@ -280,8 +280,7 @@ function ShowtimePage() {
                 key={index}
                 title={movie.name}
                 poster={movie.image_url}
-                info={`${movie.version || "2D"} • ${movie.running_time} min • ${movie.genres?.join(', ')
-                  }`}
+                info={`${movie.version || "2D"} • ${movie.running_time} min • ${movie.type || "Movie"}`}
                 showtimes={movie.showtimes}
                 movie={movie}
                 onShowtimeClick={handleMovieCardShowtimeClick}
