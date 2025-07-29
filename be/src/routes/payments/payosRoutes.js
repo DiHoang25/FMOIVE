@@ -358,8 +358,6 @@ router.get('/success', async (req, res) => {
         return res.status(400).send('<h1>Thiếu thông tin Booking.</h1>');
     }
 
-    // Redirect frontend về trang status hoặc trang chi tiết booking để hiển thị kết quả chính xác
-    // Đây là cách tốt nhất để tránh logic cập nhật phức tạp và không an toàn ở return URL
     res.redirect(`${PAYOS_CONFIG.FRONTEND_URL}/payment-status?bookingId=${bookingId}`);
 });
 
