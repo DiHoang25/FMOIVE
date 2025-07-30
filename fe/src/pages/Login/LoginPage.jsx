@@ -1,20 +1,18 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode'; // Vẫn cần để lấy role và username cho message
-import { useDispatch } from 'react-redux'; // Vẫn cần nếu bạn muốn dispatch các action khác sau này, nhưng không phải setUser ở đây
+import { jwtDecode } from 'jwt-decode'; 
+import { useDispatch } from 'react-redux';
 import { useAuth } from '../../contexts/AuthContext';
 import { message } from 'antd';
-// import { setUser } from '../../redux/bookingSlice'; // <-- KHÔNG CẦN IMPORT setUser Ở ĐÂY NỮA
 
-// Import GoogleLoginButton component
 import GoogleLoginButton from '../../components/GoogleLoginButton';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login } = useAuth(); // Lấy hàm login từ AuthContext
+  const { login } = useAuth(); 
   const location = useLocation();
   const from = location.state?.from || '/';
-  const dispatch = useDispatch(); // Vẫn giữ dispatch nếu cần cho các mục đích khác
+  const dispatch = useDispatch(); 
 
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [errors, setErrors] = useState({ username: '', password: '', general: '' });
@@ -62,15 +60,14 @@ const LoginPage = () => {
         return;
       }
 
-      // Lưu token vào localStorage và cập nhật trạng thái AuthContext
+      
       login(data.token); 
 
-      // Giải mã token để lấy thông tin người dùng cho mục đích hiển thị message và điều hướng
+     
       const decoded = jwtDecode(data.token);
       const userInformation = decoded.user; 
       
-      // Dòng này đã được chuyển sang AuthContext.jsx để đảm bảo đồng bộ hóa
-      // dispatch(setUser(userInformation)); // <-- DÒNG NÀY ĐÃ BỊ LOẠI BỎ Ở ĐÂY
+      
 
       console.log("DEBUG: Login successful. AuthContext's useEffect will handle Redux dispatch.");
 

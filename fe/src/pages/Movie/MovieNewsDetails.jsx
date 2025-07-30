@@ -33,7 +33,7 @@ const MovieNewsDetails = () => {
       <h1 className="text-2xl sm:text-3xl font-semibold text-center mb-2">{news.title}</h1>
       <hr className="mx-auto border-red-500 w-[80%] sm:w-[400px] mb-4" />
 
-      {/* Hình và nội dung */}
+     
       <div className="space-y-4">
         <img
           src={news.image_url}

@@ -3,19 +3,15 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import EmployeeProfile from '../EmployeeProfile';
 
-// Mock fetch API
 global.fetch = jest.fn();
 
-// Mock react-router-dom
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => jest.fn(),
 }));
 
-// Mock the employee sidebar
 jest.mock('../../../components/Sidebar-Employee', () => ({ children }) => <div data-testid="sidebar-layout">{children}</div>);
 
-// Simply mock antd components without trying to replicate their behavior
 jest.mock('antd', () => ({
   Avatar: () => <div data-testid="mock-avatar">Avatar</div>,
   Button: ({ children, onClick }) => <button onClick={onClick}>{children}</button>,
@@ -30,7 +26,6 @@ jest.mock('antd', () => ({
   ),
 }));
 
-// Mock the antd icons
 jest.mock('@ant-design/icons', () => ({
   UserOutlined: () => <span data-testid="user-icon">UserIcon</span>,
 }));
@@ -45,26 +40,21 @@ describe('EmployeeProfile', () => {
   };
 
   beforeEach(() => {
-    // Clear localStorage mock
     localStorage.clear();
     
-    // Reset fetch mock
     global.fetch.mockReset();
     
-    // Setup localStorage with a token
+   
     localStorage.setItem('token', 'fake-token');
 
-    // Mock console.error to prevent it from cluttering test output
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    // Restore console.error
     console.error.mockRestore();
   });
 
   test('renders loading state initially', () => {
-    // Setup fetch to delay resolution
     global.fetch.mockImplementation(() => new Promise(resolve => setTimeout(() => {
       resolve({
         ok: true,
@@ -82,7 +72,6 @@ describe('EmployeeProfile', () => {
   });
 
   test('displays error when user is not authenticated', async () => {
-    // Remove token to simulate unauthenticated state
     localStorage.removeItem('token');
 
     render(
@@ -91,7 +80,6 @@ describe('EmployeeProfile', () => {
       </MemoryRouter>
     );
 
-    // Wait for the error to be displayed
     await waitFor(() => {
       expect(screen.getByTestId('mock-result')).toBeInTheDocument();
     });
@@ -100,7 +88,6 @@ describe('EmployeeProfile', () => {
   });
 
   test('displays error message when fetch fails', async () => {
-    // Mock a failed fetch
     global.fetch.mockRejectedValueOnce(new Error('Network error'));
 
     render(
@@ -109,7 +96,6 @@ describe('EmployeeProfile', () => {
       </MemoryRouter>
     );
 
-    // Wait for the error to be displayed
     await waitFor(() => {
       expect(screen.getByTestId('mock-result')).toBeInTheDocument();
     });
