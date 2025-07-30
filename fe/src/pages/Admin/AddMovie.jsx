@@ -335,7 +335,7 @@ try {
                                                             value={formData.fromDate}
                                                             onChange={(date) => setFormData({ ...formData, fromDate: date })}
                                                             disabledDate={(current) => current && current < dayjs().startOf('day')}
-                                                            className=" text-black px-4 py-3 rounded-xl w-full border border-slate-600/50 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all duration-200"
+                                                            className="bg-slate-900/50 text-white px-4 py-3 rounded-xl w-full border border-slate-600/50 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all duration-200"
                                                         />
                                                     </div>
                                                     <div>
@@ -347,7 +347,7 @@ try {
                                                             value={formData.toDate}
                                                             onChange={(date) => setFormData({ ...formData, toDate: date })}
                                                             disabledDate={(current) => current && current < dayjs().startOf('day')}
-                                                            className="text-black px-4 py-3 rounded-xl w-full border border-slate-600/50 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all duration-200"
+                                                            className="bg-slate-900/50 text-white px-4 py-3 rounded-xl w-full border border-slate-600/50 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all duration-200"
                                                         />
                                                     </div>
                                                 </div>
@@ -595,7 +595,7 @@ try {
                                     </div>
 
                                     <motion.div
-                                        className="mt-8 flex flex-col sm:flex-row justify-center sm:justify-end gap-3"
+                                        className="mt-8 flex flex-col sm:flex-row justify-center gap-3"
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ duration: 0.5, delay: 0.9 }}

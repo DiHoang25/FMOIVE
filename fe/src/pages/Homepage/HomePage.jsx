@@ -44,11 +44,20 @@ const HomePage = () => {
         const homeData = homeRes.data;
         const moviesData = moviesRes.data;
 
-        const activeMovies = moviesData.filter(movie => movie.status !== 'ended' && movie.is_hot);
+        const activeMovies = moviesData.filter(movie => checkHotMovie(movie));
 
         setBanners(homeData.banners || []);
-        setNowShowingMovies(homeData.nowShowing || []);
-        setComingSoonMovies(homeData.comingSoon || []);
+        
+        // Filter movies based on real-time status
+        const nowShowing = moviesData.filter(movie => 
+          checkRealTimeStatus(movie.start_date, movie.end_date) === 'now_showing'
+        );
+        const comingSoon = moviesData.filter(movie => 
+          checkRealTimeStatus(movie.start_date, movie.end_date) === 'coming_soon'
+        );
+        
+        setNowShowingMovies(nowShowing);
+        setComingSoonMovies(comingSoon);
         setHotMovies(activeMovies);
         setNews(homeData.news || []);
       } catch (err) {
@@ -155,6 +164,23 @@ const HomePage = () => {
 
   const formatDate = dateStr => new Date(dateStr).toLocaleDateString('vi-VN');
 
+  const checkRealTimeStatus = (startDate, endDate) => {
+    const now = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (now < start) return 'coming_soon';
+    if (now > end) return 'ended';
+    return 'now_showing';
+  };
+
+  const checkHotMovie = (movie) => {
+    if (!movie.is_hot) return false;
+    
+    const status = checkRealTimeStatus(movie.start_date, movie.end_date);
+    return status !== 'ended';
+  };
+
   return (
     <div className="bg-black text-white px-4 sm:px-6 pt-[30px] sm:pt-[30px] pb-6 sm:pb-10 space-y-10">
       {/* Banner */}
@@ -206,9 +232,6 @@ const HomePage = () => {
               <div className="flex items-center gap-3 text-sm font-medium mb-1">
                 <span className='text-xl'>{movie.genres?.join(', ') || 'N/A'}</span>
                 <span className="bg-red-600 text-white px-1 rounded text-m">{movie.version}</span>
-              </div>
-              <div className="flex items-center gap-1 text-yellow-400 mb-2">
-                <span className="text-white text-m">IMDB: {movie.rating}/10</span>
               </div>
               <p className="text-xl text-gray-300 mb-2">Now showing • Ends: {formatDate(movie.end_date)}</p>
               <p className="text-2xl mb-2">Actor: {movie.actors || 'N/A'}</p>
