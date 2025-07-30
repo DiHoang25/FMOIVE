@@ -1,122 +1,111 @@
+// src/pages/Employee/__test__/CounterConfirm.test.jsx
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { render, screen, fireEvent } from '@testing-library/react';
 import CounterConfirm from '../CounterConfirm';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
-// Mock react-router-dom
+
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
-  useNavigate: () => jest.fn()
+  useNavigate: jest.fn(),
 }));
 
-// Mock redux
+
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => ({
-    movieDetails: {
-      name: 'Test Movie',
-      image_url: 'test-image.jpg',
-      version: '2D',
-      running_time: 120,
-      time: '2023-07-28T19:00:00.000Z',
-      cinema_room: 'ROOM01',
-      genres: ['Action', 'Drama']
-    },
-    selectedSeats: ['A1', 'A2'],
-    totalSeatPrice: 100000,
-    selectedCombos: [
-      { id: '1', name: 'Test Combo', price: 50000, quantity: 1, image: 'combo.jpg' }
-    ],
-    totalComboPrice: 50000,
-    user: {
-      name: 'Test User',
-      email: 'test@example.com',
-      phone: '1234567890',
-      username: 'testuser'
-    }
-  })),
-  useDispatch: () => jest.fn()
+  useSelector: jest.fn(),
+  useDispatch: jest.fn(),
 }));
 
-// Mock axios
-jest.mock('axios', () => ({
-  get: jest.fn(() => Promise.resolve({ 
-    data: { 
-      user: {
-        fullname: 'Test User',
-        email: 'test@example.com',
-        _id: '123',
-        phone: '1234567890',
-        username: 'testuser',
-        gender: 'male',
-        address: 'Test Address',
-        id_card: '123456789',
-        role: 'user'
-      }
-    } 
-  })),
-  post: jest.fn(() => Promise.resolve({
-    data: {
-      booking: {
-        bookingId: 'BK123',
-        grandTotal: 150000
-      }
-    }
-  }))
+
+jest.mock('antd', () => ({
+  message: {
+    success: jest.fn(),
+    error: jest.fn(),
+  },
 }));
 
-// Mock dayjs
-jest.mock('dayjs', () => {
-  const mockDayjs = (date) => ({
-    toISOString: () => date || '2023-07-28T19:00:00.000Z',
-    format: () => '28/07/2023'
-  });
-  mockDayjs.extend = jest.fn();
-  return mockDayjs;
-});
 
-// Mock the SidebarLayout component
-jest.mock('../../../components/Sidebar-Employee', () => {
-  return function DummySidebar({ children }) {
-    return <div data-testid="sidebar-mock">{children}</div>
-  }
-});
+jest.mock('../../../components/Sidebar-Employee', () => ({ children }) => <div>{children}</div>);
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: jest.fn(() => JSON.stringify({
-    movieDetails: {
-      name: 'Test Movie',
-      image_url: 'test-image.jpg'
-    },
-    selectedSeats: ['A1', 'A2'],
-    totalSeatPrice: 100000
-  })),
-  setItem: jest.fn(),
-  removeItem: jest.fn()
-};
-Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+describe('CounterConfirm Component', () => {
+  const mockDispatch = jest.fn();
+  const mockNavigate = jest.fn();
 
-describe('CounterConfirm', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    // Suppress console.error and console.log
-    jest.spyOn(console, 'error').mockImplementation(() => {});
-    jest.spyOn(console, 'log').mockImplementation(() => {});
+    useDispatch.mockReturnValue(mockDispatch);
+    useNavigate.mockReturnValue(mockNavigate);
+
+    useSelector.mockImplementation(() => ({
+      movieDetails: {
+        name: 'Test Movie',
+        image_url: '/test.jpg',
+        version: '2D',
+        running_time: '120',
+        time: '2023-08-01T10:00:00Z',
+        cinema_room: 'ROOM01',
+        genres: ['Action'],
+      },
+      selectedSeats: [{ label: 'A1' }, { label: 'A2' }],
+      totalSeatPrice: 200000,
+      selectedCombos: [
+        { name: 'Combo 1', quantity: 2, price: 50000 },
+        { name: 'Combo 2', quantity: 1, price: 30000 },
+      ],
+      totalComboPrice: 130000,
+      selectedProducts: [],
+      user: {
+        name: 'John Doe',
+        email: 'john@example.com',
+        phone: '0123456789',
+        username: 'johndoe',
+      },
+    }));
   });
 
   afterEach(() => {
-    console.error.mockRestore();
-    console.log.mockRestore();
+    jest.clearAllMocks();
   });
 
-  test('renders without crashing', () => {
-    render(
-      <MemoryRouter>
-        <CounterConfirm />
-      </MemoryRouter>
-    );
-    
-    // Basic check for the component rendering
-    expect(screen.getByTestId('sidebar-mock')).toBeInTheDocument();
+  it('renders movie title and selected seats', () => {
+    render(<CounterConfirm />);
+    expect(screen.getByText('Test Movie')).toBeInTheDocument();
+    expect(screen.getByText('Selected Seats')).toBeInTheDocument();
+    expect(screen.getByText('A1')).toBeInTheDocument();
+    expect(screen.getByText('A2')).toBeInTheDocument();
+  });
+
+  it('renders selected combos and total combo price', () => {
+  render(<CounterConfirm />);
+  expect(screen.getByText('Combo 1')).toBeInTheDocument();
+  expect(screen.getByText('Combo 2')).toBeInTheDocument();
+
+  
+  const comboPriceElement = screen.getByText((content, element) => {
+    return element.tagName.toLowerCase() === 'span' && content.includes('130');
+  });
+  expect(comboPriceElement).toBeInTheDocument();
+});
+
+
+  it('renders user information', () => {
+    render(<CounterConfirm />);
+    expect(screen.getByText('John Doe')).toBeInTheDocument();
+    expect(screen.getByText('john@example.com')).toBeInTheDocument();
+    expect(screen.getByText('0123456789')).toBeInTheDocument();
+  });
+
+  it('calls navigate(-1) when Back button is clicked', () => {
+    render(<CounterConfirm />);
+    const backButton = screen.getByText('Back');
+    fireEvent.click(backButton);
+    expect(mockNavigate).toHaveBeenCalledWith(-1);
+  });
+
+  it('renders Proceed to Payment button', () => {
+    render(<CounterConfirm />);
+    const payButton = screen.getByRole('button', { name: /Proceed to Payment/i });
+    expect(payButton).toBeInTheDocument();
+    expect(payButton).toBeEnabled();
   });
 });

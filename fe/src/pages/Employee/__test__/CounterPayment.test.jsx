@@ -1,105 +1,156 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import PaymentPage from '../../Users/PaymentMethod';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
-import bookingReducer from '../../../redux/bookingSlice';
+import { useNavigate, useLocation } from 'react-router-dom';
+import PaymentPage from '../CounterPayment';
+import '@testing-library/jest-dom';
 
-// Mock fetch
-global.fetch = jest.fn(() =>
-  Promise.resolve({
-    ok: true,
-    json: () => Promise.resolve({ paymentUrl: 'https://sandbox.vnpay.vn/payment/12345' }),
-  })
-);
-
-// Mock message from antd
-jest.mock('antd', () => ({
-  message: {
-    error: jest.fn(),
-    loading: jest.fn(),
-  },
+// Mock react-router-dom hooks
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: jest.fn(),
+  useLocation: jest.fn(),
 }));
 
-const renderWithRouterAndRedux = (locationState = {}) => {
-  const mockStore = configureStore({
-    reducer: {
-      booking: bookingReducer,
+// Mock SidebarLayout component
+jest.mock('../../../components/Sidebar-Employee', () => {
+  return function MockSidebar({ children }) {
+    return <div data-testid="sidebar">{children}</div>;
+  };
+});
+
+describe('PaymentPage Component', () => {
+  const mockNavigate = jest.fn();
+  const mockLocation = {
+    state: {
+      movieDetails: { title: 'Test Movie' },
+      selectedShowtimeTime: '14:00',
+      fullShowtimeDate: '2023-10-01',
+      selectedSeats: ['A1', 'A2'],
+      selectedCombos: [
+        { id: 1, name: 'Combo 1', price: 50000, quantity: 2 }
+      ],
+      selectedProducts: [
+        { id: 1, name: 'Product 1', price: 30000, quantity: 1 }
+      ],
+      ticketPrice: 120000,
+      combosTotal: 100000,
+      productsTotal: 30000,
+      finalTotal: 250000,
+      userInformation: { name: 'Test User' },
     },
-    preloadedState: {
-      booking: {
-        user: {
-          _id: 'user123',
-          name: 'Test User',
-        },
-      },
-    },
+  };
+
+  beforeEach(() => {
+    useNavigate.mockReturnValue(mockNavigate);
+    useLocation.mockReturnValue(mockLocation);
   });
 
-  return render(
-    <Provider store={mockStore}>
-      <MemoryRouter initialEntries={[{ pathname: '/payment', state: locationState }]}>
-        <Routes>
-          <Route path="/payment" element={<PaymentPage />} />
-        </Routes>
-      </MemoryRouter>
-    </Provider>
-  );
-};
-
-describe('PaymentPage', () => {
-  beforeEach(() => {
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly with given data', () => {
-    renderWithRouterAndRedux({
-      bookingId: 'booking123',
-      finalTotal: 320000,
-      selectedSeats: ['A1', 'A2'],
-      selectedCombos: [{ name: 'Combo 1', quantity: 1 }],
-      selectedProducts: [],
-      ticketPrice: 250000,
-      combosTotal: 60000,
-      productsTotal: 0,
-      voucherDiscount: 0,
-      userInformation: { _id: 'user123' },
-    });
-
-    expect(screen.getByText(/Complete Your Payment/i)).toBeInTheDocument();
-    expect(screen.getByText(/Movie Tickets \(2\)/)).toBeInTheDocument();
-    expect(screen.getByText(/250.000 VND/)).toBeInTheDocument();
-    expect(screen.getByText(/60.000 VND/)).toBeInTheDocument();
-    expect(screen.getByText(/Pay 320.000 VND/)).toBeInTheDocument();
+  it('renders without crashing', () => {
+    render(<PaymentPage />);
+    expect(screen.getByTestId('sidebar')).toBeInTheDocument();
   });
 
-  it('calls fetch when Pay button is clicked', async () => {
-    renderWithRouterAndRedux({
-      bookingId: 'booking123',
-      finalTotal: 320000,
-      selectedSeats: ['A1', 'A2'],
-      selectedCombos: [{ name: 'Combo 1', quantity: 1 }],
-      selectedProducts: [],
-      ticketPrice: 250000,
-      combosTotal: 60000,
-      productsTotal: 0,
-      voucherDiscount: 0,
-      userInformation: { _id: 'user123' },
+  it('displays the correct payment title', () => {
+    render(<PaymentPage />);
+    expect(screen.getByText('Complete Your Payment')).toBeInTheDocument();
+  });
+
+  it('shows all payment methods', () => {
+    render(<PaymentPage />);
+    expect(screen.getByText('VN Pay')).toBeInTheDocument();
+    expect(screen.getByText('Cash Payment')).toBeInTheDocument();
+  });
+
+  it('defaults to VN Pay as selected payment method', () => {
+    render(<PaymentPage />);
+    const vnPayButton = screen.getByText('VN Pay').closest('button');
+    expect(vnPayButton).toHaveClass('border-red-600');
+  });
+
+  it('allows switching payment methods', () => {
+    render(<PaymentPage />);
+    const cashButton = screen.getByText('Cash Payment').closest('button');
+    
+    fireEvent.click(cashButton);
+    expect(cashButton).toHaveClass('border-red-600');
+  });
+
+  it('shows VN Pay notice when VN Pay is selected', () => {
+    render(<PaymentPage />);
+    expect(screen.getByText(/You'll be directed to the VN Pay gateway/i)).toBeInTheDocument();
+  });
+
+  it('shows cash notice when Cash Payment is selected', () => {
+    render(<PaymentPage />);
+    const cashButton = screen.getByText('Cash Payment').closest('button');
+    fireEvent.click(cashButton);
+    expect(screen.getByText(/Please collect cash from the customer/i)).toBeInTheDocument();
+  });
+
+  it('has a working back button', () => {
+    render(<PaymentPage />);
+    const backButton = screen.getByText('← Back');
+    fireEvent.click(backButton);
+    expect(mockNavigate).toHaveBeenCalledWith(-1);
+  });
+
+  describe('Payment Confirmation', () => {
+    it('shows cash confirmation modal when Pay Now is clicked with cash selected', () => {
+      render(<PaymentPage />);
+      const cashButton = screen.getByText('Cash Payment').closest('button');
+      fireEvent.click(cashButton);
+      
+      const payNowButton = screen.getByText('Pay Now');
+      fireEvent.click(payNowButton);
+      
+      expect(screen.getByText('Confirm Cash Payment')).toBeInTheDocument();
     });
 
-    const payButton = screen.getByRole('button', { name: /Pay 320.000 VND/i });
-    fireEvent.click(payButton);
+    it('closes cash confirmation modal when cancel is clicked', () => {
+      render(<PaymentPage />);
+      const cashButton = screen.getByText('Cash Payment').closest('button');
+      fireEvent.click(cashButton);
+      
+      const payNowButton = screen.getByText('Pay Now');
+      fireEvent.click(payNowButton);
+      
+      const cancelButton = screen.getByText('Cancel');
+      fireEvent.click(cancelButton);
+      
+      expect(screen.queryByText('Confirm Cash Payment')).not.toBeInTheDocument();
+    });
 
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/payment/create_payment_url'),
-      expect.objectContaining({
-        method: 'POST',
-        headers: expect.objectContaining({
-          'Content-Type': 'application/json',
-        }),
-        body: expect.stringContaining('"grandTotal":320000'),
-      })
-    );
+    it('navigates to success page when payment is confirmed', () => {
+      render(<PaymentPage />);
+      const cashButton = screen.getByText('Cash Payment').closest('button');
+      fireEvent.click(cashButton);
+      
+      const payNowButton = screen.getByText('Pay Now');
+      fireEvent.click(payNowButton);
+      
+      const confirmButton = screen.getByText('Confirm Paid');
+      fireEvent.click(confirmButton);
+      
+      expect(mockNavigate).toHaveBeenCalledWith('/employee/counter-payment-success', {
+        state: mockLocation.state
+      });
+    });
+
+    it('simulates VN Pay redirect when Pay Now is clicked with VN Pay selected', () => {
+      const alertMock = jest.spyOn(window, 'alert').mockImplementation(() => {});
+      render(<PaymentPage />);
+      
+      const payNowButton = screen.getByText('Pay Now');
+      fireEvent.click(payNowButton);
+      
+      expect(alertMock).toHaveBeenCalledWith('Redirecting to VN Pay gateway (simulated)...');
+      expect(mockNavigate).toHaveBeenCalled();
+      
+      alertMock.mockRestore();
+    });
   });
 });
