@@ -15,6 +15,7 @@ const MovieList = () => {
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 8;
+  const [roomName, setRoomName] = useState('');
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -30,6 +31,28 @@ const MovieList = () => {
     };
     fetchMovies();
   }, []);
+
+  useEffect(() => {
+    const fetchRoomName = async () => {
+      if (!selectedMovie?.cinema_room) return;
+
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get(`http://localhost:5000/api/theater/rooms/${selectedMovie.cinema_room}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        setRoomName(res.data?.room?.roomName || 'Unknown Room');
+      } catch (error) {
+        console.error('Lỗi lấy tên phòng:', error);
+        setRoomName('Unknown Room');
+      }
+    };
+
+    fetchRoomName();
+  }, [selectedMovie?.cinema_room]);
 
   useEffect(() => {
     movies.forEach(movie => {
@@ -266,6 +289,11 @@ const MovieList = () => {
                       <p className="text-gray-400 text-sm">End Date</p>
                       <p className="font-semibold">{dayjs(selectedMovie.end_date).format('DD/MM/YYYY')}</p>
                     </div>
+                    <div>
+                      <p className="text-gray-400 text-sm">Cinema Room</p>
+                      <p className="font-semibold">{roomName}</p>
+                    </div>
+
                   </div>
                   <div>
                     <p className="text-gray-400 text-sm">Trailer</p>
