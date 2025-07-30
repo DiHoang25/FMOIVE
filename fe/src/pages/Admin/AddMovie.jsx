@@ -9,6 +9,7 @@ import { Modal, message } from 'antd';
 import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import axios from 'axios';
+import { Form } from 'antd';
 dayjs.extend(isSameOrBefore);
 
 
@@ -44,6 +45,10 @@ const AddMovie = () => {
     const [roomOptions, setRoomOptions] = useState([]);
     const selectedVersions = Object.keys(formData.version).filter(v => formData.version[v]);
     const filteredRooms = roomOptions.filter(room => selectedVersions.includes(room.roomType));
+    const [form] = Form.useForm();
+    const [selectedRoom, setSelectedRoom] = useState(null);
+
+
 
 
     const handleInputChange = (e) => {
@@ -96,6 +101,10 @@ const AddMovie = () => {
         if (!cinemaRoom || cinemaRoom.length === 0) return message.error("Vui lòng chọn phòng chiếu.");
         if (!showTimes || showTimes.length === 0) return message.error("Vui lòng chọn ít nhất một suất chiếu.");
 
+
+
+
+
         // === STATUS CALCULATION ===
         const today = dayjs().startOf('day');
         const movieStart = dayjs(fromDate).startOf('day');
@@ -120,17 +129,87 @@ const AddMovie = () => {
         if (moviePoster) formDataToSend.append('image', moviePoster);
         if (movieBanner) formDataToSend.append('banner', movieBanner);
 
-        const hide = message.loading('Đang thêm phim...', 0);
+const hide = message.loading('Đang kiểm tra xung đột...', 0);
 
-        try {
-            await axios.post('http://localhost:5000/api/movies', formDataToSend);
-            hide();
-            setSuccess(true);
-        } catch (error) {
-            hide();
-            console.error('Error:', error);
-            message.error('Lỗi khi thêm phim.');
-        }
+const conflictCheck = await checkShowtimeConflict({
+  cinema_room: selectedRoom, // ID phòng
+  showTimes: form.showtimes, // danh sách suất bạn vừa chọn (quan trọng!)
+  startDate: form.start_date,
+  endDate: form.end_date,
+  runningTime: form.running_time
+});
+
+
+if (conflictCheck.conflict) {
+    Modal.error({
+        title: "Xung đột suất chiếu",
+        content: (
+            <div className="max-h-64 overflow-y-auto space-y-4">
+                
+                {/* 🔶 Gợi ý khung giờ an toàn */}
+                {Array.isArray(conflictCheck.suggestedShowtimes) && (
+                    <div className="bg-yellow-50 border border-yellow-400 p-3 rounded">
+                        <p className="font-medium text-yellow-700">⚠️ Khung giờ gợi ý (an toàn):</p>
+                        {conflictCheck.suggestedShowtimes.length > 0 ? (
+                            <p className="text-yellow-800">
+                                {conflictCheck.suggestedShowtimes.join(", ")}
+                            </p>
+                        ) : (
+                            <i className="text-yellow-600">Không còn khung giờ trống phù hợp</i>
+                        )}
+                    </div>
+                )}
+
+                {/* ❌ Các xung đột với phim đã có */}
+                {conflictCheck.conflicts?.length > 0 && (
+                    <div>
+                        <p className="font-semibold text-red-600">Các suất chiếu bị trùng với phim đã có:</p>
+                        <ul className="mt-2 list-disc list-inside text-sm text-red-500">
+                            {conflictCheck.conflicts.map((item, index) => (
+                                <li key={`db-${index}`}>
+                                    Ngày <b>{item.date}</b>:{" "}
+                                    {item.existingMovie ? <b>{item.existingMovie}</b> : <i>Phim đã có</i>}{" "}
+                                    ({item.existingTime}) trùng với suất mới ({item.newTime})
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
+                {/* ⚠️ Xung đột nội bộ */}
+                {conflictCheck.internalConflicts?.length > 0 && (
+                    <div>
+                        <p className="font-semibold text-orange-600">Các suất chiếu mới bị trùng với nhau:</p>
+                        <ul className="mt-2 list-disc list-inside text-sm text-orange-500">
+                            {conflictCheck.internalConflicts.map((item, index) => (
+                                <li key={`internal-${index}`}>
+                                    Suất <b>{item.newTimeA}</b> trùng với <b>{item.newTimeB}</b>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+            </div>
+        )
+    });
+    hide();
+    return;
+}
+
+hide(); // ẩn loading xung đột
+const hideSubmit = message.loading('Đang thêm phim...', 0);
+
+try {
+    await axios.post('http://localhost:5000/api/movies', formDataToSend);
+    hideSubmit();
+    setSuccess(true);
+} catch (error) {
+    hideSubmit();
+    console.error('Error:', error);
+    message.error('Lỗi khi thêm phim.');
+}
+
+
     };
 
     useEffect(() => {
@@ -156,6 +235,25 @@ const AddMovie = () => {
         };
         fetchRooms();
     }, []);
+
+    const checkShowtimeConflict = async () => {
+        try {
+            const res = await axios.post('http://localhost:5000/api/movies/check-showtime-conflict', {
+                cinema_room: formData.cinemaRoom[0]?.value,
+                showTimes: formData.showTimes,
+                startDate: formData.fromDate,
+                endDate: formData.toDate,
+                runningTime: parseInt(formData.runningTime)
+            });
+
+            return res.data;
+        } catch (err) {
+            console.error("Lỗi kiểm tra xung đột:", err);
+            message.error("Không thể kiểm tra xung đột suất chiếu.");
+            return { conflict: true }; // Ngăn gửi tiếp nếu lỗi server
+        }
+    };
+
 
 
     const resetForm = () => {

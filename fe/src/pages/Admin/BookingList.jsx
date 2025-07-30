@@ -6,6 +6,7 @@ import Pagination from '../../components/PaginationHomepage';
 import { message, Modal } from 'antd';
 import { FaSearch, FaEye } from "react-icons/fa";
 import { Calendar, Clock, MapPin, Users, CreditCard } from "lucide-react";
+import { useAuth } from '../../contexts/AuthContext';
 
 const BookingList = () => {
   const [bookings, setBookings] = useState([]);
@@ -17,21 +18,50 @@ const BookingList = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [roomMap, setRoomMap] = useState({});
+  const [roomNames, setRoomNames] = useState({});
 
-  useEffect(() => {
-    axios.get("http://localhost:5000/api/theater/rooms")
-      .then(res => {
-        const map = {};
-        res.data.forEach(r => { map[r.roomId] = r.roomName });
-        setRoomMap(map);
-      })
-      .catch(err => console.error("Room fetch error:", err));
-  }, []);
 
-  const getRoomName = (roomName) => {
-    const key = roomName?.trim().toUpperCase();
-    return roomMap[key] || (key?.match(/ROOM0*(\d+)/) ? `Cinema ${+key.match(/ROOM0*(\d+)/)[1]}` : key || 'N/A');
-  };
+const { authToken } = useAuth();
+
+useEffect(() => {
+  if (!authToken) return;
+
+  axios.get("http://localhost:5000/api/theater/rooms", {
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
+  })
+    .then(res => {
+      const map = {};
+      res.data.forEach(room => {
+        map[room.roomId] = room.roomName;
+      });
+      console.log("✅ roomMap fetched:", map);
+      setRoomMap(map);
+    })
+    .catch(err => console.error("❌ Lỗi fetch room:", err));
+}, [authToken]);
+
+
+const fetchRoomName = async (roomId) => {
+  if (!roomId || roomNames[roomId]) return; // nếu đã có rồi thì bỏ qua
+
+  try {
+    const token = localStorage.getItem('token');
+    const res = await axios.get(`http://localhost:5000/api/theater/rooms/${roomId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const roomName = res.data?.room?.roomName || roomId;
+    setRoomNames(prev => ({ ...prev, [roomId]: roomName }));
+  } catch (error) {
+    console.error(`❌ Lỗi lấy phòng ${roomId}:`, error);
+    setRoomNames(prev => ({ ...prev, [roomId]: roomId }));
+  }
+};
+
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -50,6 +80,13 @@ const BookingList = () => {
       const data = response.data;
       setBookings(data.bookings || []);
       setTotalPages(Math.ceil((data.total || 0) / bookingsPerPage));
+
+      // ⬇️ Gọi fetchRoomName cho từng roomId
+    data.bookings?.forEach(booking => {
+      const roomId = booking.movieDetails?.cinema_room;
+      if (roomId) fetchRoomName(roomId);
+    });
+
     } catch (error) {
       console.error('Lỗi khi lấy danh sách đặt vé:', error?.response?.data || error.message);
       message.error(error?.response?.data?.message || 'Không thể tải danh sách đặt vé.');
@@ -70,6 +107,11 @@ const BookingList = () => {
     return () => clearTimeout(delayDebounce);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm]);
+
+  const [roomList, setRoomList] = useState([]);
+
+
+
 
   const handleSearch = (e) => setSearchTerm(e.target.value);
 
@@ -258,7 +300,7 @@ const BookingList = () => {
                       <div>
                         <p className="text-gray-400 text-sm">Cinema Room</p>
                         <p className="text-white font-semibold">
-                          {getRoomName(selectedBooking.movieDetails?.cinema_room)}
+                          {roomNames[selectedBooking.movieDetails?.cinema_room] || 'Loading...'}
                         </p>
                       </div>
                     </div>
