@@ -1,7 +1,7 @@
 // src/routes/booking/bookingRoutes.js
 const express = require('express');
 const router = express.Router();
-const { v4: uuidv4 } = require('uuid'); // Import uuid để tạo bookingId duy nhất
+//const { v4: uuidv4 } = require('uuid'); // Import uuid để tạo bookingId duy nhất
 const authMiddleware = require('../../middleware/authMiddleware'); // Đảm bảo đường dẫn đúng
 const Booking = require('../../models/Booking'); // Import Booking Model
 const mongoose = require('mongoose'); // Import mongoose để sử dụng trong hàm helper
@@ -97,8 +97,8 @@ router.post('/create', authMiddleware, async (req, res) => {
         //     return res.status(400).json({ message: 'Missing essential booking data.' });
         // }
 
-        // Tạo một bookingId duy nhất bằng uuidv4
-        const uniqueBookingId = uuidv4();
+        // Tạo một bookingId duy nhất 
+        const uniqueBookingId = 'BKG' + Date.now();;
 
         // Thiết lập thời gian hết hạn cho việc giữ chỗ (ví dụ: 10 phút)
         const EXPIRATION_TIME_MINUTES = 20;
