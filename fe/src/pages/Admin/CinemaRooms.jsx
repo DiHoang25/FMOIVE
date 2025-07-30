@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import SidebarLayout from '../../components/Sidebar-Admin';
-import { FaEdit, FaTrash, FaEye } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaEye, FaSpinner } from 'react-icons/fa'; // Added FaSpinner
 import { Modal, message, Switch } from 'antd';
 import { ExclamationCircleFilled } from '@ant-design/icons';
+import { motion } from 'framer-motion'; // Import motion for animations
 
 const { confirm } = Modal;
 
@@ -34,6 +35,7 @@ const CinemaRooms = () => {
       } catch (err) {
         setError('Failed to load cinema room list.');
         setLoading(false);
+        console.error('Error fetching cinema rooms:', err);
       }
     };
 
@@ -57,7 +59,7 @@ const CinemaRooms = () => {
       cancelText: 'No',
       okButtonProps: {
         style: {
-          backgroundColor: '#dc2626',
+          backgroundColor: '#dc2626', // Tailwind red-600
           color: 'white',
           borderColor: '#dc2626',
         },
@@ -85,8 +87,10 @@ const CinemaRooms = () => {
           );
         } catch (err) {
           message.error(`Failed to update status: ${err.message}`);
+          console.error('Error updating room status:', err);
         }
       },
+      className: 'custom-ant-modal', // Apply custom modal styling
     });
   };
 
@@ -118,118 +122,184 @@ const CinemaRooms = () => {
           setCinemaRooms(prev => prev.filter(room => room.roomId !== roomId));
         } catch (err) {
           message.error(`Delete failed: ${err.message}`);
+          console.error('Error hard deleting room:', err);
         }
       },
+      className: 'custom-ant-modal', // Apply custom modal styling
     });
   };
 
   const filteredRooms = cinemaRooms
     .filter(room => !room.isDeleted) // Exclude soft-deleted rooms
     .filter(room =>
+      room.roomName.toLowerCase().includes(searchTerm.toLowerCase().trim()) ||
+      room.roomType.toLowerCase().includes(searchTerm.toLowerCase().trim()) ||
       room.roomId.toLowerCase().includes(searchTerm.toLowerCase().trim())
     );
 
   return (
     <SidebarLayout>
-      <div className="p-6 text-white">
-        <div className="p-4 flex items-center justify-between">
-          <div className="flex-1 text-center">
-            <h2 className="text-2xl font-bold">Cinema Room Management</h2>
+      {/* Custom Ant Design Modal styles */}
+      <style>{`
+          .custom-ant-modal .ant-modal-content {
+              background-color: #1e293b !important; /* slate-800 */
+              border-radius: 12px !important;
+              border: 1px solid rgba(71, 85, 105, 0.4) !important; /* slate-600/40 */
+              backdrop-filter: blur(10px) !important;
+              -webkit-backdrop-filter: blur(10px) !important;
+              box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1) !important;
+              color: #e2e8f0 !important; /* gray-200 */
+          }
+          .custom-ant-modal .ant-modal-confirm-title {
+              color: #e2e8f0 !important; /* gray-200 */
+          }
+          .custom-ant-modal .ant-modal-confirm-content {
+              color: #cbd5e1 !important; /* gray-300 */
+          }
+          .custom-ant-modal .ant-modal-confirm-btns .ant-btn-primary {
+              background-color: #dc2626 !important; /* red-600 */
+              border-color: #dc2626 !important;
+              color: white !important;
+          }
+          .custom-ant-modal .ant-modal-confirm-btns .ant-btn-default {
+              background-color: #475569 !important; /* slate-600 */
+              border-color: #475569 !important;
+              color: white !important;
+          }
+          .custom-ant-modal .ant-modal-confirm-btns .ant-btn-default:hover {
+              background-color: #64748b !important; /* slate-500 */
+              border-color: #64748b !important;
+          }
+          .custom-ant-modal .ant-modal-confirm-btns .ant-btn-primary:hover {
+              background-color: #b91c1c !important; /* red-700 */
+              border-color: #b91c1c !important;
+          }
+      `}</style>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-red-900 to-slate-900 p-4 md:p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="max-w-6xl mx-auto"
+        >
+          <div className="text-center mb-8">
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ duration: 0.5 }}>
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent rounded-20">
+                Cinema Room Management
+              </h1>
+            </motion.div>
           </div>
-        </div>
 
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-          <input
-            type="text"
-            placeholder="Search cinema room..."
-            value={searchTerm}
-            onChange={handleSearch}
-            className="bg-gray-700 text-white px-4 py-2 rounded-md w-full sm:w-64 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-600"
-          />
-          <Link
-            to="/admin/cinema-rooms/add-new-cinema-room"
-            className="bg-red-600 hover:bg-red-700 text-white hover:text-white px-5 py-2.5 rounded-md text-center font-semibold shadow-sm transition-all duration-200 w-full sm:w-auto"
-          >
-            + Add New Cinema Room
-          </Link>
-        </div>
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}>
+            <div
+              className="w-full max-w-full mx-auto px-4 bg-slate-800/70 backdrop-blur-lg border border-slate-600/40 shadow-2xl overflow-visible"
+              style={{ borderRadius: '20px' }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/8 via-transparent to-cyan-600/8 pointer-events-none" />
+              <div className="relative p-5 lg:p-6">
+                <div className="mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <input
+                    type="text"
+                    placeholder="Search by room ID, name, or type..."
+                    value={searchTerm}
+                    onChange={handleSearch}
+                    className="bg-slate-900/50 text-white px-4 py-3 rounded-xl w-full sm:w-80 border border-slate-600/50 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all duration-200"
+                  />
+                  <Link
+                    to="/admin/cinema-rooms/add-new-cinema-room"
+                    className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border-none text-white hover:text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 rounded-xl text-center flex items-center justify-center"
+                    style={{ height: '48px' }}
+                  >
+                    + Add New Cinema Room
+                  </Link>
+                </div>
 
-        <div className="overflow-x-auto bg-gray-800 rounded-lg shadow">
-          {loading ? (
-            <div className="p-6 text-center text-gray-300">Loading data...</div>
-          ) : error ? (
-            <div className="p-6 text-center text-red-400">{error}</div>
-          ) : (
-            <table className="min-w-full divide-y divide-gray-700">
-              <thead className="bg-gray-900 text-gray-300 text-sm uppercase">
-                <tr>
-                  <th className="px-4 py-3 text-left">ID</th>
-                  <th className="px-4 py-3 text-left">Cinema room</th>
-                  <th className="px-4 py-3 text-left">Room type</th>
-                  <th className="px-4 py-3 text-left">Seat quantity</th>
-                  <th className="px-4 py-3 text-left">Status</th>
-                  <th className="px-4 py-3 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-700 text-white text-base font-medium">
-                {filteredRooms.map((room, index) => (
-                  <tr key={room.roomId} className="hover:bg-gray-700 transition">
-                    <td className="px-4 py-2 font-semibold">{index + 1}</td>
-                    <td className="px-4 py-2 font-semibold">{room.roomName}</td>
-                    <td className="px-4 py-2 font-semibold">{room.roomType}</td>
-                    <td className="px-4 py-2 font-semibold">{room.quantity}</td>
-                    <td className="px-4 py-2">
-                      <Switch
-                        checkedChildren="Active"
-                        unCheckedChildren="Inactive"
-                        checked={room.is_actived}
-                        onChange={() => handleToggleStatus(room.roomId, room.is_actived, room.roomName)}
-                        style={{
-                          backgroundColor: room.is_actived ? 'green' : 'red',
-                          borderColor: room.is_actived ? 'green' : 'red',
-                        }}
-                      />
-                    </td>
-                    <td className="px-4 py-2 text-center">
-                      <div className="flex justify-center gap-4">
-                        <Link
-                          to={`/admin/room/${room.roomId}`}
-                          className="text-blue-400 hover:text-blue-600 text-xl"
-                          title="Edit seats"
-                        >
-                          <FaEye />
-                        </Link>
-                        <button
-                          onClick={() => navigate(`/admin/edit-cinema-room/${room.roomId}`)}
-                          className="text-yellow-400 hover:text-yellow-600 text-xl"
-                          title="Edit room"
-                        >
-                          <FaEdit />
-                        </button>
+                {loading ? (
+                  <div className="text-center py-8 text-gray-400 flex flex-col items-center justify-center">
+                    <FaSpinner className="animate-spin inline mr-2 text-3xl text-blue-400 mb-3" />
+                    <span className="text-lg">Loading data...</span>
+                  </div>
+                ) : error ? (
+                  <div className="p-6 text-center text-red-400 text-lg">{error}</div>
+                ) : (
+                  <>
+                    <div className="text-sm text-gray-400 mb-4">
+                      Showing {filteredRooms.length} rooms
+                    </div>
+                    <div className="bg-slate-900/30 rounded-xl overflow-hidden overflow-x-auto border border-slate-600/30 shadow-inner">
+                      <table className="min-w-full divide-y divide-slate-700">
+                        <thead className="bg-slate-700/50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">ID</th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Cinema room</th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Room type</th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Seat quantity</th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Status</th>
+                            <th className="px-6 py-3 text-center text-xs font-bold text-gray-300 uppercase tracking-wider">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-slate-800/40 divide-y divide-slate-700">
+                          {filteredRooms.length === 0 ? (
+                            <tr>
+                              <td colSpan="6" className="px-6 py-8 text-sm text-gray-400 text-center">No cinema rooms found.</td>
+                            </tr>
+                          ) : (
+                            filteredRooms.map((room, index) => (
+                              <tr key={room.roomId} className="hover:bg-slate-700/60 transition-colors duration-200">
+                                <td className="px-6 py-4 text-sm text-gray-300">{index + 1}</td>
+                                <td className="px-6 py-4 text-sm text-white font-medium">{room.roomName}</td>
+                                <td className="px-6 py-4 text-sm text-gray-300">{room.roomType}</td>
+                                <td className="px-6 py-4 text-sm text-gray-300">{room.quantity}</td>
+                                <td className="px-6 py-4">
+                                  <Switch
+                                    checkedChildren={<span className="text-white">Active</span>}
+                                    unCheckedChildren={<span className="text-white">Inactive</span>}
+                                    checked={room.is_actived}
+                                    onChange={() => handleToggleStatus(room.roomId, room.is_actived, room.roomName)}
+                                    style={{
+                                      backgroundColor: room.is_actived ? '#22c55e' : '#ef4444', // Tailwind green-500 / red-500
+                                      borderColor: room.is_actived ? '#22c55e' : '#ef4444',
+                                    }}
+                                  />
+                                </td>
+                                <td className="px-6 py-4 text-center">
+                                  <div className="flex justify-center gap-4">
+                                    <Link
+                                      to={`/admin/room/${room.roomId}`}
+                                      className="text-blue-400 hover:text-blue-500 text-xl transition-colors duration-200"
+                                      title="Edit seats"
+                                    >
+                                      <FaEye />
+                                    </Link>
+                                    <button
+                                      onClick={() => navigate(`/admin/edit-cinema-room/${room.roomId}`)}
+                                      className="text-yellow-400 hover:text-yellow-500 text-xl transition-colors duration-200"
+                                      title="Edit room"
+                                    >
+                                      <FaEdit />
+                                    </button>
 
-                        <button
-                          onClick={() => handleHardDelete(room.roomId, room.roomName)}
-                          className="text-red-400 hover:text-red-600 text-xl"
-                          title="Delete room"
-                        >
-                          <FaTrash />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-
-                {filteredRooms.length === 0 && (
-                  <tr>
-                    <td colSpan="6" className="text-center py-4 text-gray-400">
-                      No cinema rooms found.
-                    </td>
-                  </tr>
+                                    <button
+                                      onClick={() => handleHardDelete(room.roomId, room.roomName)}
+                                      className="text-red-400 hover:text-red-500 text-xl transition-colors duration-200"
+                                      title="Delete room"
+                                    >
+                                      <FaTrash />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
                 )}
-              </tbody>
-            </table>
-          )}
-        </div>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
       </div>
     </SidebarLayout>
   );

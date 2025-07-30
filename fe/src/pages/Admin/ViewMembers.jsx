@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import SidebarLayout from '../../components/Sidebar-Admin';
 import { Switch, Modal, message, Select, Tag } from 'antd';
 import { ExclamationCircleFilled, LoadingOutlined } from '@ant-design/icons'; // Import LoadingOutlined
+import { motion } from 'framer-motion'; // Import motion for animations
 // Assuming you have a PaginationHomepage component for consistent pagination
 import PaginationHomepage from '../../components/PaginationHomepage'; 
 
@@ -127,6 +128,8 @@ const ViewMembers = () => {
                     message.error(`Failed to update status for "${member.fullName}": ${error.response?.data?.message || error.message}`);
                 }
             },
+            // Customizing Ant Design modal style to match the dark theme
+            className: 'custom-ant-modal', // Add a custom class for styling the modal itself
         });
     };
 
@@ -162,93 +165,145 @@ const ViewMembers = () => {
 
     return (
         <SidebarLayout>
-            <div className="flex h-screen text-white">
-                <div className="flex-1 flex flex-col overflow-hidden">
-                    <div className="p-4 flex items-center justify-between shadow-md">
-                        <h2 className="text-2xl text-white-500 font-bold text-center w-full">Account Management</h2>
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-red-900 to-slate-900 p-4 md:p-6">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    className="max-w-6xl mx-auto"
+                >
+                    <div className="text-center mb-8">
+                        <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ duration: 0.5 }}>
+                            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent rounded-20">
+                                Account Management
+                            </h1>
+                        </motion.div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-4">
-                        <div className="mb-4 flex items-center justify-between">
-                            <input
-                                type="text"
-                                placeholder="Search..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="bg-gray-700 text-white px-3 py-2 rounded-md w-64 focus:outline-none focus:ring-1 focus:ring-red-700" // Matched MovieList search input
-                            />
-                            {/* The "Add New Employee" button was removed as per your comments */}
-                        </div>
-
-                        {loading ? (
-                            <div className="text-center py-4 text-gray-400"> {/* Matched MovieList loading text */}
-                                <LoadingOutlined className="animate-spin mr-2 inline-block" /> Loading members... {/* Added Ant Design LoadingOutlined */}
-                            </div>
-                        ) : (
-                            <>
-                                <div className="text-sm text-gray-400 mb-2"> {/* Matched MovieList count text */}
-                                    Showing {filteredMembers.length} members
+                    <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}>
+                        <div
+                            className="w-full max-w-full mx-auto px-4 bg-slate-800/70 backdrop-blur-lg border border-slate-600/40 shadow-2xl overflow-visible"
+                            style={{ borderRadius: '20px' }}
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/8 via-transparent to-cyan-600/8 pointer-events-none" />
+                            <div className="relative p-5 lg:p-6">
+                                <div className="mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                    <input
+                                        type="text"
+                                        placeholder="Search by ID, Name, or Email..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="bg-slate-900/50 text-white px-4 py-3 rounded-xl w-full sm:w-80 border border-slate-600/50 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all duration-200"
+                                    />
+                                    {/* No "Add New Employee" button as per previous instructions */}
                                 </div>
 
-                                {/* Table container with styling matched to MovieList, removed border */}
-                                <div className="bg-gray-800 rounded-md overflow-hidden overflow-x-auto"> {/* Removed border border-zinc-700 */}
-                                    <table className="min-w-full divide-y divide-zinc-700">
-                                        <thead className="bg-gray-900"> {/* Darker header background */}
-                                            <tr>
-                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">ID</th> {/* Bolder text */}
-                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">Full Name</th> {/* Bolder text */}
-                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">DOB</th> {/* Bolder text */}
-                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">Email</th> {/* Bolder text */}
-                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">Phone</th> {/* Bolder text */}
-                                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase">Status</th> {/* Bolder text */}
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-gray-800 divide-y divide-zinc-700"> {/* Matched MovieList tbody background and dividers */}
-                                            {currentMembers.length === 0 ? (
-                                                <tr>
-                                                    <td colSpan={numberOfColumns} className="px-6 py-4 text-sm text-gray-400 text-center">No members found.</td> {/* Matched MovieList no data text */}
-                                                </tr>
-                                            ) : (
-                                                currentMembers.map((member, index) => (
-                                                    <tr key={member.id} className="hover:bg-gray-700 transition-colors duration-200"> {/* Matched MovieList row hover */}
-                                                        <td className="px-6 py-4 text-sm text-gray-300"> {/* Matched MovieList td styles */}
-                                                            {currentPage * membersPerPage + index + 1}
-                                                        </td>
-                                                        <td className="px-6 py-4 text-sm text-gray-300">{member.fullName}</td>
-                                                        <td className="px-6 py-4 text-sm text-gray-300">{member.DOB}</td>
-                                                        <td className="px-6 py-4 text-sm text-gray-300">{member.email}</td>
-                                                        <td className="px-6 py-4 text-sm text-gray-300">{member.phone}</td>
-                                                        
-                                                        <td className="px-6 py-4">
-                                                            <Switch
-                                                                checkedChildren="Active"
-                                                                unCheckedChildren="Inactive"
-                                                                checked={member.status === 'Active'}
-                                                                onChange={(checked) => handleStatusChange(member.id, checked)}
-                                                                style={{
-                                                                    backgroundColor: member.status === 'Active' ? 'green' : 'red',
-                                                                    borderColor: member.status === 'Active' ? 'green' : 'red',
-                                                                }}
-                                                            />
-                                                        </td>
+                                {loading ? (
+                                    <div className="text-center py-8 text-gray-400 flex flex-col items-center justify-center">
+                                        <LoadingOutlined style={{ fontSize: '36px', color: '#60a5fa' }} className="animate-spin mb-3" />
+                                        <span className="text-lg">Loading members...</span>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="text-sm text-gray-400 mb-4">
+                                            Showing {filteredMembers.length} members
+                                        </div>
+
+                                        <div className="bg-slate-900/30 rounded-xl overflow-hidden overflow-x-auto border border-slate-600/30 shadow-inner">
+                                            <table className="min-w-full divide-y divide-slate-700">
+                                                <thead className="bg-slate-700/50">
+                                                    <tr>
+                                                        <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">ID</th>
+                                                        <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Full Name</th>
+                                                        <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">DOB</th>
+                                                        <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Email</th>
+                                                        <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Phone</th>
+                                                        <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Status</th>
                                                     </tr>
-                                                ))
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                                </thead>
+                                                <tbody className="bg-slate-800/40 divide-y divide-slate-700">
+                                                    {currentMembers.length === 0 ? (
+                                                        <tr>
+                                                            <td colSpan={numberOfColumns} className="px-6 py-8 text-sm text-gray-400 text-center">No members found.</td>
+                                                        </tr>
+                                                    ) : (
+                                                        currentMembers.map((member, index) => (
+                                                            <tr key={member.id} className="hover:bg-slate-700/60 transition-colors duration-200">
+                                                                <td className="px-6 py-4 text-sm text-gray-300">{currentPage * membersPerPage + index + 1}</td>
+                                                                <td className="px-6 py-4 text-sm text-white font-medium">{member.fullName}</td>
+                                                                <td className="px-6 py-4 text-sm text-gray-300">{member.DOB}</td>
+                                                                <td className="px-6 py-4 text-sm text-gray-300 break-all">{member.email}</td> {/* Added break-all */}
+                                                                <td className="px-6 py-4 text-sm text-gray-300">{member.phone}</td>
+                                                                <td className="px-6 py-4 text-sm">
+                                                                    <Switch
+                                                                        checkedChildren={<span className="text-white">Active</span>}
+                                                                        unCheckedChildren={<span className="text-white">Inactive</span>}
+                                                                        checked={member.status === 'Active'}
+                                                                        onChange={(checked) => handleStatusChange(member.id, checked)}
+                                                                        style={{
+                                                                            backgroundColor: member.status === 'Active' ? '#22c55e' : '#ef4444', // Tailwind green-500 / red-500
+                                                                            borderColor: member.status === 'Active' ? '#22c55e' : '#ef4444',
+                                                                        }}
+                                                                    />
+                                                                </td>
+                                                            </tr>
+                                                        ))
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
 
-                                {/* Pagination Component */}
-                                <PaginationHomepage
-                                    currentPage={currentPage}
-                                    totalPages={totalPages}
-                                    onPageChange={setCurrentPage}
-                                />
-                            </>
-                        )}
-                    </div>
-                </div>
+                                        {/* Pagination Component */}
+                                        <div className="mt-6 flex justify-center">
+                                            <PaginationHomepage
+                                                currentPage={currentPage}
+                                                totalPages={totalPages}
+                                                onPageChange={setCurrentPage}
+                                            />
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </motion.div>
+                </motion.div>
             </div>
+            {/* Custom Ant Design Modal styles */}
+            <style>{`
+                .ant-modal-content {
+                    background-color: #1e293b !important; /* slate-800 */
+                    border-radius: 12px !important;
+                    border: 1px solid rgba(71, 85, 105, 0.4) !important; /* slate-600/40 */
+                    backdrop-filter: blur(10px) !important;
+                    -webkit-backdrop-filter: blur(10px) !important;
+                    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1) !important;
+                    color: #e2e8f0 !important; /* gray-200 */
+                }
+                .ant-modal-confirm-title {
+                    color: #e2e8f0 !important; /* gray-200 */
+                }
+                .ant-modal-confirm-content {
+                    color: #cbd5e1 !important; /* gray-300 */
+                }
+                .ant-modal-confirm-btns .ant-btn-primary {
+                    background-color: #dc2626 !important; /* red-600 */
+                    border-color: #dc2626 !important;
+                    color: white !important;
+                }
+                .ant-modal-confirm-btns .ant-btn-default {
+                    background-color: #475569 !important; /* slate-600 */
+                    border-color: #475569 !important;
+                    color: white !important;
+                }
+                .ant-modal-confirm-btns .ant-btn-default:hover {
+                    background-color: #64748b !important; /* slate-500 */
+                    border-color: #64748b !important;
+                }
+                .ant-modal-confirm-btns .ant-btn-primary:hover {
+                    background-color: #b91c1c !important; /* red-700 */
+                    border-color: #b91c1c !important;
+                }
+            `}</style>
         </SidebarLayout>
     );
 };
