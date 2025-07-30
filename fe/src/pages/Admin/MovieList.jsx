@@ -1,32 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { FaEye, FaEdit, FaTrash, FaSpinner } from 'react-icons/fa';
-import { Modal, message, Tag } from 'antd';
-import Pagination from '../../components/PaginationHomepage'; // Assuming this is a custom component
-import SidebarLayout from '../../components/Sidebar-Admin';
-import dayjs from 'dayjs';
-import axios from 'axios';
-import { motion } from 'framer-motion'; // Import motion for animations
-
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { FaEye, FaEdit, FaTrash, FaSpinner } from "react-icons/fa";
+import { Modal, message, Tag } from "antd";
+import Pagination from "../../components/PaginationHomepage"; // Assuming this is a custom component
+import SidebarLayout from "../../components/Sidebar-Admin";
+import dayjs from "dayjs";
+import axios from "axios";
+import { motion } from "framer-motion"; // Import motion for animations
 
 const MovieList = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 8;
+  const [roomName, setRoomName] = useState("");
 
   useEffect(() => {
     const fetchMovies = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/movies');
-        const sortedMovies = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        const response = await axios.get("http://localhost:5000/api/movies");
+        const sortedMovies = response.data.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
         setMovies(sortedMovies);
       } catch (error) {
-        console.error('Error fetching movies:', error);
-        message.error('Failed to fetch movies. Please try again.');
+        console.error("Error fetching movies:", error);
+        message.error("Failed to fetch movies. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -35,7 +37,32 @@ const MovieList = () => {
   }, []);
 
   useEffect(() => {
-    movies.forEach(movie => {
+    const fetchRoomName = async () => {
+      if (!selectedMovie?.cinema_room) return;
+
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(
+          `http://localhost:5000/api/theater/rooms/${selectedMovie.cinema_room}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setRoomName(res.data?.room?.roomName || "Unknown Room");
+      } catch (error) {
+        console.error("Lỗi lấy tên phòng:", error);
+        setRoomName("Unknown Room");
+      }
+    };
+
+    fetchRoomName();
+  }, [selectedMovie?.cinema_room]);
+
+  useEffect(() => {
+    movies.forEach((movie) => {
       if (movie.banner_url) {
         const img = new Image();
         img.src = movie.banner_url;
@@ -51,34 +78,38 @@ const MovieList = () => {
     const today = dayjs();
     const start = dayjs(movie.start_date);
     const end = dayjs(movie.end_date);
-    if (today.isBefore(start)) return 'coming_soon';
-    if (today.isAfter(end)) return 'ended';
-    return 'now_showing';
+    if (today.isBefore(start)) return "coming_soon";
+    if (today.isAfter(end)) return "ended";
+    return "now_showing";
   };
 
   const totalMovies = movies.length;
-  const nowShowing = movies.filter(movie => getCalculatedStatus(movie) === 'now_showing').length;
-  const upcomingMovies = movies.filter(movie => getCalculatedStatus(movie) === 'coming_soon').length;
+  const nowShowing = movies.filter(
+    (movie) => getCalculatedStatus(movie) === "now_showing"
+  ).length;
+  const upcomingMovies = movies.filter(
+    (movie) => getCalculatedStatus(movie) === "coming_soon"
+  ).length;
 
   const confirmDelete = async (movie) => {
     Modal.confirm({
-      title: 'Confirm Delete',
+      title: "Confirm Delete",
       content: `Are you sure you want to delete "${movie.name}"?`,
-      okText: 'Delete',
-      cancelText: 'Cancel',
-      okType: 'danger',
+      okText: "Delete",
+      cancelText: "Cancel",
+      okType: "danger",
       onOk: async () => {
         try {
           await axios.delete(`http://localhost:5000/api/movies/${movie._id}`);
-          const updated = movies.filter(m => m._id !== movie._id);
+          const updated = movies.filter((m) => m._id !== movie._id);
           setMovies(updated);
           message.success(`"${movie.name}" has been deleted.`);
         } catch (error) {
-          console.error('Error deleting movie:', error);
+          console.error("Error deleting movie:", error);
           message.error(`Failed to delete "${movie.name}": ${error.message}`);
         }
       },
-      className: 'custom-ant-modal', // Apply custom modal styling
+      className: "custom-ant-modal", // Apply custom modal styling
     });
   };
 
@@ -89,14 +120,15 @@ const MovieList = () => {
 
   const handleSearch = (e) => setSearchTerm(e.target.value);
 
-  const filteredMovies = movies.filter(movie =>
+  const filteredMovies = movies.filter((movie) =>
     movie.name?.trim().toLowerCase().includes(searchTerm.toLowerCase().trim())
   );
 
   const totalPages = Math.ceil(filteredMovies.length / itemsPerPage);
 
   useEffect(() => {
-    if (currentPage >= totalPages && totalPages > 0) { // Adjusted condition for 0-indexed page
+    if (currentPage >= totalPages && totalPages > 0) {
+      // Adjusted condition for 0-indexed page
       setCurrentPage(totalPages - 1);
     } else if (totalPages === 0 && currentPage !== 0) {
       setCurrentPage(0);
@@ -108,7 +140,7 @@ const MovieList = () => {
     (currentPage + 1) * itemsPerPage
   );
 
-  const handlePageChange = page => {
+  const handlePageChange = (page) => {
     // Page from PaginationHomepage is 0-indexed, so no change needed here
     setCurrentPage(page);
   };
@@ -159,21 +191,28 @@ const MovieList = () => {
           className="max-w-6xl mx-auto"
         >
           <div className="text-center mb-8">
-            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ duration: 0.5 }}>
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.5 }}
+            >
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent rounded-20">
                 Movie Management
               </h1>
             </motion.div>
           </div>
 
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+          >
             <div
               className="w-full max-w-full mx-auto px-4 bg-slate-800/70 backdrop-blur-lg border border-slate-600/40 shadow-2xl overflow-visible"
-              style={{ borderRadius: '20px' }}
+              style={{ borderRadius: "20px" }}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/8 via-transparent to-cyan-600/8 pointer-events-none" />
               <div className="relative p-5 lg:p-6">
-
                 {/* Stats cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                   <motion.div
@@ -185,8 +224,12 @@ const MovieList = () => {
                     <div className="w-12 h-12 bg-gradient-to-r from-gray-500 to-gray-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
                       {/* Icon for Total Movies */}
                     </div>
-                    <p className="text-slate-300 text-sm md:text-base">Total Movies</p>
-                    <h2 className="text-xl md:text-3xl font-bold text-white mt-1">{totalMovies}</h2>
+                    <p className="text-slate-300 text-sm md:text-base">
+                      Total Movies
+                    </p>
+                    <h2 className="text-xl md:text-3xl font-bold text-white mt-1">
+                      {totalMovies}
+                    </h2>
                   </motion.div>
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -197,8 +240,12 @@ const MovieList = () => {
                     <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
                       {/* Icon for Now Showing */}
                     </div>
-                    <p className="text-slate-300 text-sm md:text-base">Now Showing</p>
-                    <h2 className="text-xl md:text-3xl font-bold text-white mt-1">{nowShowing}</h2>
+                    <p className="text-slate-300 text-sm md:text-base">
+                      Now Showing
+                    </p>
+                    <h2 className="text-xl md:text-3xl font-bold text-white mt-1">
+                      {nowShowing}
+                    </h2>
                   </motion.div>
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -209,8 +256,12 @@ const MovieList = () => {
                     <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
                       {/* Icon for Coming Soon */}
                     </div>
-                    <p className="text-slate-300 text-sm md:text-base">Coming Soon</p>
-                    <h2 className="text-xl md:text-3xl font-bold text-white mt-1">{upcomingMovies}</h2>
+                    <p className="text-slate-300 text-sm md:text-base">
+                      Coming Soon
+                    </p>
+                    <h2 className="text-xl md:text-3xl font-bold text-white mt-1">
+                      {upcomingMovies}
+                    </h2>
                   </motion.div>
                 </div>
 
@@ -226,7 +277,7 @@ const MovieList = () => {
                   <Link
                     to="/admin/add-movie"
                     className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border-none text-white hover:text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 rounded-xl text-center flex items-center justify-center"
-                    style={{ height: '48px' }}
+                    style={{ height: "48px" }}
                   >
                     + Add New Movie
                   </Link>
@@ -248,38 +299,111 @@ const MovieList = () => {
                       <table className="min-w-full divide-y divide-slate-700">
                         <thead className="bg-slate-700/50">
                           <tr>
-                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">ID</th>
-                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Name</th>
-                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Genres</th>
-                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Duration</th>
-                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Status</th>
-                            <th className="px-6 py-3 text-center text-xs font-bold text-gray-300 uppercase tracking-wider">Actions</th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
+                              ID
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
+                              Name
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
+                              Genres
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
+                              Duration
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
+                              Status
+                            </th>
+                            <th className="px-6 py-3 text-center text-xs font-bold text-gray-300 uppercase tracking-wider">
+                              Actions
+                            </th>
                           </tr>
                         </thead>
                         <tbody className="bg-slate-800/40 divide-y divide-slate-700">
                           {paginatedMovies.length === 0 ? (
                             <tr>
-                              <td colSpan="6" className="px-6 py-8 text-sm text-gray-400 text-center">No movies found.</td>
+                              <td
+                                colSpan="6"
+                                className="px-6 py-8 text-sm text-gray-400 text-center"
+                              >
+                                No movies found.
+                              </td>
                             </tr>
                           ) : (
                             paginatedMovies.map((movie, index) => {
                               const status = getCalculatedStatus(movie);
                               return (
-                                <tr key={movie._id} className="hover:bg-slate-700/60 transition-colors duration-200">
-                                  <td className="px-6 py-4 text-sm text-gray-300">{(currentPage * itemsPerPage + index + 1)}</td>
-                                  <td className="px-6 py-4 text-sm text-white font-medium">{movie.name}</td>
-                                  <td className="px-6 py-4 text-sm text-gray-300">{Array.isArray(movie.genres) ? movie.genres.join(', ') : movie.genres}</td>
-                                  <td className="px-6 py-4 text-sm text-gray-300">{movie.running_time} min</td>
+                                <tr
+                                  key={movie._id}
+                                  className="hover:bg-slate-700/60 transition-colors duration-200"
+                                >
+                                  <td className="px-6 py-4 text-sm text-gray-300">
+                                    {currentPage * itemsPerPage + index + 1}
+                                  </td>
+                                  <td className="px-6 py-4 text-sm text-white font-medium">
+                                    {movie.name}
+                                  </td>
+                                  <td className="px-6 py-4 text-sm text-gray-300">
+                                    {Array.isArray(movie.genres)
+                                      ? movie.genres.join(", ")
+                                      : movie.genres}
+                                  </td>
+                                  <td className="px-6 py-4 text-sm text-gray-300">
+                                    {movie.running_time} min
+                                  </td>
                                   <td className="px-6 py-4">
-                                    {status === 'now_showing' && <Tag color="#22c55e" className="rounded-full px-3 py-1 font-semibold text-white border border-green-600">Now Showing</Tag>}
-                                    {status === 'coming_soon' && <Tag color="#f97316" className="rounded-full px-3 py-1 font-semibold text-white border border-orange-600">Coming Soon</Tag>}
-                                    {status === 'ended' && <Tag color="#ef4444" className="rounded-full px-3 py-1 font-semibold text-white border border-red-600">Ended</Tag>}
+                                    {status === "now_showing" && (
+                                      <Tag
+                                        color="#22c55e"
+                                        className="rounded-full px-3 py-1 font-semibold text-white border border-green-600"
+                                      >
+                                        Now Showing
+                                      </Tag>
+                                    )}
+                                    {status === "coming_soon" && (
+                                      <Tag
+                                        color="#f97316"
+                                        className="rounded-full px-3 py-1 font-semibold text-white border border-orange-600"
+                                      >
+                                        Coming Soon
+                                      </Tag>
+                                    )}
+                                    {status === "ended" && (
+                                      <Tag
+                                        color="#ef4444"
+                                        className="rounded-full px-3 py-1 font-semibold text-white border border-red-600"
+                                      >
+                                        Ended
+                                      </Tag>
+                                    )}
                                   </td>
                                   <td className="px-6 py-4 text-center">
                                     <div className="flex justify-center gap-4">
-                                      <button onClick={() => showMovieDetails(movie)} className="text-blue-400 hover:text-blue-500 text-xl transition-colors duration-200" title="View Details"><FaEye /></button>
-                                      <button onClick={() => window.location.href = '/admin/movie-list/edit-movie/' + movie._id} className="text-yellow-400 hover:text-yellow-500 text-xl transition-colors duration-200" title="Edit Movie"><FaEdit /></button>
-                                      <button onClick={() => confirmDelete(movie)} className="text-red-400 hover:text-red-500 text-xl transition-colors duration-200" title="Delete Movie"><FaTrash /></button>
+                                      <button
+                                        onClick={() => showMovieDetails(movie)}
+                                        className="text-blue-400 hover:text-blue-500 text-xl transition-colors duration-200"
+                                        title="View Details"
+                                      >
+                                        <FaEye />
+                                      </button>
+                                      <button
+                                        onClick={() =>
+                                          (window.location.href =
+                                            "/admin/movie-list/edit-movie/" +
+                                            movie._id)
+                                        }
+                                        className="text-yellow-400 hover:text-yellow-500 text-xl transition-colors duration-200"
+                                        title="Edit Movie"
+                                      >
+                                        <FaEdit />
+                                      </button>
+                                      <button
+                                        onClick={() => confirmDelete(movie)}
+                                        className="text-red-400 hover:text-red-500 text-xl transition-colors duration-200"
+                                        title="Delete Movie"
+                                      >
+                                        <FaTrash />
+                                      </button>
                                     </div>
                                   </td>
                                 </tr>
@@ -314,81 +438,97 @@ const MovieList = () => {
         footer={null}
         centered
         width={800}
-        className="custom-ant-modal" // Use the custom class for styling
+        className="custom-modal"
       >
         {selectedMovie && (
-          <div className="bg-slate-800/90 backdrop-blur-lg border border-slate-600/40 p-8 rounded-2xl shadow-lg relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/8 via-transparent to-cyan-600/8 pointer-events-none" />
-            <div className="flex flex-col lg:flex-row gap-8 relative z-10">
+          <div className="bg-gradient-to-br from-gray-900 to-black p-8 rounded-2xl text-white">
+            <div className="flex flex-col lg:flex-row gap-8">
               <div className="flex-shrink-0">
                 <img
-                  src={selectedMovie.image_url || "https://placehold.co/256x384/1f2937/e2e8f0?text=No+Poster"}
-                  alt="Movie Poster"
-                  className="w-64 h-96 rounded-xl object-cover shadow-2xl border-2 border-slate-700"
-                  onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/256x384/1f2937/e2e8f0?text=No+Poster" }}
+                  src={selectedMovie.image_url || "/placeholder.svg"}
+                  alt="Banner"
+                  className="w-64 h-96 rounded-xl object-cover shadow-2xl border-2 border-gray-700"
                 />
               </div>
               <div className="flex-1 space-y-6">
                 <div>
-                  <h2 className="text-3xl md:text-4xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                  <h2 className="text-3xl font-bold mb-2">
                     {selectedMovie.name}
                   </h2>
-                  <div className="w-20 h-1 bg-red-600 rounded-full"></div>
+                  <div className="w-16 h-1 bg-red-600 rounded-full"></div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <p className="text-gray-400 text-sm">Genres</p>
-                    <p className="font-semibold text-white">{Array.isArray(selectedMovie.genres) ? selectedMovie.genres.join(', ') : selectedMovie.genres}</p>
+                    <p className="font-semibold">
+                      {Array.isArray(selectedMovie.genres)
+                        ? selectedMovie.genres.join(", ")
+                        : selectedMovie.genres}
+                    </p>
                   </div>
                   <div>
                     <p className="text-gray-400 text-sm">Duration</p>
-                    <p className="font-semibold text-white">{selectedMovie.running_time} minutes</p>
+                    <p className="font-semibold">
+                      {selectedMovie.running_time} minutes
+                    </p>
                   </div>
                   <div>
                     <p className="text-gray-400 text-sm">Version</p>
-                    <p className="font-semibold text-white">{selectedMovie.version}</p>
+                    <p className="font-semibold">{selectedMovie.version}</p>
                   </div>
                   <div>
                     <p className="text-gray-400 text-sm">Director</p>
-                    <p className="font-semibold text-white">{selectedMovie.director}</p>
+                    <p className="font-semibold">{selectedMovie.director}</p>
                   </div>
                   <div>
                     <p className="text-gray-400 text-sm">Actors</p>
-                    <p className="font-semibold text-white">{selectedMovie.actors}</p>
+                    <p className="font-semibold">{selectedMovie.actors}</p>
                   </div>
                   <div>
                     <p className="text-gray-400 text-sm">Company</p>
-                    <p className="font-semibold text-white">{selectedMovie.production_company}</p>
+                    <p className="font-semibold">
+                      {selectedMovie.production_company}
+                    </p>
                   </div>
                   <div>
                     <p className="text-gray-400 text-sm">Start Date</p>
-                    <p className="font-semibold text-white">{dayjs(selectedMovie.start_date).format('DD/MM/YYYY')}</p>
+                    <p className="font-semibold">
+                      {dayjs(selectedMovie.start_date).format("DD/MM/YYYY")}
+                    </p>
                   </div>
                   <div>
                     <p className="text-gray-400 text-sm">End Date</p>
-                    <p className="font-semibold text-white">{dayjs(selectedMovie.end_date).format('DD/MM/YYYY')}</p>
+                    <p className="font-semibold">
+                      {dayjs(selectedMovie.end_date).format("DD/MM/YYYY")}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-sm">Cinema Room</p>
+                    <p className="font-semibold">{roomName}</p>
                   </div>
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm">Trailer</p>
-                  <a href={selectedMovie.trailer_link} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-500 underline transition-colors duration-200">
+                  <a
+                    href={selectedMovie.trailer_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 underline"
+                  >
                     {selectedMovie.trailer_link}
                   </a>
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm">Description</p>
-                  <p className="font-medium leading-relaxed text-white">{selectedMovie.description}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400 text-sm">Cinema Room</p>
-                  <p className="font-medium leading-relaxed text-white">{selectedMovie.roomName}</p>
+                  <p className="font-medium leading-relaxed">
+                    {selectedMovie.description}
+                  </p>
                 </div>
               </div>
             </div>
             <button
               onClick={() => setModalVisible(false)}
-              className="mt-8 w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-3 px-8 rounded-lg font-semibold transition-all duration-300 transform hover:scale-[1.02] shadow-md hover:shadow-lg"
-              style={{ height: '48px', borderRadius: '12px' }}
+              className="mt-8 w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-[1.02]"
             >
               Close
             </button>
