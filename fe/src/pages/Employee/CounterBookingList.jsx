@@ -6,6 +6,7 @@ import axios from "axios";
 import { Modal, message } from "antd";
 import Pagination from "../../components/PaginationHomepage";
 import { Calendar, Clock, MapPin, Users, CreditCard } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 const CounterBookingList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -16,6 +17,8 @@ const CounterBookingList = () => {
   const bookingsPerPage = 5;
   const [roomMap, setRoomMap] = useState({});
   const navigate = useNavigate();
+  const [roomNames, setRoomNames] = useState({});
+  
 
   useEffect(() => {
     const fetchAllBookings = async () => {
@@ -38,15 +41,46 @@ const CounterBookingList = () => {
     fetchAllBookings();
   }, []);
 
-  useEffect(() => {
-    axios.get("http://localhost:5000/api/theater/rooms")
-      .then(res => {
-        const map = {};
-        res.data.forEach(r => { map[r.roomId] = r.roomName });
-        setRoomMap(map);
-      })
-      .catch(err => console.error("Room fetch error:", err));
-  }, []);
+const { authToken } = useAuth();
+
+useEffect(() => {
+  if (!authToken) return;
+
+  axios.get("http://localhost:5000/api/theater/rooms", {
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
+  })
+    .then(res => {
+      const map = {};
+      res.data.forEach(room => {
+        map[room.roomId] = room.roomName;
+      });
+      console.log("✅ roomMap fetched:", map);
+      setRoomMap(map);
+    })
+    .catch(err => console.error("❌ Lỗi fetch room:", err));
+}, [authToken]);
+
+  const fetchRoomName = async (roomId) => {
+  if (!roomId || roomNames[roomId]) return; // nếu đã có rồi thì bỏ qua
+
+  try {
+    const token = localStorage.getItem('token');
+    const res = await axios.get(`http://localhost:5000/api/theater/rooms/${roomId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const roomName = res.data?.room?.roomName || roomId;
+    setRoomNames(prev => ({ ...prev, [roomId]: roomName }));
+  } catch (error) {
+    console.error(`❌ Lỗi lấy phòng ${roomId}:`, error);
+    setRoomNames(prev => ({ ...prev, [roomId]: roomId }));
+  }
+};
+
 
   useEffect(() => {
     setCurrentPage(0);
@@ -75,10 +109,17 @@ const CounterBookingList = () => {
     }
   };
 
-  const showBookingDetails = (booking) => {
-    setSelectedBooking(booking);
-    setModalVisible(true);
-  };
+ const showBookingDetails = (booking) => {
+  setSelectedBooking(booking);
+  setModalVisible(true);
+
+  // 🔥 Gọi fetchRoomName nếu cần
+  const roomId = booking.movieDetails?.cinema_room;
+  if (roomId) {
+    fetchRoomName(roomId);
+  }
+};
+
 
   const paginatedBookings = filteredBookings.slice(
     currentPage * bookingsPerPage,
@@ -247,7 +288,7 @@ const CounterBookingList = () => {
                       <div>
                         <p className="text-gray-400 text-sm">Cinema Room</p>
                         <p className="text-white font-semibold">
-                          {getRoomName(selectedBooking.movieDetails?.roomName)}
+                          {roomNames[selectedBooking.movieDetails?.cinema_room] || 'Loading...'}
                         </p>
                       </div>
                     </div>

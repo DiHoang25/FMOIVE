@@ -13,22 +13,48 @@ const PAYOS_CONFIG = require('../../config/payOSConfig');
 
 // --- Hàm tạo chữ ký (checksum) cho PayOS ---
 const createSignature = (data, key) => {
-    const sortedKeys = Object.keys(data).sort();
+    // 1. Chỉ chọn các trường PayOS yêu cầu ký theo tài liệu
+    const fieldsToSign = {};
+
+    // Chỉ thêm vào fieldsToSign nếu trường đó tồn tại và không phải null/undefined
+    // Điều này đảm bảo chuỗi ký không bị sai nếu một trường tùy chọn không có giá trị
+    if (data.amount !== undefined && data.amount !== null) fieldsToSign.amount = data.amount;
+    if (data.cancelUrl !== undefined && data.cancelUrl !== null) fieldsToSign.cancelUrl = data.cancelUrl;
+    if (data.description !== undefined && data.description !== null) fieldsToSign.description = data.description;
+    if (data.orderCode !== undefined && data.orderCode !== null) fieldsToSign.orderCode = data.orderCode;
+    if (data.returnUrl !== undefined && data.returnUrl !== null) fieldsToSign.returnUrl = data.returnUrl;
+
+    // 2. Sắp xếp các khóa của CHỈ CÁC TRƯỜNG ĐƯỢC KÝ theo alphabet
+    const sortedKeys = Object.keys(fieldsToSign).sort();
+
+    // 3. Tạo chuỗi để ký theo định dạng key=value&key=value
     const stringToSign = sortedKeys.map(k => {
-        let value = data[k];
+        let value = fieldsToSign[k];
+        // Đảm bảo xử lý các kiểu dữ liệu phức tạp (như object/array) nếu PayOS yêu cầu ký chúng.
+        // Tuy nhiên, với 5 trường trên, chúng thường là primitive types (số, chuỗi).
         if (typeof value === 'object' && value !== null) {
             value = JSON.stringify(value);
+            // Ký tự escape (nếu có từ JSON.stringify) đã được bạn xử lý bằng cách bỏ dòng .replace,
+            // điều này là đúng nếu các trường này không chứa các ký tự cần escape.
         }
         return `${k}=${value}`;
     }).join('&');
 
+    console.log('[DEBUG] Final String to Sign (STRICTLY as per PayOS docs):', stringToSign);
+
+    // 4. Tính toán HMAC SHA256
     return crypto.createHmac('sha256', key).update(stringToSign).digest('hex');
 };
+
+// const createSignature = (data, key) => {
+//     const sortedKeys = Object.keys(data).sort();
+//     const stringToSign = sortedKeys.map(k => `${k}=${data[k]}`).join('&');
+//     return crypto.createHmac('sha256', key).update(stringToSign).digest('hex');
+// };
 
 // [POST] /api/payos/create-payment - Bắt đầu quá trình thanh toán PayOS
 // Yêu cầu bookingId từ frontend
 router.post('/create-payment', async (req, res) => {
-    // const userId = req.user._id; // Nếu bạn có middleware xác thực
     const { bookingId } = req.body;
 
     if (!bookingId) {
@@ -37,7 +63,6 @@ router.post('/create-payment', async (req, res) => {
 
     try {
         const booking = await Booking.findOne({ bookingId: bookingId });
-        // const booking = await Booking.findById(bookingId).populate('user._id');
 
         if (!booking) {
             return res.status(404).json({ message: 'Booking không tìm thấy.' });
@@ -49,21 +74,41 @@ router.post('/create-payment', async (req, res) => {
 
         // --- Tạo Yêu cầu Thanh toán PayOS ---
         // Sử dụng _id của booking làm orderCode cho PayOS để dễ dàng đối chiếu sau này.
-        // PayOS yêu cầu orderCode là số. Chuyển _id thành một số bằng cách loại bỏ ký tự không phải số
-        // và cắt bớt để phù hợp yêu cầu của PayOS (ví dụ: 10-12 chữ số).
-        // Đây là một cách đơn giản, bạn có thể cân nhắc giải pháp tạo ID số duy nhất khác.
-        const payosOrderCode = Number(booking._id.toString().replace(/[^0-9]/g, '').slice(-9)); // Lấy 9 số cuối của ObjectId
+        // PayOS yêu cầu orderCode là số.
+        // Cân nhắc sử dụng Date.now() hoặc một cơ chế sinh số duy nhất khác nếu _id không phù hợp.
+        // Ví dụ: const payosOrderCode = Date.now();
+        const payosOrderCode = Number(booking._id.toString().replace(/[^0-9]/g, '').slice(-10));
+        //const payosOrderCode = Date.now(); // Sử dụng timestamp làm orderCode
+        // Đảm bảo orderCode là số nguyên dương và có độ dài hợp lý theo PayOS
+        // Nếu PayOS yêu cầu orderCode là số lớn, Date.now() là một lựa chọn tốt.
+        // const payosOrderCode = Date.now(); // Ví dụ sử dụng timestamp
+
         console.log(`[PayOS] Mapping Booking ID ${booking._id} to PayOS Order Code: ${payosOrderCode}`);
 
         const amount = booking.grandTotal;
-        const description = `Thanh toán Thử nghiệm`;//`Thanh toán cho Booking ID: ${booking.bookingId || booking._id}`
+        // Đảm bảo amount là số nguyên nếu PayOS yêu cầu.
+        // Nếu PayOS yêu cầu đơn vị nhỏ nhất (ví dụ: xu), bạn cần nhân thêm: amount: Math.round(booking.grandTotal * 100)
+        console.log(`[DEBUG] Amount: ${amount}`);
 
-        const { name: userName, email: userEmail } = booking.user; // Lấy thông tin user từ booking
+        // const description = `Thanh toán cho Booking ID: ${booking.bookingId || booking._id}`; // Mô tả chi tiết hơn
+        const description = `TestDonHang`; // Mô tả chi tiết hơn
 
-        // URL trả về và callback từ PayOS. Truyền bookingId qua query params.
+        const { name: userName, email: userEmail } = booking.user;
+        // Kiểm tra sự tồn tại của userName và userEmail
+        if (!userName || !userEmail) {
+            console.error('[ERROR] Missing buyerName or buyerEmail from booking.user');
+            return res.status(400).json({ message: 'Thông tin người mua không đầy đủ.' });
+        }
+
+        // URL trả về và callback từ PayOS.
+        // Giữ localhost như bạn đã chỉ ra, nhưng cần lưu ý về môi trường thực tế.
         const returnUrl = `${PAYOS_CONFIG.FRONTEND_URL}/payment-status?bookingId=${booking._id}&payosOrderCode=${payosOrderCode}`;
         const cancelUrl = `${PAYOS_CONFIG.FRONTEND_URL}/payment-status?bookingId=${booking._id}&payosOrderCode=${payosOrderCode}&status=cancelled`;
-        const callbackUrl = `${PAYOS_CONFIG.BACKEND_URL}/api/payos/webhook`; // URL webhook của backend
+        const callbackUrl = `${PAYOS_CONFIG.BACKEND_URL}/api/payos-payment/webhook`; // URL webhook của backend
+
+        console.log(`[DEBUG] Return URL: ${returnUrl}`);
+        console.log(`[DEBUG] Cancel URL: ${cancelUrl}`);
+        console.log(`[DEBUG] Callback URL: ${callbackUrl}`);
 
         const orderData = {
             orderCode: payosOrderCode,
@@ -71,41 +116,75 @@ router.post('/create-payment', async (req, res) => {
             description: description,
             returnUrl: returnUrl,
             cancelUrl: cancelUrl,
-            expiredAt: Math.floor(Date.now() / 1000) + 900, // Hết hạn sau 15 phút
+            expiredAt: Math.floor(Date.now() / 1000) + 900, // Hết hạn sau 15 phút (900 giây)
             buyerName: userName,
             buyerEmail: userEmail,
             // Thêm items nếu PayOS yêu cầu và có trong booking
-            // items: booking.selectedCombos.map(combo => ({ name: combo.name, quantity: combo.quantity, price: combo.price })),
-            // shippingAddress: booking.user.address,
+            // items: booking.selectedCombos.map(combo => ({
+            //     name: combo.name,
+            //     quantity: combo.quantity,
+            //     price: combo.price
+            // })),
+            // shippingAddress: booking.user.address, // Thêm địa chỉ vận chuyển nếu có
+            // Thêm callbackUrl vào orderData nếu PayOS yêu cầu (một số API yêu cầu)
+            // Tuy nhiên, trong logic bạn cung cấp, callbackUrl không nằm trong orderData để tạo signature,
+            // mà là một tham số riêng khi gọi API PayOS.
+            // Cần kiểm tra tài liệu PayOS xem callbackUrl có cần nằm trong orderData để tạo signature không.
+            // Nếu không, nó sẽ được gửi dưới dạng tham số riêng trong axios.post.
+            // Dựa trên logic bạn gửi, có vẻ callbackUrl không nằm trong orderData để tạo signature.
+            // Nhưng nếu PayOS mong đợi nó trong payload, bạn sẽ phải thêm vào.
+            // Tạm thời bỏ qua vì nó không có trong orderData gốc bạn cung cấp.
+        };
+        console.log('[DEBUG] orderData for signature:', orderData);
+        // --- Tạo chữ ký cho yêu cầu PayOS ---
+        // Dựa trên logic mới của bạn, signature được thêm vào body, không phải header x-checksum.
+        const signature = createSignature(orderData, PAYOS_CONFIG.CHECKSUM_KEY);
+        console.log('[PayOS] Created signature for order:', signature);
+
+        // Chuẩn bị payload cho PayOS API
+        const payosRequestPayload = {
+            ...orderData,
+            callbackUrl: callbackUrl,
+            signature: signature, // Thêm signature vào body theo logic mới của bạn
+            // Thêm callbackUrl vào đây nếu PayOS yêu cầu nó trong body API call
+            // Ví dụ: callbackUrl: callbackUrl,
         };
 
-        const signature = createSignature(orderData, PAYOS_CONFIG.CHECKSUM_KEY);
+        console.log('[DEBUG] Full Payload sent to PayOS API:', payosRequestPayload);
 
         const headers = {
             'x-client-id': PAYOS_CONFIG.CLIENT_ID,
             'x-api-key': PAYOS_CONFIG.API_KEY,
-            'x-checksum': signature,
-            'Content-Type': 'application/json',
+            //'x-checksum': signature, // Bỏ dòng này nếu signature được gửi trong body
+            'Content-Type': 'application/json'
         };
 
-        const payosResponse = await axios.post(PAYOS_CONFIG.API_URL, orderData, { headers });
+        // Gọi API PayOS để tạo yêu cầu thanh toán
+        const payosResponse = await axios.post(PAYOS_CONFIG.API_URL, payosRequestPayload, { headers });
+        const responseData = payosResponse.data; // Lấy toàn bộ data từ response
+        console.log('PayOS API Raw Response:', responseData);
 
-        if (payosResponse.data && payosResponse.data.code === '00') {
-            const paymentLinkData = payosResponse.data.data;
+        if (responseData && responseData.code === '00') {
+            const paymentLinkData = responseData.data;
             console.log('[PayOS] Payment request created successfully:', paymentLinkData);
 
             // KHÔNG TẠO INVOICE TẠI ĐÂY. INVOICE CHỈ ĐƯỢC TẠO KHI THANH TOÁN THÀNH CÔNG TỪ WEBHOOK.
 
+            // Cập nhật booking với payment link ID nếu cần
+            booking.payosPaymentLinkId = paymentLinkData.paymentLinkId;
+            await booking.save(); // Lưu lại booking với thông tin payment link
+
             res.status(200).json({
                 message: 'Yêu cầu thanh toán đã được tạo thành công.',
                 payosPaymentUrl: paymentLinkData.checkoutUrl, // URL để redirect người dùng
-                qrCodeUrl: paymentLinkData.qrCode // Mã QR nếu có
+                qrCodeUrl: paymentLinkData.qrCode, // Mã QR nếu có
+                bookingId: booking.bookingId // Trả về bookingId để frontend dễ xử lý
             });
         } else {
-            console.error('Lỗi khi tạo yêu cầu thanh toán PayOS API:', payosResponse.data);
+            console.error('Lỗi khi tạo yêu cầu thanh toán PayOS API:', responseData);
             res.status(500).json({
                 message: 'Lỗi khi tạo yêu cầu thanh toán PayOS API.',
-                error: payosResponse.data
+                error: responseData
             });
         }
 
@@ -118,7 +197,7 @@ router.post('/create-payment', async (req, res) => {
     }
 });
 
-// [POST] /api/payos/webhook - Xử lý webhook từ PayOS (QUAN TRỌNG NHẤT)
+// [POST] /api/payos-payment/webhook - Xử lý webhook từ PayOS (QUAN TRỌNG NHẤT)
 router.post('/webhook', async (req, res) => {
     const webhookData = req.body;
     const receivedChecksum = req.headers['x-checksum'];
@@ -275,15 +354,10 @@ router.get('/status/:bookingId', async (req, res) => {
 router.get('/success', async (req, res) => {
     const { bookingId, payosOrderCode, status } = req.query; // Nhận bookingId từ query params
 
-    // Quan trọng: Tuyệt đối không cập nhật trạng thái DB ở đây.
-    // Webhook đã xử lý cập nhật trạng thái. Trang này chỉ hiển thị kết quả.
-
     if (!bookingId) {
         return res.status(400).send('<h1>Thiếu thông tin Booking.</h1>');
     }
 
-    // Redirect frontend về trang status hoặc trang chi tiết booking để hiển thị kết quả chính xác
-    // Đây là cách tốt nhất để tránh logic cập nhật phức tạp và không an toàn ở return URL
     res.redirect(`${PAYOS_CONFIG.FRONTEND_URL}/payment-status?bookingId=${bookingId}`);
 });
 

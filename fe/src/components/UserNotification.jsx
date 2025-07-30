@@ -82,7 +82,7 @@ const fetchUserReplies = async () => {
     useEffect(() => {
         if (user?.username) {
             console.log("👤 Detected user login, fetching latest replies...")
-            fetchUserReplies() // ✅ gọi API để load reply mới
+fetchUserReplies() // ✅ gọi API để load reply mới
         }
     }, [user?.username])
 
@@ -173,7 +173,7 @@ const fetchUserReplies = async () => {
         }
 
         socket.current.on("notification", handleNotification)
-        socket.current.on("new_reply", handleNotification)
+socket.current.on("new_reply", handleNotification)
 
         return () => {
             console.log("🔌 Cleaning up socket listeners...")
@@ -244,7 +244,7 @@ const fetchUserReplies = async () => {
                 title={
                     <div className="flex items-center w-full min-h-[30px] py-0.1">
                         <div
-                            className="w-6 h-7 mr-6 rounded-full flex items-center justify-center transition-transform duration-300 ease-in-out hover:scale-110 cursor-pointer hover:bg-gray-700"
+className="w-6 h-7 mr-6 rounded-full flex items-center justify-center transition-transform duration-300 ease-in-out hover:scale-110 cursor-pointer hover:bg-gray-700"
                             onClick={() => setIsOpen(false)}
                         >
                             <span className="text-white text-3xl font-bold leading-none">×</span>
@@ -297,7 +297,7 @@ const fetchUserReplies = async () => {
                                         </div>
                                         <div>
                                             <h3 className="font-semibold text-base text-white">User Replies</h3>
-                                            <p className="text-xs text-gray-400">{notifications.length} new messages</p>
+<p className="text-xs text-gray-400">{notifications.length} new messages</p>
                                         </div>
                                     </div>
 
@@ -335,7 +335,7 @@ const fetchUserReplies = async () => {
                                                     {/* Content */}
                                                     <div className="relative z-10">
                                                         <div className="flex items-start justify-between mb-2">
-                                                            <div className="flex items-center gap-2">
+<div className="flex items-center gap-2">
                                                                 <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
                                                                 <span className="text-xs text-blue-300 font-medium">New Reply</span>
                                                             </div>
@@ -375,7 +375,7 @@ const fetchUserReplies = async () => {
                                         <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
                                             <CalendarOutlined className="text-white text-sm" />
                                         </div>
-                                        <div>
+<div>
                                             <h3 className="font-semibold text-base text-white">Coming Soon</h3>
                                             <p className="text-xs text-gray-400">{comingSoon.length} upcoming releases</p>
                                         </div>
@@ -409,7 +409,7 @@ const fetchUserReplies = async () => {
                                                     </div>
 
                                                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                                        <div className="w-1 h-8 bg-gradient-to-b from-green-400 to-green-600 rounded-full" />
+<div className="w-1 h-8 bg-gradient-to-b from-green-400 to-green-600 rounded-full" />
                                                     </div>
                                                 </div>
                                             </motion.div>
@@ -449,7 +449,7 @@ const fetchUserReplies = async () => {
                                                     <div className="relative z-10">
                                                         <div className="flex items-start justify-between mb-2">
                                                             <div className="flex items-center gap-2">
-                                                                <motion.div
+<motion.div
                                                                     className="w-2 h-2 bg-red-400 rounded-full"
                                                                     animate={{ scale: [1, 1.2, 1] }}
                                                                     transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2 }}
