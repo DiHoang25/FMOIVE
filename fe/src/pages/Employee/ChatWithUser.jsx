@@ -5,7 +5,7 @@ import io from "socket.io-client"
 import { useAuth } from "../../contexts/AuthContext"
 import SidebarLayout from "../../components/Sidebar-Employee"
 
-const socket = io("http://localhost:5000", {
+const socket = io("http://10.88.54.29:5000", {
     transports: ["websocket"],
     withCredentials: true,
 })
@@ -273,7 +273,7 @@ const ChatWithUser = () => {
                                                                     : "bg-gray-700 text-gray-100 rounded-bl-md border border-gray-600"
                                                                 }`}
                                                         >
-                                                            <p className="text-sm leading-relaxed">{msg.message}</p>
+                                                            <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">{msg.message}</p>
                                                             <p
                                                                 className={`text-xs mt-2 ${msg.sender === user.username ? "text-blue-200" : "text-gray-400"
                                                                     }`}

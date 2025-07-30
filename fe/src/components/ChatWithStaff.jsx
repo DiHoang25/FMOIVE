@@ -3,9 +3,22 @@
 import { useEffect, useRef, useState } from "react"
 import io from "socket.io-client"
 import { useAuth } from "../contexts/AuthContext"
-import { MessageCircle, X, Send, Minimize2, Maximize2, Paperclip, ImageIcon, Smile, Phone, Mail, Clock, CheckCheck, AlertCircle } from 'lucide-react'
+import {
+  MessageCircle,
+  X,
+  Send,
+  Minimize2,
+  Maximize2,
+  Paperclip,
+  Smile,
+  Phone,
+  Mail,
+  Clock,
+  CheckCheck,
+  AlertCircle,
+} from "lucide-react"
 
-const socket = io("http://localhost:5000", {
+const socket = io("http://10.88.54.29:5000", {
   transports: ["websocket"],
   withCredentials: true,
 })
@@ -46,7 +59,7 @@ const ChatWithStaff = () => {
             minute: "2-digit",
           }),
           isStaff: sender !== user.username,
-          status: "delivered"
+          status: "delivered",
         }
         setMessages((prev) => [...prev, newMessage])
         setWaitingForResponse(false)
@@ -67,7 +80,7 @@ const ChatWithStaff = () => {
             minute: "2-digit",
           }),
           isStaff: from !== user.username,
-          status: "delivered"
+          status: "delivered",
         }
         setMessages((prev) => [...prev, newMessage])
         setWaitingForResponse(false)
@@ -125,7 +138,7 @@ const ChatWithStaff = () => {
         minute: "2-digit",
       }),
       isStaff: false,
-      status: "sent"
+      status: "sent",
     }
 
     socket.emit("sendMessageToEmployee", {
@@ -156,7 +169,7 @@ const ChatWithStaff = () => {
   }
 
   const handleEmojiClick = (emoji) => {
-    setInput(prev => prev + emoji)
+    setInput((prev) => prev + emoji)
     setShowEmojiPicker(false)
     inputRef.current?.focus()
   }
@@ -188,20 +201,23 @@ const ChatWithStaff = () => {
 
   if (!user?.username) return null
 
-  const quickReplies = [
-    "Xin chào! Tôi cần hỗ trợ",
-    "Cảm ơn bạn",
-    "Tôi hiểu rồi",
-    "Có thể giúp tôi không?"
-  ]
+  const quickReplies = ["Xin chào! Tôi cần hỗ trợ", "Cảm ơn bạn", "Tôi hiểu rồi", "Có thể giúp tôi không?"]
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
+      <style jsx>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
       {open ? (
         <div
-          className={`bg-gray-800 rounded-2xl shadow-2xl border border-gray-700 transition-all duration-300 ${
-            minimized ? "w-80 h-16" : "w-96 h-[600px]"
-          }`}
+          className={`bg-gray-800 rounded-2xl shadow-2xl border border-gray-700 transition-all duration-300 ${minimized ? "w-80 h-16" : "w-96 h-[600px]"
+            }`}
         >
           {/* Header */}
           <div className="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-4 rounded-t-2xl flex justify-between items-center">
@@ -211,9 +227,8 @@ const ChatWithStaff = () => {
                   <MessageCircle className="w-5 h-5" />
                 </div>
                 <div
-                  className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
-                    isOnline ? "bg-green-500" : "bg-green-500"
-                  }`}
+                  className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${isOnline ? "bg-green-500" : "bg-green-500"
+                    }`}
                 ></div>
               </div>
               <div>
@@ -250,7 +265,7 @@ const ChatWithStaff = () => {
           {!minimized && (
             <>
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-900 h-[380px]">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-900 h-[380px] overflow-x-hidden">
                 {messages.length === 0 ? (
                   <div className="text-center py-8">
                     <div className="w-16 h-16 bg-red-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -258,14 +273,30 @@ const ChatWithStaff = () => {
                     </div>
                     <p className="text-gray-300 text-sm font-medium">Chào mừng bạn đến với hỗ trợ khách hàng!</p>
                     <p className="text-gray-500 text-xs mt-2">Chúng tôi luôn sẵn sàng hỗ trợ bạn 24/7</p>
-                    
 
+                    {/* Quick Contact Options */}
+                    <div className="flex justify-center space-x-4 mt-6">
+                      <button
+                        onClick={() => window.open("tel:+84123456789")}
+                        className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs transition-colors"
+                      >
+                        <Phone className="w-4 h-4" />
+                        <span>Gọi ngay</span>
+                      </button>
+                      <button
+                        onClick={() => window.open("mailto:support@company.com")}
+                        className="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-xs transition-colors"
+                      >
+                        <Mail className="w-4 h-4" />
+                        <span>Email</span>
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <>
                     {messages.map((msg, index) => (
                       <div key={msg.id} className={`flex ${msg.isStaff ? "justify-start" : "justify-end"}`}>
-                        <div className={`max-w-[80%] ${msg.isStaff ? "order-2" : "order-1"}`}>
+                        <div className={`${msg.isStaff ? "max-w-[80%]" : "max-w-[85%] ml-auto"}`}>
                           {msg.isStaff && (
                             <div className="flex items-center space-x-2 mb-2">
                               <div className="w-7 h-7 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center">
@@ -276,20 +307,26 @@ const ChatWithStaff = () => {
                             </div>
                           )}
                           <div
-                            className={`px-4 py-3 rounded-2xl shadow-lg relative ${
-                              msg.isStaff
-                                ? "bg-gray-700 text-gray-100 rounded-bl-md border-l-4 border-red-500"
-                                : "bg-red-600 text-white rounded-br-md"
-                            }`}
+                            className={`w-full px-4 py-3 rounded-2xl shadow-lg relative break-words ${msg.isStaff
+                                ? "bg-gray-700 text-gray-100 rounded-bl-md border-l-4 border-red-500 mr-auto"
+                                : "bg-red-600 text-white rounded-br-md ml-auto"
+                              }`}
+                            style={{
+                              wordWrap: "break-word",
+                              wordBreak: "break-word",
+                              overflowWrap: "break-word",
+                              hyphens: "auto",
+                            }}
                           >
                             {msg.type === "image" ? (
-                              <ImageIcon 
-                                src={msg.message || "/placeholder.svg"} 
-                                alt="Uploaded image" 
+                              <img
+                                src={msg.message || "/placeholder.svg"}
+                                alt="Uploaded image"
                                 className="max-w-full h-auto rounded-lg"
+                                style={{ maxWidth: "100%", height: "auto" }}
                               />
                             ) : (
-                              <p className="text-sm leading-relaxed">{msg.message}</p>
+                              <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{msg.message}</p>
                             )}
                             <div className="flex items-center justify-between mt-2">
                               <p className={`text-xs ${msg.isStaff ? "text-gray-400" : "text-red-200"}`}>
@@ -403,15 +440,33 @@ const ChatWithStaff = () => {
                   </div>
                   <div className="flex-1">
                     <div className="relative">
-                      <input
+                      <textarea
                         ref={inputRef}
-                        type="text"
-                        className="w-full px-4 py-3 pr-12 bg-gray-700 border border-gray-600 text-white placeholder-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 pr-12 bg-gray-700 border border-gray-600 text-white placeholder-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all resize-none min-h-[48px] max-h-[120px] scrollbar-hide break-all"
+                        style={{
+                          wordWrap: "break-word",
+                          overflowWrap: "break-word",
+                          wordBreak: "break-all", // Thêm dòng này để xử lý văn bản không có khoảng trắng
+                          scrollbarWidth: "none",
+                          msOverflowStyle: "none",
+                        }}
                         value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                        placeholder="Enter your message..."
+                        onChange={(e) => {
+                          setInput(e.target.value)
+                          // Auto-resize textarea
+                          e.target.style.height = "auto"
+                          e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px"
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault()
+                            sendMessage()
+                          }
+                        }}
+                        placeholder="Enter your message... "
+                        rows={1}
                       />
+
                       <button
                         onClick={() => sendMessage()}
                         disabled={!input.trim()}
@@ -423,10 +478,10 @@ const ChatWithStaff = () => {
                   </div>
                 </div>
                 <div className="flex items-center justify-between mt-2">
-                  <p className="text-xs text-gray-500">Press Enter to send your message</p>
+                  <p className="text-xs text-gray-500">Enter để gửi, Shift+Enter để xuống hàng</p>
                   <div className="flex items-center space-x-1 text-xs text-gray-500">
                     <AlertCircle className="w-3 h-3" />
-                    <span>Privacy & Security</span>
+                    <span>Bảo mật & riêng tư</span>
                   </div>
                 </div>
               </div>
@@ -455,7 +510,7 @@ const ChatWithStaff = () => {
             )}
           </div>
           <div className="hidden group-hover:block transition-all duration-200">
-            <span className="font-medium">Support</span>
+            <span className="font-medium">Hỗ trợ 24/7</span>
           </div>
         </button>
       )}
