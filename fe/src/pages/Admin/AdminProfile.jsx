@@ -4,7 +4,7 @@ import {
   Avatar,
   Button,
   Card,
-  Spin,
+  Spin, // Import Spin
   Result,
   Badge,
   Divider,
@@ -18,6 +18,8 @@ import {
   CalendarOutlined,
   CrownOutlined,
   SafetyOutlined,
+  WomanOutlined, // Added for gender icon
+  ManOutlined, // Added for gender icon
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import SidebarLayout from '../../components/Sidebar-Admin';
@@ -59,6 +61,7 @@ const AdminProfile = () => {
   }, []);
 
   const formatDate = (isoString) => {
+    if (!isoString) return 'Not provided'; // Ensure "Not provided" for null/empty date
     const date = new Date(isoString);
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -78,7 +81,8 @@ const AdminProfile = () => {
     return (
       <SidebarLayout>
         <div className="flex justify-center items-center min-h-[70vh] bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-          <Spin size="large" />
+          {/* Added data-testid for the loading spinner */}
+          <Spin size="large" data-testid="loading-spinner" />
         </div>
       </SidebarLayout>
     );
@@ -87,6 +91,13 @@ const AdminProfile = () => {
   const formattedDOB = user.date_of_birth
     ? formatDate(user.date_of_birth)
     : 'Not provided';
+
+  // Determine gender icon
+  const getGenderIcon = (gender) => {
+    if (gender === 'male') return <ManOutlined />;
+    if (gender === 'female') return <WomanOutlined />;
+    return <UserOutlined />; // Default icon for 'other' or 'Not provided'
+  };
 
   return (
     <SidebarLayout>
@@ -209,7 +220,7 @@ const AdminProfile = () => {
                           {
                             icon: <SafetyOutlined />,
                             label: 'Username',
-                            value: `@${user.username}`,
+                            value: user.username,
                             color: 'from-green-500 to-green-600',
                           },
                           {
@@ -229,6 +240,12 @@ const AdminProfile = () => {
                             label: 'Phone Number',
                             value: user.phone || 'Not provided',
                             color: 'from-cyan-500 to-cyan-600',
+                          },
+                          { // Added Gender field
+                            icon: getGenderIcon(user.gender),
+                            label: 'Gender',
+                            value: user.gender || 'Not provided',
+                            color: 'from-pink-500 to-red-600', // Example color
                           },
                         ].map((item, idx) => (
                           <motion.div

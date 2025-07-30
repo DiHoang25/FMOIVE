@@ -2,12 +2,9 @@ import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { ArrowLeft, Save, Users, Crown, Monitor, MapPin, DollarSign } from "lucide-react"
 import SidebarLayout from "../../components/Sidebar-Admin"
-import { Modal, message } from 'antd';
+import { Modal, message, Card, Spin, Result, Divider } from 'antd';
 import { ExclamationCircleFilled } from '@ant-design/icons';
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import { useMediaQuery } from "react-responsive";
-import { useDispatch } from "react-redux";
-
+import { motion } from 'framer-motion';
 
 const CinemaRoomDetail = () => {
   const { roomId } = useParams()
@@ -16,14 +13,8 @@ const CinemaRoomDetail = () => {
   const [selectMode, setSelectMode] = useState("single"); // "single" | "row"
   const [selectedRows, setSelectedRows] = useState([]); // Chọn theo hàng
   const [selectedSeats, setSelectedSeats] = useState([]); // chỉ dùng cho chế độ "single"
-  const isMobile = useMediaQuery({ maxWidth: 768 });
-  const dispatch = useDispatch();
+  const [error, setError] = useState('');
 
-  const [selectedSeatsState, setSelectedSeatsState] = useState(
-    selectedSeats || []
-  );
-
-  
   // Fetch room data from API
   useEffect(() => {
     const fetchRoom = async () => {
@@ -36,6 +27,7 @@ const CinemaRoomDetail = () => {
         if (!res.ok) throw new Error(data.message || "Lỗi khi fetch dữ liệu phòng");
         setRoomData(data.room);
       } catch (err) {
+        setError(err.message);
         Modal.error({ title: "Lỗi", content: err.message });
       }
     };
@@ -60,24 +52,13 @@ const CinemaRoomDetail = () => {
     }
   };
 
-
-  const toggleRow = (rowNumber) => {
-    setSelectedRows((prev) =>
-      prev.includes(rowNumber)
-        ? prev.filter((r) => r !== rowNumber)
-        : [...prev, rowNumber]
-    );
-  };
-
-
-
   const getSeatClass = (seat) => {
     const isSelected =
       (selectMode === "row" && selectedRows.includes(seat.row)) ||
       (selectMode === "single" && selectedSeats.includes(seat.label));
 
     const baseClasses =
-      "w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-200 transform hover:scale-110 hover:shadow-lg border-2";
+      "w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-300 transform hover:scale-110 hover:shadow-lg border-2";
 
     if (isSelected) {
       return `${baseClasses} bg-gradient-to-br from-red-500 to-red-600 text-white border-red-400 shadow-lg scale-105`;
@@ -89,36 +70,6 @@ const CinemaRoomDetail = () => {
 
     return `${baseClasses} bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 border-gray-300`;
   };
-
-  const toggleSeat = (seat) => {
-      setSelectedSeatsState((prev) => {
-        const updated = prev.includes(seat.label)
-          ? prev.filter((s) => s !== seat.label)
-          : [...prev, seat.label];
-  
-        const selectedSeatObjects =
-          roomData?.seats?.filter((s) => updated.includes(s.label)) || [];
-        const totalPrice = selectedSeatObjects.reduce(
-          (sum, s) => sum + s.price,
-          0
-        );
-  
-        dispatch(setSelectedSeats({ seats: updated, totalPrice }));
-        return updated;
-      });
-    };
-  
-  const handleToggleSeat = (seat) => {
-    setSelectedSeatsState((prev) =>
-      prev.includes(seat.label)
-        ? prev.filter((s) => s !== seat.label)
-        : [...prev, seat.label]
-    );
-  };
-
-
-
-
 
   const handleBack = () => navigate(-1)
 
@@ -136,7 +87,6 @@ const CinemaRoomDetail = () => {
     }
   };
 
-
   const fetchAndRefreshRoom = async () => {
     const token = localStorage.getItem("token");
     const res = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}`, {
@@ -147,121 +97,64 @@ const CinemaRoomDetail = () => {
   };
 
   const handleConvertToVIP = () => {
-  const vipCount = selectedRows.length;
-  if (vipCount === 0) return;
+    const vipCount = selectedRows.length;
+    if (vipCount === 0) return;
 
-  const selectedRowLabels = selectedRows.map(r => String.fromCharCode(64 + Number(r))).join(", ");
+    const selectedRowLabels = selectedRows.map(r => String.fromCharCode(64 + Number(r))).join(", ");
 
-  Modal.confirm({
-    title: 'Xác nhận chuyển VIP',
-    icon: <ExclamationCircleFilled />,
-    content: `Bạn có chắc muốn chuyển hàng [${selectedRowLabels}] thành ghế VIP?`,
-    okText: 'Xác nhận',
-    cancelText: 'Hủy',
-    okType: 'primary',
-    okButtonProps: {
-      style: {
-        backgroundColor: '#f59e0b',
-        color: 'white',
-        borderColor: '#f59e0b',
+    Modal.confirm({
+      title: 'Xác nhận chuyển VIP',
+      icon: <ExclamationCircleFilled />,
+      content: `Bạn có chắc muốn chuyển hàng [${selectedRowLabels}] thành ghế VIP?`,
+      okText: 'Xác nhận',
+      cancelText: 'Hủy',
+      okType: 'primary',
+      okButtonProps: {
+        style: {
+          backgroundColor: '#f59e0b',
+          color: 'white',
+          borderColor: '#f59e0b',
+        },
       },
-    },
-    onOk: async () => {
-      try {
-        const token = localStorage.getItem("token");
+      onOk: async () => {
+        try {
+          const token = localStorage.getItem("token");
+          const currentNormalPrice = roomData.seats.find(s => s.type === "Normal")?.price || 90000;
+          const currentVIPPrice =
+            roomData.seats.find(s => s.type === "VIP")?.price ||
+            roomData.vipPrice || 600000;
 
-        // ✅ Tìm giá ghế thường (lấy từ 1 ghế bất kỳ)
-        const currentNormalPrice = roomData.seats.find(s => s.type === "Normal")?.price || 90000;
+          const currentVIP = roomData.seats.filter(s => s.type === "VIP").map(s => s.label);
+          const newVIP = roomData.seats.filter(s => selectedRows.includes(s.row)).map(s => s.label);
+          const updatedVIP = Array.from(new Set([...currentVIP, ...newVIP]));
+          const updatedNormal = roomData.seats.map(s => s.label).filter(l => !updatedVIP.includes(l));
 
-        // ✅ Tìm giá ghế VIP từ `roomData` nếu có
-        // Nếu chưa có ghế VIP, dùng fallback `roomData.seats[0].vipPrice` nếu bạn đã lưu theo dạng này
-        const currentVIPPrice =
-          roomData.seats.find(s => s.type === "VIP")?.price ||
-          roomData.vipPrice || 600000; // fallback cuối nếu không có gì
+          const res = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}/update-seat-types`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              vipSeats: updatedVIP,
+              normalSeats: updatedNormal,
+              vipPrice: currentVIPPrice,
+              normalPrice: currentNormalPrice,
+            }),
+          });
 
-        const currentVIP = roomData.seats.filter(s => s.type === "VIP").map(s => s.label);
-        const newVIP = roomData.seats.filter(s => selectedRows.includes(s.row)).map(s => s.label);
-        const updatedVIP = Array.from(new Set([...currentVIP, ...newVIP]));
-        const updatedNormal = roomData.seats.map(s => s.label).filter(l => !updatedVIP.includes(l));
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message || "Cập nhật thất bại");
 
-        const res = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}/update-seat-types`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            vipSeats: updatedVIP,
-            normalSeats: updatedNormal,
-            vipPrice: currentVIPPrice,
-            normalPrice: currentNormalPrice,
-          }),
-        });
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Cập nhật thất bại");
-
-        message.success("Đã chuyển thành công hàng sang VIP.");
-        setSelectedRows([]);
-        await fetchAndRefreshRoom();
-      } catch (err) {
-        message.error(`Lỗi khi cập nhật: ${err.message}`);
-      }
-    },
-  });
-};
-
-
-
-
-  const handleSave = async () => {
-  try {
-    const token = localStorage.getItem("token");
-
-    const vipSeats = roomData.seats
-      .filter((seat) => selectedRows.includes(seat.row))
-      .map((seat) => seat.label);
-
-    const normalSeats = roomData.seats
-      .filter((seat) => !selectedRows.includes(seat.row))
-      .map((seat) => seat.label);
-
-    // 👇 Lấy giá từ roomData thay vì hardcode
-    const currentNormalPrice = roomData.seats.find(s => s.type === "Normal")?.price || 90000;
-    const currentVIPPrice = roomData.seats.find(s => s.type === "VIP")?.price || 150000;
-
-    const res = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}/update-seat-types`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+          message.success("Đã chuyển thành công hàng sang VIP.");
+          setSelectedRows([]);
+          await fetchAndRefreshRoom();
+        } catch (err) {
+          message.error(`Lỗi khi cập nhật: ${err.message}`);
+        }
       },
-      body: JSON.stringify({
-        vipSeats,
-        normalSeats,
-        vipPrice: currentVIPPrice,
-        normalPrice: currentNormalPrice,
-      }),
     });
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Lưu thất bại");
-
-    alert("Đã lưu lựa chọn ghế VIP thành công!");
-    setSelectedRows([]);
-
-    // Refetch lại dữ liệu phòng
-    const updated = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const updatedData = await updated.json();
-    setRoomData(updatedData.room);
-  } catch (err) {
-    console.error("❌ Lỗi khi lưu:", err.message);
-    alert("Lưu thất bại!");
-  }
-};
-
+  };
 
   const handleConvertToNormal = () => {
     const selectedRowLabels = selectedRows.map(r => String.fromCharCode(64 + Number(r))).join(", ");
@@ -277,7 +170,7 @@ const CinemaRoomDetail = () => {
       okType: 'danger',
       okButtonProps: {
         style: {
-          backgroundColor: '#dc2626', // Tailwind red-600
+          backgroundColor: '#dc2626',
           color: 'white',
           borderColor: '#dc2626',
         },
@@ -285,18 +178,14 @@ const CinemaRoomDetail = () => {
       onOk: async () => {
         try {
           const token = localStorage.getItem("token");
-
-          // Lấy danh sách ghế VIP hiện tại từ dữ liệu
           const currentVIPSeats = roomData.seats
             .filter((s) => s.type === "VIP")
             .map((s) => s.label);
 
-          // Lấy danh sách ghế thuộc hàng đang chọn (muốn gỡ khỏi VIP)
           const toBeNormalSeats = roomData.seats
             .filter((s) => selectedRows.includes(s.row))
             .map((s) => s.label);
 
-          // Danh sách VIP sau khi loại bỏ các ghế chuyển về thường
           const updatedVIPSeats = currentVIPSeats.filter(
             (label) => !toBeNormalSeats.includes(label)
           );
@@ -309,13 +198,12 @@ const CinemaRoomDetail = () => {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
               },
-            body: JSON.stringify({
-              vipSeats: updatedVIPSeats,
-              normalSeats: toBeNormalSeats,
-              vipPrice: currentVIPPrice,     // ✅ dùng giá hiện tại
-              normalPrice: currentNormalPrice, // ✅ dùng giá hiện tại
-            }),
-              
+              body: JSON.stringify({
+                vipSeats: updatedVIPSeats,
+                normalSeats: toBeNormalSeats,
+                vipPrice: currentVIPPrice,
+                normalPrice: currentNormalPrice,
+              }),
             }
           );
 
@@ -325,7 +213,6 @@ const CinemaRoomDetail = () => {
           message.success("Đã chuyển thành công hàng sang ghế thường.");
           setSelectedRows([]);
 
-          // Refetch lại dữ liệu phòng
           const updated = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -339,320 +226,338 @@ const CinemaRoomDetail = () => {
     });
   };
 
+  if (error) {
+    return (
+      <SidebarLayout>
+        <Result status="error" title="Error" subTitle={error} />
+      </SidebarLayout>
+    );
+  }
 
+  if (!roomData) {
+    return (
+      <SidebarLayout>
+        <div className="flex justify-center items-center min-h-[70vh] bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+          <Spin size="large" data-testid="loading-spinner" />
+        </div>
+      </SidebarLayout>
+    );
+  }
 
   return (
     <SidebarLayout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-        <div className="container mx-auto px-4 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-red-900 to-slate-900 p-4 md:p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="max-w-7xl mx-auto"
+        >
           {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
+          <div className="text-center mb-8">
+            <motion.div 
+              initial={{ scale: 0.9 }} 
+              animate={{ scale: 1 }} 
+              transition={{ duration: 0.5 }}
+              className="flex items-center justify-between mb-6"
+            >
               <button
                 onClick={handleBack}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors duration-200"
+                className="flex items-center gap-2 px-6 py-3 bg-slate-800/70 hover:bg-slate-700/70 rounded-xl transition-all duration-300 backdrop-blur-sm border border-slate-600/40 hover:border-slate-500/60 hover:scale-105 shadow-lg"
               >
-                <ArrowLeft className="w-4 h-4" />
-                Back
+                <ArrowLeft className="w-5 h-5 text-white" />
+                <span className="text-white font-medium">Back</span>
               </button>
-              <h2 className="text-2xl font-bold">Cinema Room Management</h2>
-              <div className="w-20"></div> {/* Spacer for centering */}
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 border border-slate-700">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-500/20 rounded-lg">
-                    <Users className="w-5 h-5 text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="text-slate-400 text-sm">Selected Seats</p>
-                    <p className="text-2xl font-bold text-white">{selectedRows.length}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 border border-slate-700">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-500/20 rounded-lg">
-                    <DollarSign className="w-5 h-5 text-green-400" />
-                  </div>
-                  <div>
-                    <p className="text-slate-400 text-sm">Total Price</p>
-                    <p className="text-2xl font-bold text-white">{getTotalPrice().toLocaleString()} VND</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 border border-slate-700">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-500/20 rounded-lg">
-                    <MapPin className="w-5 h-5 text-purple-400" />
-                  </div>
-                  <div>
-                    <p className="text-slate-400 text-sm">Room ID</p>
-                    <p className="text-2xl font-bold text-white">#{roomId}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+              
+              <h1 className="text-3xl md:text-4xl font-bold text-white bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                Cinema Room Management
+              </h1>
+              
+              <div className="w-24"></div> {/* Spacer for centering */}
+            </motion.div>
           </div>
 
-          {/* Main Content */}
-          <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 border border-slate-700 shadow-2xl">
-            {/* Screen */}
-            <div className="mb-8">
-              <div className="flex items-center justify-center mb-4">
-                <Monitor className="w-6 h-6 text-slate-400 mr-2" />
-                <span className="text-slate-400 text-sm font-medium">SCREEN</span>
-              </div>
-              <div className="relative">
-                <div className="h-2 bg-gradient-to-r from-transparent via-white to-transparent rounded-full mb-2 opacity-80"></div>
-                <div className="h-1 bg-gradient-to-r from-transparent via-slate-300 to-transparent rounded-full opacity-60"></div>
-              </div>
-              <p className="text-center text-slate-400 text-sm mt-2">This way to screen</p>
-            </div>
-            <div className="mb-6 flex justify-center gap-4">
-              <button
-                className={`px-4 py-2 rounded-lg font-semibold ${selectMode === "single"
-                  ? "bg-blue-600 text-white"
-                  : "bg-slate-600 text-slate-300"
-                  }`}
-                onClick={() => setSelectMode("single")}
+          {/* Stats Cards */}
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+          >
+            {[
+              {
+                icon: <Users className="w-6 h-6 text-white" />,
+                label: 'Selected Rows',
+                value: selectedRows.length,
+                color: 'from-blue-500 to-blue-600',
+                textColor: 'text-blue-300',
+              },
+              {
+                icon: <DollarSign className="w-6 h-6 text-white" />,
+                label: 'Total Price',
+                value: `${getTotalPrice().toLocaleString()} VND`,
+                color: 'from-green-500 to-green-600',
+                textColor: 'text-green-300',
+              },
+              {
+                icon: <MapPin className="w-6 h-6 text-white" />,
+                label: 'Room ID',
+                value: `#${roomId}`,
+                color: 'from-purple-500 to-purple-600',
+                textColor: 'text-purple-300',
+              },
+            ].map((card, idx) => (
+              <Card 
+                key={idx} 
+                className="bg-slate-800/80 border border-slate-600/50 backdrop-blur-sm transition-all duration-300 hover:border-opacity-50 hover:scale-105"
+                style={{ borderRadius: '16px' }}
               >
-                Single
-              </button>
-              <button
-                className={`px-4 py-2 rounded-lg font-semibold ${selectMode === "row"
-                  ? "bg-blue-600 text-white"
-                  : "bg-slate-600 text-slate-300"
-                  }`}
-                onClick={() => setSelectMode("row")}
-              >
-                Multiple
-              </button>
-            </div>
+                <div className="flex items-center gap-4">
+                  <div className={`w-12 h-12 bg-gradient-to-r ${card.color} rounded-xl flex items-center justify-center shadow-lg`}>
+                    {card.icon}
+                  </div>
+                  <div>
+                    <p className="text-slate-400 text-sm font-medium">{card.label}</p>
+                    <p className={`${card.textColor} font-bold text-lg`}>{card.value}</p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </motion.div>
 
-
-            {/* Seat Grid */}
-            {roomData ? (
-            isMobile ? (
-              <div className="relative w-full overflow-hidden rounded-lg border border-gray-600">
-                <TransformWrapper
-                  initialScale={0.8}
-                  minScale={0.5}
-                  maxScale={2}
-                  wheel={{ step: 0.1 }}
-                  doubleClick={{ disabled: true }}
+          {/* Main Content Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.3 }}
+          >
+            <Card
+              className="w-full bg-slate-800/70 backdrop-blur-lg border border-slate-600/40 shadow-2xl overflow-visible"
+              style={{ borderRadius: '20px' }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/8 via-transparent to-cyan-600/8 pointer-events-none" />
+              <div className="relative p-6 lg:p-8">
+                
+                {/* Screen */}
+                <motion.div 
+                  className="mb-8"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
                 >
-                  {({ zoomIn, zoomOut, resetTransform }) => (
-                    <>
-                      <div className="absolute top-2 right-2 z-10 flex gap-2">
-                        <button 
-                          onClick={() => zoomIn()} 
-                          className="bg-gray-700/80 text-white p-1 rounded"
-                        >
-                          +
-                        </button>
-                        <button 
-                          onClick={() => zoomOut()} 
-                          className="bg-gray-700/80 text-white p-1 rounded"
-                        >
-                          -
-                        </button>
-                        <button 
-                          onClick={() => resetTransform()} 
-                          className="bg-gray-700/80 text-white p-1 rounded"
-                        >
-                          Reset
-                        </button>
-                      </div>
-                      <TransformComponent wrapperClass="!w-full !h-full">
-                        <div className="w-max mx-auto p-4">
-                          {[...Array(roomData.rows)].map((_, rIdx) => {
-                            const rowLetter = String.fromCharCode(65 + rIdx);
-                            const rowSeats = roomData.seats.filter((s) => Number(s.row) === rIdx + 1);
+                  <div className="flex items-center justify-center mb-6">
+                    <div className="flex items-center gap-3 px-6 py-3 bg-slate-900/40 backdrop-blur-sm rounded-xl border border-slate-600/30">
+                      <Monitor className="w-6 h-6 text-blue-400" />
+                      <span className="text-slate-300 text-lg font-semibold">SCREEN</span>
+                    </div>
+                  </div>
+                  <div className="relative max-w-4xl mx-auto">
+                    <div className="h-3 bg-gradient-to-r from-transparent via-white to-transparent rounded-full mb-3 opacity-90 shadow-lg"></div>
+                    <div className="h-2 bg-gradient-to-r from-transparent via-slate-300 to-transparent rounded-full opacity-70"></div>
+                  </div>
+                  <p className="text-center text-slate-400 text-sm mt-4">This way to screen</p>
+                </motion.div>
 
-                            return (
-                              <div key={rowLetter} className="flex items-center justify-center gap-1 sm:gap-2 mb-1">
-                                <div className="w-6 sm:w-8 flex items-center justify-center">
-                                  <span className="text-slate-400 font-bold text-xs sm:text-sm">{rowLetter}</span>
-                                </div>
-                                <div className="flex gap-1 sm:gap-2">
-                                  {[...Array(roomData.columns)].map((_, cIdx) => {
-                                    const seat = rowSeats.find((s) => Number(s.column) === cIdx + 1);
-                                    return seat ? (
-                                      <button
-                                        key={seat.label}
-                                        onClick={() => handleToggleSeat(seat)}
-                                        className={getSeatClass(seat)}
-                                        title={`Seat ${seat.label} - ${seat.type} - ${seat.price.toLocaleString('vi-VN')} VND`}
-                                      >
-                                        {seat.type === "VIP" ? (
-                                          <Crown className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                                        ) : (
-                                          <span className="text-xs sm:text-sm">{seat.label}</span>
-                                        )}
-                                      </button>
-                                    ) : (
-                                      <div key={`empty-${cIdx}`} className="w-8 h-8 sm:w-10 sm:h-10" />
-                                    );
-                                  })}
-                                </div>
-                                <div className="w-6 sm:w-8 flex items-center justify-center">
-                                  <span className="text-slate-400 font-bold text-xs sm:text-sm">{rowLetter}</span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </TransformComponent>
-                    </>
-                  )}
-                </TransformWrapper>
-              </div>
-            ) : (
-              <div className="w-full overflow-x-auto">
-                <div className="w-max mx-auto">
-                  {[...Array(roomData.rows)].map((_, rIdx) => {
-                    const rowLetter = String.fromCharCode(65 + rIdx);
-                    const rowSeats = roomData.seats.filter((s) => Number(s.row) === rIdx + 1);
+                {/* Mode Selection */}
+                <motion.div 
+                  className="mb-8 flex justify-center gap-4"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.6, delay: 0.5 }}
+                >
+                  <button
+                    className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg ${
+                      selectMode === "single"
+                        ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white border-2 border-blue-400"
+                        : "bg-slate-700/70 text-slate-300 border-2 border-slate-600/50 hover:bg-slate-600/70"
+                    }`}
+                    onClick={() => setSelectMode("single")}
+                  >
+                    Single Selection
+                  </button>
+                  <button
+                    className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg ${
+                      selectMode === "row"
+                        ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white border-2 border-blue-400"
+                        : "bg-slate-700/70 text-slate-300 border-2 border-slate-600/50 hover:bg-slate-600/70"
+                    }`}
+                    onClick={() => setSelectMode("row")}
+                  >
+                    Row Selection
+                  </button>
+                </motion.div>
 
-                    return (
-                      <div key={rowLetter} className="flex items-center justify-center gap-2 mb-2">
-                        <div className="w-8 flex items-center justify-center">
-                          <span className="text-slate-400 font-bold text-sm">{rowLetter}</span>
-                        </div>
-                        <div className="flex gap-2">
-                          {[...Array(roomData.columns)].map((_, cIdx) => {
-                            const seat = rowSeats.find((s) => Number(s.column) === cIdx + 1);
-                            return seat ? (
-                              <button
-                                key={seat.label}
-                                onClick={() => handleToggleSeat(seat)}
-                                className={getSeatClass(seat)}
-                                title={`Seat ${seat.label} - ${seat.type} - ${seat.price.toLocaleString('vi-VN')} VND`}
-                              >
-                                {seat.type === "VIP" ? (
-                                  <Crown className="w-3 h-3" />
+                {/* Seat Grid */}
+                <motion.div 
+                  className="mb-8"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.6 }}
+                >
+                  <div className="bg-slate-900/30 backdrop-blur-sm rounded-2xl p-8 border border-slate-600/30">
+                    <div className="space-y-4 max-w-5xl mx-auto">
+                      {[...Array(roomData.rows)].map((_, rIdx) => {
+                        const rowLetter = String.fromCharCode(65 + rIdx)
+                        const rowSeats = roomData.seats.filter((s) => Number(s.row) === rIdx + 1)
+
+                        return (
+                          <motion.div 
+                            key={rowLetter} 
+                            className="flex items-center justify-center gap-3"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.5, delay: 0.7 + rIdx * 0.1 }}
+                          >
+                            <div className="w-10 flex items-center justify-center">
+                              <span className="text-slate-300 font-bold text-lg bg-slate-700/50 rounded-lg px-2 py-1">
+                                {rowLetter}
+                              </span>
+                            </div>
+
+                            <div className="flex gap-3 justify-center">
+                              {[...Array(roomData.columns)].map((_, cIdx) => {
+                                const seat = rowSeats.find((s) => Number(s.column) === cIdx + 1)
+                                return seat ? (
+                                  <button
+                                    key={seat.label}
+                                    onClick={() => toggleSeatOrRow(seat)}
+                                    title={`Seat ${seat.label} - ${seat.type} - ${seat.price.toLocaleString()} VND`}
+                                    className={getSeatClass(seat)}
+                                  >
+                                    {seat.type === "VIP" && <Crown className="w-4 h-4" />}
+                                    {seat.type === "Normal" && <span className="text-xs">{seat.label}</span>}
+                                  </button>
                                 ) : (
-                                  seat.label
-                                )}
-                              </button>
-                            ) : (
-                              <div key={`empty-${cIdx}`} className="w-10 h-10" />
-                            );
-                          })}
+                                  <div key={`empty-${cIdx}`} className="w-10 h-10" />
+                                )
+                              })}
+                            </div>
+
+                            <div className="w-10 flex items-center justify-center">
+                              <span className="text-slate-300 font-bold text-lg bg-slate-700/50 rounded-lg px-2 py-1">
+                                {rowLetter}
+                              </span>
+                            </div>
+                          </motion.div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Legend */}
+                <motion.div 
+                  className="mb-8"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.8 }}
+                >
+                  <div className="bg-slate-900/30 backdrop-blur-sm rounded-2xl p-6 border border-slate-600/30">
+                    <h3 className="text-xl font-bold mb-6 text-center text-white">Seating Chart Legend</h3>
+                    <Divider className="border-slate-600/50 my-4" />
+                    <div className="flex justify-center gap-8 flex-wrap">
+                      {[
+                        { color: "bg-gradient-to-br from-red-500 to-red-600 border-red-400", label: "Selected", icon: null },
+                        { color: "bg-gradient-to-br from-gray-100 to-gray-200 border-gray-300", label: "Normal", icon: null },
+                        { color: "bg-gradient-to-br from-amber-400 to-yellow-500 border-amber-300", label: "VIP", icon: <Crown className="w-3 h-3 text-gray-900" /> },
+                      ].map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-3">
+                          <div className={`w-8 h-8 ${item.color} rounded-lg border-2 flex items-center justify-center shadow-lg`}>
+                            {item.icon}
+                          </div>
+                          <span className="text-slate-300 text-sm font-medium">{item.label}</span>
                         </div>
-                        <div className="w-8 flex items-center justify-center">
-                          <span className="text-slate-400 font-bold text-sm">{rowLetter}</span>
-                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Action Buttons */}
+                <motion.div 
+                  className="flex justify-center gap-4 mb-8"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.9 }}
+                >
+                  <button
+                    disabled={selectedRows.length === 0}
+                    onClick={handleConvertToVIP}
+                    className="px-8 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-black font-bold rounded-xl shadow-lg transition-all duration-300 hover:scale-105"
+                  >
+                    Convert to VIP
+                  </button>
+
+                  <button
+                    disabled={selectedRows.length === 0}
+                    onClick={handleConvertToNormal}
+                    className="px-8 py-3 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 disabled:from-gray-700 disabled:to-gray-800 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg transition-all duration-300 hover:scale-105"
+                  >
+                    Convert to Normal
+                  </button>
+                </motion.div>
+
+                {/* Pricing Info */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 1.0 }}
+                >
+                  <div className="bg-slate-900/30 backdrop-blur-sm rounded-2xl p-6 border border-slate-600/30">
+                    <h3 className="text-xl font-bold mb-6 text-center text-white flex items-center justify-center gap-3">
+                      <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                        <DollarSign className="text-white text-sm" />
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )
-          ) : (
-            <div className="text-center py-8 sm:py-12 text-slate-400">
-              Loading seats...
-            </div>
-          )}
-
-            {/* Legend */}
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold mb-4 text-center text-slate-300">Seating chart </h3>
-              <div className="flex justify-center gap-8 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-gradient-to-br from-red-500 to-red-600 rounded-lg border-2 border-red-400"></div>
-                  <span className="text-slate-300 text-sm font-medium">Selected</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg border-2 border-gray-300"></div>
-                  <span className="text-slate-300 text-sm font-medium">Normal</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-lg border-2 border-amber-300 flex items-center justify-center">
-                    <Crown className="w-3 h-3 text-gray-900" />
+                      Pricing Information
+                    </h3>
+                    <Divider className="border-slate-600/50 my-6" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {(() => {
+                        const normalSeat = roomData.seats.find((seat) => seat.type === "Normal")
+                        const vipSeat = roomData.seats.find((seat) => seat.type === "VIP")
+                        return (
+                          <>
+                            {normalSeat && (
+                              <motion.div 
+                                className="flex items-center justify-between p-4 bg-slate-800/40 rounded-xl border border-slate-600/20 transition-all duration-300 hover:scale-105"
+                                whileHover={{ scale: 1.02 }}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                                    <Users className="w-5 h-5 text-white" />
+                                  </div>
+                                  <span className="text-slate-300 font-semibold">Normal Seats</span>
+                                </div>
+                                <span className="text-green-400 font-bold text-lg">
+                                  {normalSeat.price.toLocaleString()} VND
+                                </span>
+                              </motion.div>
+                            )}
+                            {vipSeat && (
+                              <motion.div 
+                                className="flex items-center justify-between p-4 bg-slate-800/40 rounded-xl border border-slate-600/20 transition-all duration-300 hover:scale-105"
+                                whileHover={{ scale: 1.02 }}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 bg-gradient-to-r from-amber-500 to-yellow-600 rounded-lg flex items-center justify-center">
+                                    <Crown className="w-5 h-5 text-white" />
+                                  </div>
+                                  <span className="text-slate-300 font-semibold">VIP Seats</span>
+                                </div>
+                                <span className="text-amber-400 font-bold text-lg">
+                                  {vipSeat.price.toLocaleString()} VND
+                                </span>
+                              </motion.div>
+                            )}
+                          </>
+                        )
+                      })()}
+                    </div>
                   </div>
-                  <span className="text-slate-300 text-sm font-medium">VIP</span>
-                </div>
+                </motion.div>
               </div>
-            </div>
-
-            <div className="flex justify-center mt-6 mb-8">
-              <button
-                disabled={selectedRows.length === 0}
-                onClick={handleConvertToVIP}
-                className="px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-lg shadow-lg mx-2"
-              >
-                Convert to VIP
-              </button>
-
-              <button
-                disabled={selectedRows.length === 0}
-                onClick={handleConvertToNormal}
-                className="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-black font-bold rounded-lg shadow-lg mx-2"
-              >
-                Convert to Normal
-              </button>
-            </div>
-
-
-
-
-            {/* Pricing Info */}
-            {roomData && (
-              <div className="mb-8">
-                <div className="bg-slate-700/50 rounded-xl p-6 border border-slate-600">
-                  <h3 className="text-lg font-semibold mb-4 text-center text-slate-300">Pricing Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {(() => {
-                      const normalSeat = roomData.seats.find((seat) => seat.type === "Normal")
-                      const vipSeat = roomData.seats.find((seat) => seat.type === "VIP")
-                      return (
-                        <>
-                          {normalSeat && (
-                            <div className="flex items-center justify-between p-3 bg-slate-600/50 rounded-lg">
-                              <span className="text-slate-300 font-medium">Normal Seats</span>
-                              <span className="text-green-400 font-bold text-lg">
-                                {normalSeat.price.toLocaleString()} VND
-                              </span>
-                            </div>
-                          )}
-                          {vipSeat && (
-                            <div className="flex items-center justify-between p-3 bg-slate-600/50 rounded-lg">
-                              <div className="flex items-center gap-2">
-                                <Crown className="w-4 h-4 text-amber-400" />
-                                <span className="text-slate-300 font-medium">VIP Seats</span>
-                              </div>
-                              <span className="text-amber-400 font-bold text-lg">
-                                {vipSeat.price.toLocaleString()} VND
-                              </span>
-                            </div>
-                          )}
-                        </>
-                      )
-                    })()}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            {/* <div className="flex justify-center gap-4">
-              <button
-                onClick={handleSave}
-                disabled={selectedRows.length === 0}
-                className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg"
-              >
-                <Save className="w-4 h-4" />
-                Save
-              </button>
-            </div> */}
-          </div>
-        </div>
+            </Card>
+          </motion.div>
+        </motion.div>
       </div>
     </SidebarLayout>
   )

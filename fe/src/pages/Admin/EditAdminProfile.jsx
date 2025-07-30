@@ -150,7 +150,8 @@ const EditAdminProfile = () => {
     return (
       <SidebarLayout>
         <div className="flex justify-center items-center min-h-[70vh] bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-          <Spin size="large" />
+          {/* Added data-testid for easier testing */}
+          <Spin size="large" data-testid="loading-spinner" />
         </div>
       </SidebarLayout>
     );

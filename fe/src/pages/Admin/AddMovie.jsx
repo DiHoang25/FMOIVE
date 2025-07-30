@@ -233,7 +233,7 @@ const AddMovie = () => {
                                                             value={formData.fromDate}
                                                             onChange={(date) => setFormData({ ...formData, fromDate: date })}
                                                             disabledDate={(current) => current && current < dayjs().startOf('day')}
-                                                            className="bg-slate-900/50 text-white px-4 py-3 rounded-xl w-full border border-slate-600/50 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all duration-200"
+                                                            className=" text-black px-4 py-3 rounded-xl w-full border border-slate-600/50 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all duration-200"
                                                         />
                                                     </div>
                                                     <div>
@@ -245,7 +245,7 @@ const AddMovie = () => {
                                                             value={formData.toDate}
                                                             onChange={(date) => setFormData({ ...formData, toDate: date })}
                                                             disabledDate={(current) => current && current < dayjs().startOf('day')}
-                                                            className="bg-slate-900/50 text-white px-4 py-3 rounded-xl w-full border border-slate-600/50 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all duration-200"
+                                                            className="text-black px-4 py-3 rounded-xl w-full border border-slate-600/50 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all duration-200"
                                                         />
                                                     </div>
                                                 </div>
@@ -411,6 +411,7 @@ const AddMovie = () => {
                                                         accept="image/*"
                                                         className="hidden"
                                                         id="poster-upload"
+                                                        data-testid="movie-poster-input"
                                                         onChange={(e) => {
                                                             if (e.target.files && e.target.files[0]) {
                                                                 const file = e.target.files[0];
@@ -447,6 +448,7 @@ const AddMovie = () => {
                                                         accept="image/*"
                                                         className="hidden"
                                                         id="banner-upload"
+                                                        data-testid="banner-image-input"
                                                         onChange={(e) => {
                                                             if (e.target.files && e.target.files[0]) {
                                                                 const file = e.target.files[0];
