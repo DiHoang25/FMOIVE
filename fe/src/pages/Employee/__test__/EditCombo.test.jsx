@@ -5,7 +5,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Select, InputNumber, message, Form } from 'antd';
 import EditCombo from '../EditCombo';
 
-// Mock dayjs
 jest.mock('dayjs', () => {
   const originalDayjs = jest.requireActual('dayjs');
   const mockDayjs = (date) => {
@@ -16,14 +15,12 @@ jest.mock('dayjs', () => {
   return mockDayjs;
 });
 
-// Mock router
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: jest.fn(),
   useNavigate: jest.fn(),
 }));
 
-// Mock Form
 const mockForm = {
   getFieldsValue: jest.fn().mockReturnValue({}),
   setFieldsValue: jest.fn(),

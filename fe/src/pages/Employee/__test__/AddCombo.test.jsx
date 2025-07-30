@@ -4,10 +4,10 @@ import AddCombo from '../AddCombo';
 import { MemoryRouter } from 'react-router-dom';
 import { message } from 'antd';
 
-// Mock layout
+
 jest.mock('../../../components/Sidebar-Employee', () => ({ children }) => <div>{children}</div>);
 
-// Mock DatePicker
+
 jest.mock('../../../components/DatePicker', () => (props) => (
   <input
     type="date"
@@ -16,7 +16,7 @@ jest.mock('../../../components/DatePicker', () => (props) => (
   />
 ));
 
-// Mock Ant Design message
+
 jest.mock('antd', () => {
   const original = jest.requireActual('antd');
   return {
@@ -25,7 +25,7 @@ jest.mock('antd', () => {
       ...original.message,
       error: jest.fn(),
       success: jest.fn(),
-      loading: jest.fn(() => jest.fn()), // loading returns a hide function
+      loading: jest.fn(() => jest.fn()), 
     },
   };
 });
@@ -57,7 +57,7 @@ describe('AddCombo Component', () => {
   it('clicking Cancel does not crash', () => {
     const cancelButton = screen.getByText(/Cancel/i);
     fireEvent.click(cancelButton);
-    // Không kiểm tra điều hướng nếu chưa mock navigate
+    
   });
 
   it('submitting without image shows error', () => {

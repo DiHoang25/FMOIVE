@@ -4,14 +4,12 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import PaymentPage from '../CounterPayment';
 import '@testing-library/jest-dom';
 
-// Mock react-router-dom hooks
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: jest.fn(),
   useLocation: jest.fn(),
 }));
 
-// Mock SidebarLayout component
 jest.mock('../../../components/Sidebar-Employee', () => {
   return function MockSidebar({ children }) {
     return <div data-testid="sidebar">{children}</div>;

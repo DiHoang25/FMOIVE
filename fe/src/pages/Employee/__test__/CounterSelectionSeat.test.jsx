@@ -5,12 +5,10 @@ import { Provider } from "react-redux";
 import configureStore from "redux-mock-store";
 import CounterSelectionSeat from "../CounterSelectionSeat";
 
-// Mock SidebarLayout
 jest.mock("../../../components/Sidebar-Employee", () => ({ children }) => (
   <div data-testid="mock-sidebar">{children}</div>
 ));
 
-// Mock AuthContext
 jest.mock("../../../contexts/AuthContext", () => ({
   useAuth: () => ({
     user: { name: "Test Staff", role: "employee" },

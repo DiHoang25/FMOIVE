@@ -3,20 +3,16 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom';
 import EditEmProfile from '../EditEmProfile';
 
-// Mock fetch API
 global.fetch = jest.fn();
 
-// Mock react-router-dom
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
 }));
 
-// Mock the employee sidebar
 jest.mock('../../../components/Sidebar-Employee', () => ({ children }) => <div data-testid="sidebar-layout">{children}</div>);
 
-// Mock react-icons
 jest.mock('react-icons/fa', () => ({
   FaEdit: () => <span data-testid="edit-icon">Edit</span>,
 }));

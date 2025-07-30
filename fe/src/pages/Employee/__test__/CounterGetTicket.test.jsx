@@ -55,9 +55,9 @@ describe('CounterGetTicket Component', () => {
 
     expect(screen.getByText('💳 Payment Summary')).toBeInTheDocument();
     expect(screen.getByText('Standard Ticket × 3')).toBeInTheDocument();
-    expect(screen.getByText('$45.00')).toBeInTheDocument(); // ticket price
-    expect(screen.getByText('$2.50')).toBeInTheDocument();  // service fee
-    expect(screen.getByText('$23.00')).toBeInTheDocument(); // combos total
-    expect(screen.getByText('$70.50')).toBeInTheDocument(); // total
+    expect(screen.getByText('$45.00')).toBeInTheDocument(); 
+    expect(screen.getByText('$2.50')).toBeInTheDocument();  
+    expect(screen.getByText('$23.00')).toBeInTheDocument(); 
+    expect(screen.getByText('$70.50')).toBeInTheDocument(); 
   });
 });

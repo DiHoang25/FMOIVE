@@ -23,7 +23,7 @@ const mockPromotion = {
   }
 };
 
-// 👉 Mock PromotionsPage thay vì gọi API thì dùng state thủ công
+
 jest.mock('../PromotionsPage', () => {
   const React = require('react');
   const { useState } = React;
@@ -66,7 +66,7 @@ describe('PromotionsPage UI', () => {
 
     fireEvent.click(screen.getByText('Summer Special'));
 
-    // ✅ Sửa lỗi test với text không khớp
+    
     expect(
       screen.getByText((content) =>
         content.includes('Valid for all customers.')

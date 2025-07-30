@@ -1,9 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import PaymentSuccess from '../PaymentSuccessfull'; // đổi path nếu khác
+import PaymentSuccess from '../PaymentSuccessfull'; 
 import { MemoryRouter, useNavigate, useLocation } from 'react-router-dom';
 
-// Mock react-router-dom
 const mockNavigate = jest.fn();
 
 jest.mock('react-router-dom', () => ({
@@ -14,7 +13,6 @@ jest.mock('react-router-dom', () => ({
 
 describe('PaymentSuccess', () => {
   beforeEach(() => {
-    // Mock dữ liệu booking
     useLocation.mockReturnValue({
       state: {
         movieDetails: {

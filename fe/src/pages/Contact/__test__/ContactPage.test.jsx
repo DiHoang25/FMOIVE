@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ContactPage from '../ContactPage';
 import { sendContactEmail } from '../../../utils/emailService';
 
-// Mock emailService
+
 jest.mock('../../../utils/emailService', () => ({
   initEmailJS: jest.fn(),
   sendContactEmail: jest.fn(),
