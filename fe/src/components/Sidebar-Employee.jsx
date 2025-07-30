@@ -58,6 +58,12 @@ const SidebarLayout = ({ children }) => {
       icon: <RiDrinksFill />,
       label: <Link to="/employee/view-product">View Product</Link>,
     },
+    {
+      key: "/employee/chat-with-user",
+      icon: <RxAvatar />,
+      label: <Link to="/employee/chat-with-user">Chat with Customer</Link>,
+    },
+
   ];
 
   return (

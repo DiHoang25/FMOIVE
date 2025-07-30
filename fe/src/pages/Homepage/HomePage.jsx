@@ -6,6 +6,8 @@ import buttonplay from '../../assets/play-button.png';
 import nextbanner from '../../assets/nextbanner.png';
 import prevbanner from '../../assets/prevbanner.png';
 import axios from 'axios';
+import ChatWithStaff from '../../components/ChatWithStaff';
+
 
 const HomePage = () => {
   const [trailerUrl, setTrailerUrl] = useState('');
@@ -20,6 +22,7 @@ const HomePage = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
   const [fade, setFade] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(7);
+  
 
   useEffect(() => {
     const handleResize = () => {
@@ -207,9 +210,9 @@ const HomePage = () => {
                 <span className='text-xl'>{movie.genres?.join(', ') || 'N/A'}</span>
                 <span className="bg-red-600 text-white px-1 rounded text-m">{movie.version}</span>
               </div>
-              <div className="flex items-center gap-1 text-yellow-400 mb-2">
+              {/* <div className="flex items-center gap-1 text-yellow-400 mb-2">
                 <span className="text-white text-m">IMDB: {movie.rating}/10</span>
-              </div>
+              </div> */}
               <p className="text-xl text-gray-300 mb-2">Now showing • Ends: {formatDate(movie.end_date)}</p>
               <p className="text-2xl mb-2">Actor: {movie.actors || 'N/A'}</p>
               <p className="text-2xl mb-2">Description: {movie.description || 'N/A'}</p>
@@ -274,7 +277,9 @@ const HomePage = () => {
           )}
         </div>
       </Modal>
+      <ChatWithStaff />
     </div>
+    
   );
 };
 
