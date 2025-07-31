@@ -235,7 +235,8 @@ router.get('/payment-link/:paymentLinkId', async (req, res) => {
  */
 router.post('/payment-link/:paymentLinkId/cancel', async (req, res) => {
     const { paymentLinkId } = req.params;
-    const { cancellationReason } = req.body; // Lý do hủy (tùy chọn)
+    // Bỏ dòng lấy cancellationReason từ req.body
+    // const { cancellationReason } = req.body; // Lý do hủy (tùy chọn)
 
     if (!paymentLinkId) {
         return res.status(400).json({ message: 'Payment Link ID là bắt buộc.' });
@@ -248,21 +249,30 @@ router.post('/payment-link/:paymentLinkId/cancel', async (req, res) => {
             'Content-Type': 'application/json'
         };
 
-        const body = cancellationReason ? { cancellationReason } : {};
+        // Loại bỏ body nếu không có lý do hủy, hoặc gửi body rỗng {} nếu API yêu cầu body POST
+        const body = {}; // Gửi body rỗng
         const url = `${PAYOS_CONFIG.API_URL}/v2/payment-requests/${paymentLinkId}/cancel`;
         console.log(`[PayOS] Cancelling payment link ID: ${paymentLinkId}`);
 
-        const payosResponse = await axios.post(url, body, { headers });
+        const payosResponse = await axios.post(url, body, { headers }); // Đảm bảo gửi body rỗng
 
         if (payosResponse.data && payosResponse.data.code === '00') {
             // Cập nhật trạng thái booking trong DB
-            const booking = await Booking.findOne({ payosPaymentLinkId: paymentLinkId });
+            // Nên tìm booking bằng payosOrderCode hoặc trường bạn đã lưu từ PayOS
+            // Nếu bạn lưu paymentLinkId trong booking, thì code này hợp lệ
+            const booking = await Booking.findOne({ payosOrderCode: orderCode });
             if (booking && booking.status === 'PENDING_PAYMENT') {
                 booking.status = 'CANCELLED';
                 await booking.save();
+                console.log(`[PayOS Cancel] Booking ${booking._id} updated to CANCELLED.`);
+            } else if (booking) {
+                console.log(`[PayOS Cancel] Booking ${booking._id} đã có trạng thái khác, không cập nhật.`);
+            } else {
+                console.warn(`[PayOS Cancel] Booking với paymentLinkId ${paymentLinkId} không tìm thấy.`);
             }
             res.status(200).json(payosResponse.data.data);
         } else {
+            console.error('Hủy link thanh toán thất bại từ PayOS API:', payosResponse.data);
             res.status(400).json({ message: 'Hủy link thanh toán thất bại.', error: payosResponse.data });
         }
     } catch (error) {
