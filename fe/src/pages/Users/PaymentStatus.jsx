@@ -132,7 +132,7 @@ const PaymentStatusPage = () => {
 
                     // API này lấy trạng thái cuối cùng của booking từ server.
                     // Dữ liệu trên server được cập nhật bởi webhook an toàn của PayOS.
-                    const requestUrl = `${BACKEND_BASE_URL}/api/payos/status/${payosBookingId}`;
+                    const requestUrl = `${BACKEND_BASE_URL}/api/payos-payment/status/${payosBookingId}`;
                     console.log('[PayOS Status] Frontend calling Backend URL:', requestUrl);
 
                     const response = await axios.get(requestUrl);
