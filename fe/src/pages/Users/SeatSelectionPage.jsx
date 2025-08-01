@@ -13,6 +13,8 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { useMediaQuery } from "react-responsive";
+import { message } from "antd";
+
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -133,60 +135,90 @@ function SeatSelectionPage() {
   console.log("🕒 Current movieTime:", standardizedMovieTime);
   console.log("🧪 movieDetails.time =", movieDetails?.time);
 
+  const hasLonelySeat = (rowSeats, newSelectedLabels) => {
+    const seatStatus = rowSeats.map((seat) => {
+      if (occupiedLabels.includes(seat.label)) return "occupied";
+      if (newSelectedLabels.includes(seat.label)) return "selected";
+      return "empty";
+    });
+
+    for (let i = 1; i < seatStatus.length - 1; i++) {
+      if (
+        seatStatus[i] === "empty" &&
+        (seatStatus[i - 1] === "selected" || seatStatus[i - 1] === "occupied") &&
+        (seatStatus[i + 1] === "selected" || seatStatus[i + 1] === "occupied")
+      ) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+
 
 
 
   const handleToggleSeat = (seat) => {
-  const isOccupied = occupiedLabels.includes(seat.label);
-  if (isOccupied) return; // 🚫 Không cho chọn ghế đã bị chiếm
+    const isOccupied = occupiedLabels.includes(seat.label);
+    if (isOccupied) return; // 🚫 Không cho chọn ghế đã bị chiếm
 
-  setSelectedSeatsState((prev) => {
-    const updated = prev.includes(seat.label)
-      ? prev.filter((s) => s !== seat.label)
-      : [...prev, seat.label];
+    setSelectedSeatsState((prev) => {
+      const updated = prev.includes(seat.label)
+        ? prev.filter((s) => s !== seat.label)
+        : [...prev, seat.label];
 
-    const selectedSeatObjects =
-      roomData?.seats?.filter((s) => updated.includes(s.label)) || [];
+      const rowSeats = roomData?.seats?.filter((s) => s.row === seat.row).sort((a, b) => a.column - b.column);
 
-    const totalPrice = selectedSeatObjects.reduce(
-      (sum, s) => sum + s.price,
-      0
-    );
+      if (hasLonelySeat(rowSeats, updated)) {
+        message.destroy(); // Xóa các thông báo cũ
+        message.warning("You cannot leave a single empty seat between selected or occupied seats.");
+        return prev;
+      }
 
-    dispatch(setSelectedSeats({ seats: updated, totalPrice }));
-    return updated;
-  });
-};
+
+
+      const selectedSeatObjects =
+        roomData?.seats?.filter((s) => updated.includes(s.label)) || [];
+
+      const totalPrice = selectedSeatObjects.reduce(
+        (sum, s) => sum + s.price,
+        0
+      );
+
+      dispatch(setSelectedSeats({ seats: updated, totalPrice }));
+      return updated;
+    });
+  };
 
 
   const getSeatClass = (seat) => {
-  const isSelected = selectedSeatsState.includes(seat.label);
-  const isOccupied = occupiedLabels.includes(seat.label);
-  
-  // Base classes without any animations for mobile
-  const baseMobile = `
+    const isSelected = selectedSeatsState.includes(seat.label);
+    const isOccupied = occupiedLabels.includes(seat.label);
+
+    // Base classes without any animations for mobile
+    const baseMobile = `
     w-9 h-9 text-xs 
     sm:w-8 sm:h-8 sm:text-[10px] 
     md:w-10 md:h-10 md:text-xs 
     rounded-lg flex items-center justify-center 
     font-bold border-2
   `;
-  
-  // Desktop version with animations
-  const baseDesktop = `
+
+    // Desktop version with animations
+    const baseDesktop = `
     ${baseMobile}
     transition-all duration-200 
     transform hover:scale-110 hover:shadow-lg
   `;
 
-  const base = isMobile ? baseMobile : baseDesktop;
+    const base = isMobile ? baseMobile : baseDesktop;
 
-  if (isOccupied) return `${base} bg-gray-600 text-white border-gray-500 cursor-not-allowed`;
-  if (isSelected) return `${base} bg-gradient-to-br from-red-500 to-red-600 text-white border-red-400 ${isMobile ? '' : 'shadow-lg scale-105'}`;
-  if (seat.type === "VIP") return `${base} bg-gradient-to-br from-amber-400 to-yellow-500 text-gray-900 border-amber-300`;
+    if (isOccupied) return `${base} bg-gray-600 text-white border-gray-500 cursor-not-allowed`;
+    if (isSelected) return `${base} bg-gradient-to-br from-red-500 to-red-600 text-white border-red-400 ${isMobile ? '' : 'shadow-lg scale-105'}`;
+    if (seat.type === "VIP") return `${base} bg-gradient-to-br from-amber-400 to-yellow-500 text-gray-900 border-amber-300`;
 
-  return `${base} bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 border-gray-300`;
-};
+    return `${base} bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 border-gray-300`;
+  };
 
 
   const getTotalPrice = () => {
@@ -264,7 +296,7 @@ function SeatSelectionPage() {
             <div className="h-2 bg-gradient-to-r from-transparent via-white to-transparent rounded-full mt-2 mb-4 opacity-80" />
           </div>
 
-         {roomData ? (
+          {roomData ? (
             isMobile ? (
               <div className="relative w-full overflow-hidden rounded-lg border border-gray-600">
                 <TransformWrapper
@@ -277,20 +309,20 @@ function SeatSelectionPage() {
                   {({ zoomIn, zoomOut, resetTransform }) => (
                     <>
                       <div className="absolute top-2 right-2 z-10 flex gap-2">
-                        <button 
-                          onClick={() => zoomIn()} 
+                        <button
+                          onClick={() => zoomIn()}
                           className="bg-gray-700/80 text-white p-1 rounded"
                         >
                           +
                         </button>
-                        <button 
-                          onClick={() => zoomOut()} 
+                        <button
+                          onClick={() => zoomOut()}
                           className="bg-gray-700/80 text-white p-1 rounded"
                         >
                           -
                         </button>
-                        <button 
-                          onClick={() => resetTransform()} 
+                        <button
+                          onClick={() => resetTransform()}
                           className="bg-gray-700/80 text-white p-1 rounded"
                         >
                           Reset

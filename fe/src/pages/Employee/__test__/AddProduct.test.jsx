@@ -3,18 +3,15 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import AddProduct from '../AddProduct';
 
-// Mock react-router-dom
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => jest.fn()
 }));
 
-// Mock axios
 jest.mock('axios', () => ({
   post: jest.fn(() => Promise.resolve({ data: { message: 'Success' } }))
 }));
 
-// Mock antd components
 jest.mock('antd', () => ({
   message: {
     success: jest.fn(),
@@ -40,19 +37,16 @@ jest.mock('antd', () => ({
   )
 }));
 
-// Mock SidebarLayout component
 jest.mock('../../../components/Sidebar-Employee', () => {
   return function DummySidebar({ children }) {
     return <div data-testid="sidebar-mock">{children}</div>
   }
 });
 
-// Mock URL.createObjectURL
 global.URL.createObjectURL = jest.fn(() => 'mocked-url');
 
 describe('AddProduct', () => {
   beforeEach(() => {
-    // Mock localStorage
     Object.defineProperty(window, 'localStorage', {
       value: {
         getItem: jest.fn(() => 'fake-token'),
@@ -61,9 +55,7 @@ describe('AddProduct', () => {
     });
   });
 
-  // Simple test to ensure the component doesn't crash
   test('renders without crashing', () => {
-    // Suppress console errors during test
     const originalConsoleError = console.error;
     console.error = jest.fn();
     
@@ -73,10 +65,8 @@ describe('AddProduct', () => {
       </MemoryRouter>
     );
     
-    // Restore console.error
     console.error = originalConsoleError;
     
-    // Check for basic rendering
     expect(screen.getByTestId('sidebar-mock')).toBeInTheDocument();
     expect(screen.getByText('Add New Product')).toBeInTheDocument();
   });

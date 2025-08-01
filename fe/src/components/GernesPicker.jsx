@@ -14,17 +14,19 @@ const genreOptions = [
 
 const GenresDropDown = ({ value = [], onChange }) => {
   return (
-    <Space wrap className="bg-slate-900/50 text-white px-4 py-2 rounded-xl">
-      <Select
-        mode="multiple"
-        allowClear
-        placeholder="Select Genres"
-        value={value}
-        style={{ width: 300 }}
-        onChange={onChange}
-        options={genreOptions}
-      />
-    </Space>
+    <div className="w-full h-full text-white px-4 py-2 rounded-xl">
+      <Space wrap>
+        <Select
+          mode="multiple"
+          allowClear
+          placeholder="Select Genres"
+          value={value}
+          style={{ width: 300 }}
+          onChange={onChange}
+          options={genreOptions}
+        />
+      </Space>
+    </div>
   );
 };
 

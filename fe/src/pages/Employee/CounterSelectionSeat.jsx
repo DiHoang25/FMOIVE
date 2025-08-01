@@ -11,6 +11,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { ExclamationCircleOutlined } from '@ant-design/icons';
+import { message } from "antd";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -97,9 +98,9 @@ const SeatSelection = () => {
       } catch (err) {
         console.error("❌ Error fetching data:", err.message);
         notification.error({
-            message: 'Error',
-            description: `Failed to load seat data: ${err.message}. Please try again.`,
-            placement: 'topRight'
+          message: 'Error',
+          description: `Failed to load seat data: ${err.message}. Please try again.`,
+          placement: 'topRight'
         });
       }
     };
@@ -107,11 +108,31 @@ const SeatSelection = () => {
     if (roomId) {
       fetchAllData();
     } else {
-        console.warn("Room ID is missing. Cannot fetch room data.");
-        // Điều hướng trở lại trang chọn suất chiếu nếu không có roomId
-        navigate('/employee/counter-showtimes');
+      console.warn("Room ID is missing. Cannot fetch room data.");
+      // Điều hướng trở lại trang chọn suất chiếu nếu không có roomId
+      navigate('/employee/counter-showtimes');
     }
   }, [roomId, navigate]); // Thêm navigate vào dependency array
+
+  const hasLonelySeat = (rowSeats, newSelectedLabels) => {
+    const seatStatus = rowSeats.map((seat) => {
+      if (occupiedLabels.includes(seat.label)) return "occupied";
+      if (newSelectedLabels.includes(seat.label)) return "selected";
+      return "empty";
+    });
+
+    for (let i = 1; i < seatStatus.length - 1; i++) {
+      if (
+        seatStatus[i] === "empty" &&
+        (seatStatus[i - 1] === "selected" || seatStatus[i - 1] === "occupied") &&
+        (seatStatus[i + 1] === "selected" || seatStatus[i + 1] === "occupied")
+      ) {
+        return true;
+      }
+    }
+    return false;
+  };
+
 
   // Tạo standardized movie time (improved version)
   const standardizedMovieTime = (() => {
@@ -241,6 +262,14 @@ const SeatSelection = () => {
         ? prev.filter((s) => s !== seat.label)
         : [...prev, seat.label];
 
+      const rowSeats = roomData?.seats?.filter((s) => s.row === seat.row).sort((a, b) => a.column - b.column);
+
+      if (hasLonelySeat(rowSeats, updated)) {
+        message.destroy(); // Xóa các thông báo cũ
+        message.warning("You cannot leave a single empty seat between selected or occupied seats.");
+        return prev;
+      }
+
       const selectedSeatObjects =
         roomData?.seats?.filter((s) => updated.includes(s.label)) || [];
       const totalPrice = selectedSeatObjects.reduce(
@@ -287,15 +316,15 @@ const SeatSelection = () => {
 
     // Kiểm tra xem thông tin user có đủ không trước khi điều hướng
     if (!user || !user.role) {
-        notification.error({
-            message: 'User Information Missing',
-            description: 'Cannot proceed. User information is not available. Please log in again.',
-            placement: 'topRight'
-        });
-        console.error("🔴 User information missing when attempting to continue from SeatSelection:", user);
-        // Có thể điều hướng về trang đăng nhập hoặc trang trước đó
-        // navigate('/employee/login');
-        return;
+      notification.error({
+        message: 'User Information Missing',
+        description: 'Cannot proceed. User information is not available. Please log in again.',
+        placement: 'topRight'
+      });
+      console.error("🔴 User information missing when attempting to continue from SeatSelection:", user);
+      // Có thể điều hướng về trang đăng nhập hoặc trang trước đó
+      // navigate('/employee/login');
+      return;
     }
 
     navigate("/employee/counter-combo", {

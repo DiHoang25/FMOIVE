@@ -42,11 +42,11 @@ const UserDashboardLayout = ({ children }) => {
       icon: <UserOutlined />,
       label: <Link to="/viewaccount">Account Information</Link>,
     },
-    {
-      key: '/viewscorehistory',
-      icon: <CalendarOutlined />,
-      label: <Link to="/viewscorehistory">History of Score</Link>,
-    },
+    // {
+    //   key: '/viewscorehistory',
+    //   icon: <CalendarOutlined />,
+    //   label: <Link to="/viewscorehistory">History of Score</Link>,
+    // },
     {
       key: '/viewbookedticket',
       icon: <CheckSquareOutlined />,
