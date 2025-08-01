@@ -113,6 +113,33 @@ const MovieList = () => {
     });
   };
 
+  const confirmToggleHotStatus = (movie) => {
+    const isCurrentlyHot = movie.is_hot;
+    const action = isCurrentlyHot ? "remove from hot" : "mark as hot";
+    
+    Modal.confirm({
+      title: "Confirm Status Change",
+      content: `Are you sure you want to ${action} "${movie.name}"?`,
+      okText: "Confirm",
+      cancelText: "Cancel",
+      okType: "primary",
+      onOk: async () => {
+        try {
+          const response = await axios.patch(`http://localhost:5000/api/movies/${movie._id}/toggle-hot`);
+          const updatedMovies = movies.map(m => 
+            m._id === movie._id ? { ...m, is_hot: response.data.is_hot } : m
+          );
+          setMovies(updatedMovies);
+          message.success(response.data.message);
+        } catch (error) {
+          console.error("Error toggling hot status:", error);
+          message.error("Failed to update hot status. Please try again.");
+        }
+      },
+      className: "custom-ant-modal",
+    });
+  };
+
   const showMovieDetails = (movie) => {
     setSelectedMovie(movie);
     setModalVisible(true);
@@ -315,6 +342,9 @@ const MovieList = () => {
                               Status
                             </th>
                             <th className="px-6 py-3 text-center text-xs font-bold text-gray-300 uppercase tracking-wider">
+                              Hot
+                            </th>
+                            <th className="px-6 py-3 text-center text-xs font-bold text-gray-300 uppercase tracking-wider">
                               Actions
                             </th>
                           </tr>
@@ -323,7 +353,7 @@ const MovieList = () => {
                           {paginatedMovies.length === 0 ? (
                             <tr>
                               <td
-                                colSpan="6"
+                                colSpan="7"
                                 className="px-6 py-8 text-sm text-gray-400 text-center"
                               >
                                 No movies found.
@@ -376,6 +406,18 @@ const MovieList = () => {
                                         Ended
                                       </Tag>
                                     )}
+                                  </td>
+                                  <td className="px-6 py-4 text-center">
+                                    <button
+                                      onClick={() => confirmToggleHotStatus(movie)}
+                                      className={`px-3 py-1 rounded-full text-sm font-semibold transition-all duration-200 ${
+                                        movie.is_hot
+                                          ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg hover:shadow-xl'
+                                          : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
+                                      }`}
+                                    >
+                                      {movie.is_hot ? 'HOT' : 'Normal'}
+                                    </button>
                                   </td>
                                   <td className="px-6 py-4 text-center">
                                     <div className="flex justify-center gap-4">

@@ -47,11 +47,20 @@ const HomePage = () => {
         const homeData = homeRes.data;
         const moviesData = moviesRes.data;
 
-        const activeMovies = moviesData.filter(movie => movie.status !== 'ended' && movie.is_hot);
+        const activeMovies = moviesData.filter(movie => checkHotMovie(movie));
 
         setBanners(homeData.banners || []);
-        setNowShowingMovies(homeData.nowShowing || []);
-        setComingSoonMovies(homeData.comingSoon || []);
+        
+        // Filter movies based on real-time status
+        const nowShowing = moviesData.filter(movie => 
+          checkRealTimeStatus(movie.start_date, movie.end_date) === 'now_showing'
+        );
+        const comingSoon = moviesData.filter(movie => 
+          checkRealTimeStatus(movie.start_date, movie.end_date) === 'coming_soon'
+        );
+        
+        setNowShowingMovies(nowShowing);
+        setComingSoonMovies(comingSoon);
         setHotMovies(activeMovies);
         setNews(homeData.news || []);
       } catch (err) {
@@ -157,6 +166,23 @@ const HomePage = () => {
   const year = currentDate.getFullYear();
 
   const formatDate = dateStr => new Date(dateStr).toLocaleDateString('vi-VN');
+
+  const checkRealTimeStatus = (startDate, endDate) => {
+    const now = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (now < start) return 'coming_soon';
+    if (now > end) return 'ended';
+    return 'now_showing';
+  };
+
+  const checkHotMovie = (movie) => {
+    if (!movie.is_hot) return false;
+    
+    const status = checkRealTimeStatus(movie.start_date, movie.end_date);
+    return status !== 'ended';
+  };
 
   return (
     <div className="bg-black text-white px-4 sm:px-6 pt-[30px] sm:pt-[30px] pb-6 sm:pb-10 space-y-10">

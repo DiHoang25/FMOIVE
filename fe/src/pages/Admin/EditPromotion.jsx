@@ -297,7 +297,7 @@ const EditPromotion = () => {
                   </div>
                   
                   {/* Buttons */}
-                  <motion.div className="mt-8 flex flex-col sm:flex-row justify-center sm:justify-end gap-3" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 1.1 }}>
+                  <motion.div className="mt-8 flex flex-col sm:flex-row justify-center gap-3 margin-top: 20px;" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 1.1 }}>
                       <button type="button" onClick={() => navigate('/admin/promotions')} className="w-full sm:w-auto px-6 py-3 border border-red-500 text-red-400 rounded-xl hover:bg-red-900/20 transition duration-200">Cancel</button>
                       <button type="submit" disabled={loading} className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border-none text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50" style={{ borderRadius: '12px' }}>
                           {loading ? 'Saving...' : 'Update Promotion'}

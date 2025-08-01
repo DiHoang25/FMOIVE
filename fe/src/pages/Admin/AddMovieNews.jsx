@@ -179,7 +179,7 @@ const AddMovieNews = () => {
 
                                     {/* Buttons */}
                                     <motion.div
-                                        className="mt-8 flex flex-col sm:flex-row justify-center sm:justify-end gap-3"
+                                        className="mt-8 flex flex-col sm:flex-row justify-center gap-3"
                                         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.7 }}
                                     >
                                         <button type="button" onClick={() => navigate('/admin/movienews-list')} className="w-full sm:w-auto px-6 py-3 border border-red-500 text-red-400 rounded-xl hover:bg-red-900/20 transition duration-200">

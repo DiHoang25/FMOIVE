@@ -103,8 +103,8 @@ router.post('/create-payment', async (req, res) => {
 
         // URL trả về và callback từ PayOS.
         // Giữ localhost như bạn đã chỉ ra, nhưng cần lưu ý về môi trường thực tế.
-        const returnUrl = `${PAYOS_CONFIG.FRONTEND_URL}/payment-status?bookingId=${booking._id}&payosOrderCode=${payosOrderCode}`;
-        const cancelUrl = `${PAYOS_CONFIG.FRONTEND_URL}/payment-status?bookingId=${booking._id}&payosOrderCode=${payosOrderCode}&status=cancelled`;
+        const returnUrl = `${PAYOS_CONFIG.FRONTEND_URL}/payment-status?bookingId=${booking.bookingId}&payosOrderCode=${payosOrderCode}`;
+const cancelUrl = `${PAYOS_CONFIG.FRONTEND_URL}/payment-status?bookingId=${booking.bookingId}&payosOrderCode=${payosOrderCode}&status=cancelled`;
         const callbackUrl = `${PAYOS_CONFIG.BACKEND_URL}/api/payos-payment/webhook`; // URL webhook của backend
 
         console.log(`[DEBUG] Return URL: ${returnUrl}`);
@@ -192,136 +192,251 @@ router.post('/create-payment', async (req, res) => {
     }
 });
 
-// [POST] /api/payos-payment/webhook - Xử lý webhook từ PayOS (QUAN TRỌNG NHẤT)
-router.post('/webhook', async (req, res) => {
-    const webhookData = req.body;
-    const receivedChecksum = req.headers['x-checksum'] ||
-        req.headers['x-signature'] ||
-        req.headers['signature'] ||
-        req.headers['checksum'];
-    console.log('[DEBUG] All headers:', req.headers);
+/**
+ * [GET] /api/payos/payment-link/:orderCode
+ * Lấy thông tin chi tiết của một link thanh toán đã tạo.
+ * PayOS API: GET /v2/payment-requests/{orderCode} (hoặc tương tự)
+ */
+router.get('/payment-link/:orderCode', async (req, res) => {
+    console.log('[Route] GET /api/payos/payment-link/:orderCode được gọi.');
+    const { orderCode } = req.params;
 
-    console.log('[PayOS Webhook] Received Data:', webhookData);
-    console.log('[PayOS Webhook] Received Checksum (Header):', receivedChecksum);
+    if (!orderCode) {
+        console.log('[Route] payment-link: Order Code là bắt buộc.');
+        return res.status(400).json({ message: 'Order Code là bắt buộc.' });
+    }
 
     try {
-        // --- 1. XÁC MINH CHỮ KÝ WEBHOOK ---
-        const dataToVerify = { ...webhookData };
-        if (dataToVerify.signature) { // PayOS có thể gửi signature trong body hoặc chỉ header
-            delete dataToVerify.signature;
+        const headers = {
+            'x-client-id': PAYOS_CONFIG.CLIENT_ID,
+            'x-api-key': PAYOS_CONFIG.API_KEY,
+            'Content-Type': 'application/json'
+        };
+
+        // Giả định PayOS có endpoint GET /v2/payment-requests/{orderCode}
+        const url = `${PAYOS_CONFIG.API_URL}/v2/payment-requests/${orderCode}`;
+        console.log(`[PayOS] Đang lấy thông tin link thanh toán cho Order Code: ${orderCode}`);
+
+        const payosResponse = await axios.get(url, { headers });
+        const responseData = payosResponse.data;
+
+        if (responseData && responseData.code === '00') {
+            console.log(`[PayOS] Đã lấy thông tin link thanh toán thành công cho Order Code: ${orderCode}.`);
+            res.status(200).json(responseData.data);
+        } else {
+            console.error('Lỗi khi lấy thông tin link thanh toán từ PayOS:', responseData);
+            res.status(404).json({ message: 'Không tìm thấy link thanh toán hoặc có lỗi xảy ra.', error: responseData });
         }
 
-        const calculatedChecksum = createSignature(dataToVerify, PAYOS_CONFIG.WEBHOOK_SECRET);
-        console.log('Secret khúi rùm :', PAYOS_CONFIG.WEBHOOK_SECRET);
-        console.log('Key:', PAYOS_CONFIG.CHECKSUM_KEY);
-
-        if (receivedChecksum !== calculatedChecksum) {
-            console.warn('[PayOS Webhook] Chữ ký webhook không hợp lệ.');
-            return res.status(200).json({ status: 'Failed', message: 'Invalid checksum.' });
-        }
-
-        // --- 2. XỬ LÝ DỮ LIỆU WEBHOOK ---
-        //const { code, desc, data: payosTransactionData } = webhookData;
-        console.log('[DEBUG] Full webhook data:', JSON.stringify(webhookData, null, 2));
-        const code = webhookData.code || webhookData.status;
-        const desc = webhookData.desc || webhookData.message;
-        const payosTransactionData = webhookData.data || webhookData;
-
-
-        const payosOrderCode = payosTransactionData.orderCode;
-        const transactionStatus = payosTransactionData.status; // 'PAID', 'CANCELLED', 'EXPIRED', 'PENDING'
-
-        
-        booking.payosOrderCode = payosOrderCode; // -> save db, đảm bảo nó primary key
-                await booking.save();
-                const booking = await Booking.findOne({ payosOrderCode: payosOrderCode });
-
-        if (!booking) {
-            console.warn(`[PayOS Webhook] Booking for PayOS orderCode ${payosOrderCode} (amount ${payosTransactionData.amount}) not found.`);
-            return res.status(200).json({ status: 'Failed', message: 'Booking not found.' });
-        }
-
-        // --- 3. CẬP NHẬT TRẠNG THÁI BOOKING VÀ TẠO/CẬP NHẬT INVOICE ---
-        if (code === '00' && transactionStatus === 'PAID') { // Thanh toán thành công
-                    if (booking.status !== 'PAID') { // Chỉ cập nhật nếu booking chưa được thanh toán
-                        booking.status = 'PAID';
-                        await booking.save();
-                        console.log(`[PayOS Webhook] Booking ${booking.bookingId || booking._id} updated to PAID.`);
-        
-                        // Tạo Invoice mới chỉ khi thanh toán thành công
-                        const newInvoice = new Invoice({
-                            invoiceId: `INV-${Date.now()}-${booking._id.toString().slice(-4)}`, // Mã hóa đơn duy nhất
-                            booking: booking._id,
-                            user: {
-                                _id: booking.user._id._id,
-                                name: booking.user.name,
-                                email: booking.user.email
-                            },
-                            amount: booking.grandTotal,
-                            status: 'PAID',
-                            paymentMethod: 'PAYOS',
-                            payosDetails: {
-                                orderCode: payosOrderCode, // Hoặc payosTransactionData.orderCode
-                                transactionId: payosTransactionData.transactionId || null,
-                                amount: payosTransactionData.amount,
-                                description: payosTransactionData.description,
-                                status: transactionStatus,
-                                paymentMethod: payosTransactionData.paymentMethod || 'UNKNOWN',
-                                paidAt: new Date(),
-                                checksum: receivedChecksum,
-                            }
-                        });
-                        await newInvoice.save();
-                        console.log(`[PayOS Webhook] Invoice ${newInvoice.invoiceId} created for Booking ${booking.bookingId || booking._id}.`);
-        
-                        // Thực hiện các logic sau thanh toán thành công (gửi email, SMS, WebSocket notification)
-                    } else {
-                        console.log(`[PayOS Webhook] Booking ${booking.bookingId || booking._id} đã là PAID, không cần cập nhật Invoice.`);
-                    }
-        
-                } else { // Thanh toán thất bại, hủy, hết hạn
-                    if (booking.status === 'PENDING_PAYMENT') { // Chỉ cập nhật nếu booking đang chờ thanh toán
-                        if (transactionStatus === 'CANCELLED') booking.status = 'CANCELLED';
-                        else if (transactionStatus === 'EXPIRED') booking.status = 'CANCELLED'; // Hoặc 'FAILED'
-                        else booking.status = 'FAILED';
-                        await booking.save();
-                        console.log(`[PayOS Webhook] Booking ${booking.bookingId || booking._id} updated to ${booking.status}.`);
-                        // KHÔNG TẠO INVOICE NẾU THANH TOÁN THẤT BẠI
-                    }
-                }
-        
-                res.status(200).json({ message: 'Webhook đã được xử lý thành công.' });
-        
     } catch (error) {
-        console.error('[PayOS Webhook] Lỗi khi xử lý PayOS webhook:', error);
-        res.status(200).json({ status: 'Failed', message: 'Lỗi nội bộ khi xử lý webhook.' });
+        console.error(`Lỗi khi xử lý lấy thông tin link thanh toán ${orderCode}:`, error.response ? error.response.data : error.message);
+        res.status(error.response?.status || 500).json({
+            message: 'Lỗi hệ thống khi lấy thông tin link thanh toán.',
+            error: error.response ? error.response.data : error.message
+        });
     }
 });
 
-// [GET] /api/payos/status/:bookingId - Lấy trạng thái Booking và Invoice liên quan
-// Frontend sẽ gọi API này để kiểm tra trạng thái sau khi chuyển hướng từ PayOS
-router.get('/status/:bookingId', async (req, res) => {
+/**
+ * [POST] /api/payos/payment-link/:orderCode/cancel
+ * Hủy một link thanh toán chưa được hoàn thành.
+ * PayOS API: POST /v2/payment-requests/{orderCode}/cancel (hoặc tương tự)
+ */
+router.post('/payment-link/:orderCode/cancel', async (req, res) => {
+    console.log('[Route] POST /api/payos/payment-link/:orderCode/cancel được gọi.');
+    const { orderCode } = req.params;
+
+    if (!orderCode) {
+        console.log('[Route] cancel-payment-link: Order Code là bắt buộc.');
+        return res.status(400).json({ message: 'Order Code là bắt buộc.' });
+    }
+
     try {
-        const { bookingId } = req.params;
-        const booking = await Booking.findById(bookingId).populate('user._id');
+        const headers = {
+            'x-client-id': PAYOS_CONFIG.CLIENT_ID,
+            'x-api-key': PAYOS_CONFIG.API_KEY,
+            'Content-Type': 'application/json'
+        };
+
+        const body = {}; // Gửi body rỗng nếu API không yêu cầu dữ liệu cụ thể để hủy
+        const url = `${PAYOS_CONFIG.API_URL}/v2/payment-requests/${orderCode}/cancel`; // Giả định endpoint
+        console.log(`[PayOS] Đang hủy link thanh toán với Order Code: ${orderCode}`);
+
+        const payosResponse = await axios.post(url, body, { headers });
+
+        if (payosResponse.data && payosResponse.data.code === '00') {
+            console.log(`[PayOS] Hủy link thanh toán thành công cho Order Code: ${orderCode}.`);
+            // Cập nhật trạng thái booking trong DB của bạn thành CANCELLED
+            // Sử dụng hàm helper để đảm bảo tính idempotent
+            const result = await processPaymentFailure(orderCode, 'CANCELLED');
+            if (!result.success) {
+                console.warn(`[Route] cancel-payment-link: Cảnh báo: Lỗi cập nhật trạng thái booking sau khi hủy PayOS: ${result.message}`);
+            }
+
+            res.status(200).json(payosResponse.data.data);
+        } else {
+            console.error('Hủy link thanh toán thất bại từ PayOS API:', payosResponse.data);
+            res.status(400).json({ message: 'Hủy link thanh toán thất bại.', error: payosResponse.data });
+        }
+    } catch (error) {
+        console.error(`Lỗi khi xử lý hủy link thanh toán ${orderCode}:`, error.response ? error.response.data : error.message);
+        res.status(error.response?.status || 500).json({
+            message: 'Lỗi hệ thống khi hủy link thanh toán.',
+            error: error.response ? error.response.data : error.message
+        });
+    }
+});
+
+
+/**
+ * [POST] /api/payos/webhook
+ * Xử lý webhook từ PayOS. Đây là tuyến quan trọng nhất để xác nhận thanh toán.
+ * Payload của webhook bao gồm: { code, desc, data, signature }
+ */
+router.post('/webhook', async (req, res) => {
+    console.log('[Route] POST /api/payos/webhook được gọi.');
+    const webhookPayload = req.body;
+    // PayOS có thể gửi checksum trong header 'x-checksum' hoặc trong body.
+    // Dựa vào code trước đó của bạn, bạn đã kiểm tra header.
+    // Tuy nhiên, tài liệu PayOS thường chỉ ra 'signature' trong body.
+    // Nếu PayOS gửi cả hai, bạn nên ưu tiên 'signature' trong body nếu nó là một phần của payload được ký.
+    const receivedChecksumFromHeader = req.headers['x-checksum'];
+
+    console.log('[PayOS Webhook] Dữ liệu nhận được:', JSON.stringify(webhookPayload, null, 2));
+    console.log('[PayOS Webhook] Checksum từ Header (nếu có):', receivedChecksumFromHeader);
+
+    const { code, data, signature } = webhookPayload;
+
+    if (!data || !signature) {
+        console.warn('[PayOS Webhook] Thiếu trường "data" hoặc "signature" trong payload webhook.');
+        // Trả về 200 để PayOS không gửi lại webhook, nhưng có thể log lỗi để debug
+        return res.status(200).json({ message: 'Invalid payload: missing data or signature' });
+    }
+
+    try {
+        // 1. XÁC MINH CHỮ KÝ WEBHOOK
+        // Sử dụng hàm createSignature với dữ liệu 'data' và WEBHOOK_SECRET để xác minh
+        const calculatedSignature = createSignature(data, PAYOS_CONFIG.WEBHOOK_SECRET);
+
+        if (signature !== calculatedSignature) {
+            console.warn('[PayOS Webhook] Chữ ký webhook không hợp lệ! Chữ ký nhận được:', signature, 'Chữ ký tính toán:', calculatedSignature);
+            return res.status(200).json({ message: 'Invalid signature' });
+        }
+        console.log('[PayOS Webhook] Chữ ký hợp lệ.');
+
+        // 2. XỬ LÝ DỮ LIỆU WEBHOOK
+        const { orderCode, status } = data; // Lấy orderCode và status từ trường 'data' trong webhook payload
+
+        // Tìm Booking bằng `payosOrderCode` đã lưu trước đó
+        const booking = await Booking.findOne({ payosOrderCode: orderCode });
 
         if (!booking) {
-            return res.status(404).json({ message: 'Booking không tìm thấy.' });
+            console.warn(`[PayOS Webhook] Không tìm thấy Booking cho orderCode ${orderCode}.`);
+            return res.status(200).json({ message: 'Booking not found' });
+        }
+        console.log(`[PayOS Webhook] Đã tìm thấy Booking: ${booking.bookingId} với trạng thái hiện tại: ${booking.status}.`);
+
+        // 3. CẬP NHẬT TRẠNG THÁI BOOKING VÀ TẠO INVOICE (Idempotency Check)
+        // Chỉ xử lý nếu booking đang ở trạng thái chờ thanh toán hoặc chưa PAID
+        if (booking.status === 'PENDING_PAYMENT' || booking.status === 'PENDING') { // Thêm 'PENDING' nếu là trạng thái khởi tạo
+            if (code === '00' && status === 'PAID') {
+                console.log(`[PayOS Webhook] Giao dịch thành công cho booking ${orderCode}. Kích hoạt xử lý xác nhận.`);
+                await processPaymentConfirmation(orderCode, data); // Truyền toàn bộ data từ webhook
+            } else {
+                // Các trạng thái khác: CANCELLED, EXPIRED, FAILED
+                console.log(`[PayOS Webhook] Giao dịch không thành công cho booking ${orderCode}. Trạng thái PayOS: ${status}, Mã lỗi: ${code}.`);
+                await processPaymentFailure(orderCode, status); // Truyền trạng thái từ PayOS
+            }
+        } else {
+            console.log(`[PayOS Webhook] Booking ${booking.bookingId} đã được xử lý trước đó hoặc không ở trạng thái chờ. Trạng thái hiện tại: ${booking.status}. Bỏ qua.`);
         }
 
-        // Tìm invoice liên quan đến booking này (chỉ tồn tại nếu thanh toán thành công)
+        // Phản hồi thành công cho PayOS để họ không gửi lại webhook
+        res.status(200).json({ message: 'Webhook processed successfully' });
+
+    } catch (error) {
+        console.error('[PayOS Webhook] Lỗi khi xử lý webhook:', error);
+        // Luôn trả về 200 để PayOS không gửi lại webhook, tránh vòng lặp lỗi
+        res.status(200).json({ message: 'Internal server error' });
+    }
+});
+
+
+/**
+ * [POST] /api/payos/confirm-webhook
+ * API dùng để đăng ký hoặc cập nhật webhook URL với PayOS.
+ * Bạn chỉ cần gọi API này một lần khi thiết lập hoặc khi thay đổi URL.
+ * PayOS API: POST /v2/webhooks
+ */
+router.post('/confirm-webhook', async (req, res) => {
+    console.log('[Route] POST /api/payos/confirm-webhook được gọi.');
+    const { webhookUrl } = req.body;
+
+    if (!webhookUrl) {
+        console.log('[Route] confirm-webhook: webhookUrl là bắt buộc.');
+        return res.status(400).json({ message: 'webhookUrl là bắt buộc.' });
+    }
+
+    try {
+        const headers = {
+            'x-client-id': PAYOS_CONFIG.CLIENT_ID,
+            'x-api-key': PAYOS_CONFIG.API_KEY,
+            'Content-Type': 'application/json'
+        };
+
+        const body = { webhookUrl };
+        const url = `${PAYOS_CONFIG.API_URL}/v2/webhooks`; // Endpoint đúng để đăng ký webhook
+        console.log(`[PayOS] Đang đăng ký/cập nhật webhook URL: ${webhookUrl} tại ${url}`);
+
+        const payosResponse = await axios.post(url, body, { headers });
+
+        console.log(`[PayOS] Phản hồi từ confirm-webhook API:`, payosResponse.data);
+        res.status(payosResponse.status).json(payosResponse.data);
+
+    } catch (error) {
+        console.error('Lỗi khi đăng ký/cập nhật webhook:', error.response ? error.response.data : error.message);
+        res.status(error.response?.status || 500).json({
+            message: 'Lỗi hệ thống khi đăng ký/cập nhật webhook.',
+            error: error.response ? error.response.data : error.message
+        });
+    }
+});
+
+
+/**
+ * [GET] /api/payos/status/:bookingId
+ * Frontend sẽ gọi API này để kiểm tra trạng thái cuối cùng của booking sau khi
+ * người dùng được điều hướng từ PayOS về website.
+ * Endpoint này chỉ truy vấn trạng thái từ DB, không gọi PayOS API.
+ */
+router.get('/status/:bookingId', async (req, res) => {
+    console.log('[Route] GET /api/payos/status/:bookingId được gọi.');
+    const { bookingId } = req.params;
+
+    try {
+        // Tìm booking bằng bookingId của bạn (không phải _id của MongoDB)
+        const booking = await Booking.findOne({ bookingId: bookingId }).populate('user'); // Populate user nếu cần thông tin user
+
+        if (!booking) {
+            console.log(`[Route] status: Booking ${bookingId} không tìm thấy.`);
+            return res.status(404).json({ message: 'Booking không tìm thấy.' });
+        }
+        console.log(`[Route] status: Đã tìm thấy Booking ${bookingId}. Trạng thái: ${booking.status}.`);
+
+        // Tìm invoice liên quan đến booking này (chỉ tồn tại nếu thanh toán thành công và webhook đã xử lý)
         const invoice = await Invoice.findOne({ booking: booking._id });
 
         res.status(200).json({
-            bookingId: booking._id,
+            bookingId: booking.bookingId,
             bookingStatus: booking.status,
             totalAmount: booking.grandTotal,
-            paymentInfo: invoice ? { // Chỉ trả về thông tin invoice nếu nó tồn tại
+            paymentInfo: invoice ? {
                 invoiceId: invoice.invoiceId,
                 invoiceStatus: invoice.status,
                 paymentMethod: invoice.paymentMethod,
-                payosDetails: invoice.payosDetails,
-                createdAt: invoice.createdAt
+                paidAt: invoice.payosDetails?.paidAt || invoice.createdAt,
+                transactionId: invoice.payosDetails?.transactionId || null, // Thêm transactionId
+                orderCode: invoice.payosDetails?.orderCode || null // Thêm orderCode
             } : null,
             message: invoice ? (invoice.status === 'PAID' ? 'Thanh toán thành công!' : `Hóa đơn: ${invoice.status}.`) : `Booking đang ở trạng thái ${booking.status}.`
         });
@@ -331,104 +446,21 @@ router.get('/status/:bookingId', async (req, res) => {
     }
 });
 
-
-// [GET] /api/payos/success - Trang thông báo thành công (Return URL từ PayOS)
-// URL này được gọi khi người dùng được chuyển hướng trở lại từ PayOS
+// --- Các tuyến redirect từ PayOS (giữ nguyên theo yêu cầu) ---
+// Các tuyến này chỉ đơn giản là chuyển hướng người dùng về frontend
+// Frontend sẽ gọi API /status/:bookingId để lấy trạng thái thực tế
 router.get('/success', async (req, res) => {
-    // Lấy các tham số từ URL khi PayOS redirect người dùng về
-    const { bookingId, payosOrderCode, status } = req.query;
-
-    console.log(`[PayOS Return URL]: Received request for bookingId: ${bookingId}, orderCode: ${payosOrderCode}, status: ${status}`);
-
-    // Kiểm tra xem có payosOrderCode không, nếu không có thì không thể xử lý
-    if (!payosOrderCode) {
-        console.warn('[PayOS Return URL]: Missing payosOrderCode. Redirecting to frontend with generic error.');
-        return res.redirect(`${PAYOS_CONFIG.FRONTEND_URL}/payment-status?status=error&message=${encodeURIComponent('Thiếu thông tin giao dịch.')}`);
-    }
-
-    let frontendRedirectStatus = 'error'; // Mặc định là lỗi
-    let frontendRedirectMessage = 'Có lỗi xảy ra khi xác nhận thanh toán.';
-    let actualBookingId = bookingId || ''; // bookingId từ query params, hoặc chuỗi rỗng nếu không có
-
-    try {
-        // Tạo một đối tượng giả định dữ liệu giao dịch PayOS (nếu PayOS không gửi đủ chi tiết qua URL)
-        // Lưu ý: Dữ liệu này không đáng tin cậy bằng webhook.
-        const payosTransactionData = {
-            orderCode: payosOrderCode,
-            status: status || 'PAID', // Giả định là PAID nếu không có trạng thái cụ thể
-        };
-
-        // Gọi hàm helper để xử lý cập nhật trạng thái booking và tạo invoice
-        const result = await processPaymentConfirmation(payosOrderCode, payosTransactionData);
-
-        if (result.success) {
-            frontendRedirectStatus = 'success';
-            frontendRedirectMessage = 'Thanh toán thành công! Đơn hàng đã được xác nhận.';
-            // Tìm lại booking để lấy _id chính xác
-            const booking = await Booking.findOne({ payosOrderCode: payosOrderCode });
-            if (booking) {
-                actualBookingId = booking._id;
-            }
-        } else {
-            // Nếu hàm xử lý trả về thất bại
-            frontendRedirectStatus = 'error';
-            frontendRedirectMessage = result.message || 'Xác nhận thanh toán thất bại.';
-        }
-
-    } catch (error) {
-        console.error(`[PayOS Return URL]: Lỗi hệ thống khi xử lý thành công cho ${payosOrderCode}:`, error.message);
-        frontendRedirectStatus = 'error';
-        frontendRedirectMessage = 'Lỗi hệ thống khi xử lý thanh toán.';
-    }
-
-    // Chuyển hướng người dùng về frontend với các tham số trạng thái
-    res.redirect(`${PAYOS_CONFIG.FRONTEND_URL}/payment-status?bookingId=${actualBookingId}&payosOrderCode=${payosOrderCode}&status=${frontendRedirectStatus}&message=${encodeURIComponent(frontendRedirectMessage)}`);
+    console.log('[Route] GET /api/payos/success được gọi (redirect từ PayOS).');
+    const queryParams = new URLSearchParams(req.query).toString();
+    console.log(`[Route] success: Chuyển hướng về frontend với query params: ${queryParams}`);
+    res.redirect(`${PAYOS_CONFIG.FRONTEND_URL}/payment-status?${queryParams}`);
 });
 
-// [GET] /api/payos/cancel - Trang thông báo hủy/thất bại (Cancel URL từ PayOS)
 router.get('/cancel', async (req, res) => {
-    // Lấy các tham số từ URL khi PayOS redirect người dùng về
-    const { bookingId, payosOrderCode, status } = req.query;
-
-    console.log(`[PayOS Cancel URL]: Received request for bookingId: ${bookingId}, orderCode: ${payosOrderCode}, status: ${status}`);
-
-    // Kiểm tra xem có payosOrderCode không
-    if (!payosOrderCode) {
-        console.warn('[PayOS Cancel URL]: Missing payosOrderCode. Redirecting to frontend with generic error.');
-        return res.redirect(`${PAYOS_CONFIG.FRONTEND_URL}/payment-status?status=error&message=${encodeURIComponent('Thiếu thông tin giao dịch để hủy.')}`);
-    }
-
-    let frontendRedirectStatus = 'cancelled'; // Mặc định là hủy
-    let frontendRedirectMessage = 'Thanh toán của bạn đã bị hủy.';
-    let actualBookingId = bookingId || ''; // bookingId từ query params, hoặc chuỗi rỗng nếu không có
-
-    try {
-        // Gọi hàm helper để xử lý cập nhật trạng thái booking thành CANCELLED
-        const reason = status || 'CANCELLED'; // Lấy trạng thái từ PayOS hoặc mặc định là CANCELLED
-        const result = await processPaymentFailure(payosOrderCode, reason);
-
-        if (result.success) {
-            frontendRedirectStatus = reason.toLowerCase();
-            frontendRedirectMessage = result.message || `Thanh toán đã ${reason.toLowerCase()}.`;
-            // Tìm lại booking để lấy _id chính xác
-            const booking = await Booking.findOne({ payosOrderCode: payosOrderCode });
-            if (booking) {
-                actualBookingId = booking._id;
-            }
-        } else {
-            // Nếu hàm xử lý trả về thất bại (ví dụ: booking không tìm thấy hoặc đã PAID)
-            frontendRedirectStatus = 'error';
-            frontendRedirectMessage = result.message || 'Xử lý hủy thanh toán thất bại.';
-        }
-
-    } catch (error) {
-        console.error(`[PayOS Cancel URL]: Lỗi hệ thống khi xử lý hủy cho ${payosOrderCode}:`, error.message);
-        frontendRedirectStatus = 'error';
-        frontendRedirectMessage = 'Lỗi hệ thống khi xử lý hủy thanh toán.';
-    }
-
-    // Chuyển hướng người dùng về frontend với các tham số trạng thái
-    res.redirect(`${PAYOS_CONFIG.FRONTEND_URL}/payment-status?bookingId=${actualBookingId}&payosOrderCode=${payosOrderCode}&status=${frontendRedirectStatus}&message=${encodeURIComponent(frontendRedirectMessage)}`);
+    console.log('[Route] GET /api/payos/cancel được gọi (redirect từ PayOS).');
+    const queryParams = new URLSearchParams(req.query).toString();
+    console.log(`[Route] cancel: Chuyển hướng về frontend với query params: ${queryParams}`);
+    res.redirect(`${PAYOS_CONFIG.FRONTEND_URL}/payment-status?${queryParams}`);
 });
 
 module.exports = router;
