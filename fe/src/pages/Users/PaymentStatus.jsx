@@ -46,22 +46,19 @@ const PaymentStatusPage = () => {
     }
 
     useEffect(() => {
-        loadUserProfile(); // Gọi hàm loadUserProfile khi component mount
+        loadUserProfile();
 
         if (hasFetched.current) {
-            console.log('API call already initiated, skipping.');
             return;
         }
 
         const queryParams = new URLSearchParams(location.search);
 
         // --- Kiểm tra xem đây là phản hồi từ VNPAY hay PayOS ---
-        const vnpay_TxnRef = queryParams.get('vnp_TxnRef'); // VNPAY unique transaction reference
-        const payosBookingId = queryParams.get('bookingId'); // bookingId từ PayOS returnUrl
-        const payosOrderCode = queryParams.get('payosOrderCode'); // orderCode từ PayOS returnUrl
-        const payosStatusParam = queryParams.get('status'); // 'cancelled' từ PayOS returnUrl
+        const vnpay_TxnRef = queryParams.get('vnp_TxnRef'); // VNPAY
+        const payosBookingId = queryParams.get('bookingId'); // PayOS
 
-        if (vnpay_TxnRef) { // Đây là phản hồi từ VNPAY
+        if (vnpay_TxnRef) { // Đây là phản hồi từ VNPAY (GIỮ NGUYÊN)
             setTransactionRef(vnpay_TxnRef);
             const vnpayQueryParams = {};
             for (let pair of queryParams.entries()) {
@@ -78,13 +75,10 @@ const PaymentStatusPage = () => {
             const verifyVnPayPayment = async () => {
                 setIsLoading(true);
                 try {
-                    hasFetched.current = true; // Đặt cờ này để không gọi lại trong các lần render sau
-
+                    hasFetched.current = true;
                     const queryString = new URLSearchParams(vnpayQueryParams).toString();
                     const requestUrl = `${BACKEND_BASE_URL}/api/vnpay-payment/vnpay_return?${queryString}`;
-
                     console.log('[VNPAY Status] Frontend calling Backend URL:', requestUrl);
-
                     const response = await axios.get(requestUrl);
 
                     const statusParam = queryParams.get('vnp_ResponseCode');
@@ -93,7 +87,7 @@ const PaymentStatusPage = () => {
                     if (statusParam === '00' && transactionStatusParam === '00') {
                         setPaymentStatus('Payment Successful!');
                         setMessage('Your booking has been successfully confirmed and paid via VNPAY. Database updated.');
-                        dispatch(resetBooking()); // Reset booking state in Redux
+                        dispatch(resetBooking());
                     } else {
                         setPaymentStatus('Payment Failed or Cancelled');
                         let errorMessage = `VNPAY payment could not be completed.`;
@@ -102,11 +96,10 @@ const PaymentStatusPage = () => {
                         setMessage(errorMessage + " Please check your transaction history.");
                     }
 
-                    // Backend (vnpay_return) có thể gửi redirectUrl, kiểm tra và chuyển hướng
                     if (response.data && response.data.redirectUrl) {
                         console.log('[VNPAY Status] Redirecting to URL from backend:', response.data.redirectUrl);
                         navigate(response.data.redirectUrl);
-                        return; // Ngăn không cho chạy tiếp
+                        return;
                     }
                 } catch (error) {
                     console.error('[VNPAY Status] Error verifying payment with backend:', error);
@@ -123,56 +116,48 @@ const PaymentStatusPage = () => {
             };
             verifyVnPayPayment();
 
-        } else if (payosBookingId || payosOrderCode) { // Đây là phản hồi từ PayOS
-            setTransactionRef(payosOrderCode || payosBookingId); // Hiển thị orderCode hoặc bookingId
+        } else if (payosBookingId) { // Đây là phản hồi từ PayOS (ĐÃ ĐIỀU CHỈNH)
+            setTransactionRef(queryParams.get('orderCode') || payosBookingId);
 
-            // Kiểm tra ngay nếu có tham số 'status=cancelled' từ PayOS cancelUrl
-            if (payosStatusParam === 'cancelled') {
-                setPaymentStatus('Payment Cancelled');
-                setMessage('Your PayOS payment was cancelled by you or expired. No payment was made. Please try again.');
-                setIsLoading(false);
-                dispatch(resetBooking()); // Reset booking state
-                return; // Không cần gọi backend nếu chắc chắn đã hủy
-            }
-
-            // Đối với PayOS, chúng ta sẽ gọi API `/api/payos/status/:bookingId` để lấy trạng thái mới nhất.
-            // Payload của PayOS webhook sẽ tự động cập nhật trạng thái booking và tạo invoice.
+            // Trang này chỉ hiển thị trạng thái cuối cùng.
+            // Việc xử lý thanh toán và cập nhật database được thực hiện an toàn qua webhook ở backend.
             const checkPayosStatus = async () => {
                 setIsLoading(true);
+                hasFetched.current = true;
+
                 try {
-                    hasFetched.current = true; // Đặt cờ này để không gọi lại
+                    // Thêm một khoảng chờ ngắn để cho webhook của PayOS có thời gian xử lý ở backend.
+                    // Điều này rất quan trọng để tránh trường hợp frontend hỏi trạng thái quá sớm.
+                    await new Promise(resolve => setTimeout(resolve, 2000));
 
-                    const requestUrl = `${BACKEND_BASE_URL}/api/payos-payment/status/${payosBookingId}`; // Sử dụng bookingId để kiểm tra trạng thái
-
+                    // API này lấy trạng thái cuối cùng của booking từ server.
+                    // Dữ liệu trên server được cập nhật bởi webhook an toàn của PayOS.
+                    const requestUrl = `${BACKEND_BASE_URL}/api/payos-payment/status/${payosBookingId}`;
                     console.log('[PayOS Status] Frontend calling Backend URL:', requestUrl);
 
                     const response = await axios.get(requestUrl);
-                    const { bookingStatus, paymentInfo, message: backendMessage } = response.data;
+                    const { bookingStatus, message: backendMessage } = response.data;
 
-                    if (bookingStatus === 'PAID' && paymentInfo && paymentInfo.invoiceStatus === 'PAID') {
+                    if (bookingStatus === 'PAID') {
                         setPaymentStatus('Payment Successful!');
-                        setMessage(backendMessage || 'Your booking has been successfully confirmed and paid via PayOS. Invoice created.');
-                        dispatch(resetBooking()); // Reset booking state in Redux
-                    } else if (bookingStatus === 'FAILED' || bookingStatus === 'CANCELLED') {
+                        setMessage(backendMessage || 'Your booking has been successfully confirmed and paid via PayOS.');
+                        dispatch(resetBooking()); // Reset giỏ hàng sau khi thanh toán thành công
+                    } else if (bookingStatus === 'CANCELLED' || bookingStatus === 'FAILED') {
                         setPaymentStatus('Payment Failed or Cancelled');
-                        setMessage(backendMessage || 'Your PayOS payment failed or was cancelled. No payment was made. Please try again.');
-                    } else {
-                        setPaymentStatus('Payment Pending/Unknown');
-                        setMessage(backendMessage || 'The PayOS payment status is still pending or unknown. Please check your transaction history later.');
+                        setMessage(backendMessage || 'Your PayOS payment failed, was cancelled, or expired. Please try again.');
+                    } else { // PENDING_PAYMENT
+                        setPaymentStatus('Payment Pending');
+                        setMessage(backendMessage || 'Your payment is being processed. We will notify you once confirmed. Please check your bookings page for updates.');
                     }
                 } catch (error) {
                     console.error('[PayOS Status] Error checking payment status with backend:', error);
-                    if (axios.isAxiosError(error) && error.response) {
-                        setPaymentStatus('Verification Error (Backend Response)');
-                        setMessage(`Server responded with error: ${error.response.status} - ${error.response.data?.message || error.message}. Please check your transaction history.`);
-                    } else {
-                        setPaymentStatus('Verification Error (Network/Client)');
-                        setMessage('An error occurred while communicating with the server. Please check your transaction history or contact support.');
-                    }
+                    setPaymentStatus('Verification Error');
+                    setMessage('An error occurred while verifying your payment status. Please check your bookings page or contact support.');
                 } finally {
                     setIsLoading(false);
                 }
             };
+
             checkPayosStatus();
         } else {
             // Không có tham số VNPAY hoặc PayOS
@@ -181,7 +166,7 @@ const PaymentStatusPage = () => {
             setIsLoading(false);
         }
 
-    }, [location.search, dispatch, navigate]); // hasFetched không cần trong dependencies
+    }, [location.search, dispatch, navigate]);
 
     const handleGoToBookings = () => {
         const userRole = user?.role;
@@ -222,7 +207,7 @@ const PaymentStatusPage = () => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         ) : (
-                            <svg className="w-20 h-20 text-red-500 animate-shake" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <svg className="w-20 h-20 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         )}
