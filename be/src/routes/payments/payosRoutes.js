@@ -79,6 +79,7 @@ const processPaymentConfirmation = async (payosOrderCode, payosTransactionData) 
                 const newInvoice = new Invoice({
                     invoiceId: `INV-${Date.now()}-${booking._id.toString().slice(-4)}`,
                     booking: booking._id,
+                    bookingId: booking.bookingId,
                     user: {
                         _id: booking.user ? booking.user._id : null, // Đảm bảo lấy đúng _id của user
                         name: booking.user ? booking.user.fullname : 'Unknown User', // Giả định trường fullname
