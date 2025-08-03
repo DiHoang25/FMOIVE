@@ -63,6 +63,7 @@ app.use('/api/promotions', promotionRoutes);
 app.use('/api/booking', bookingRoutes); // tuyến quản lý đặt vé
 app.use('/api/vnpay-payment', vnpayRoutes); // tuyến thanh toán 
 app.use('/api/payos-payment', payosRoutes); // tuyến thanh toán 
+app.use('/api/cash-payment', require('./routes/payments/cashRoutes')); // tuyến thanh toán tiền mặt
 app.use('/api/booking-management', bookingManagementRoutes); // tuyến quản lý đặt vé (Admin)
 // tuyến quản lý phòng
 app.use('/api/theater/rooms', roomManagermentRoutes);
