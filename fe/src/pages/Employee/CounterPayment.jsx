@@ -5,6 +5,9 @@ import SidebarLayout from '../../components/Sidebar-Employee';
 import axios from 'axios';
 import { message } from 'antd'; // Sử dụng Ant Design cho thông báo
 import { Spin } from 'antd'; // Sử dụng Ant Design cho loading
+//icon
+import VnpayIcon from '../../assets/vnpay-icon.png';
+import PayosIcon from '../../assets/payos.png';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
 
@@ -43,11 +46,13 @@ const PaymentPage = () => {
             id: 'payos',
             label: 'PayOS (VietQR)',
             desc: 'Secure payment via PayOS with various methods',
+            icon: PayosIcon
         },
         {
             id: 'vnpay',
             label: 'VN Pay',
             desc: 'Scan to pay with VN Pay (Online Payment)',
+            icon: VnpayIcon
         },
         {
             id: 'cash',
