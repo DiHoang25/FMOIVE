@@ -70,9 +70,14 @@ const MovieList = () => {
     });
   }, [movies]);
 
+useEffect(() => {
+    setCurrentPage(0);
+  }, [searchTerm]);
+
+  
   useEffect(() => {
     setCurrentPage(0);
-  }, [searchTerm, movies]);
+  }, [movies.length]);
 
   const getCalculatedStatus = (movie) => {
     const today = dayjs();

@@ -5,10 +5,11 @@ import io from "socket.io-client"
 import { useAuth } from "../../contexts/AuthContext"
 import SidebarLayout from "../../components/Sidebar-Employee"
 
-const socket = io("http://10.88.54.29:5000", {
-    transports: ["websocket"],
-    withCredentials: true,
+const socket = io("http://192.168.1.12:5000", {
+  transports: ["websocket"],
+  withCredentials: true,
 })
+
 
 const ChatWithUser = () => {
     const { user } = useAuth()
