@@ -18,10 +18,11 @@ import {
   AlertCircle,
 } from "lucide-react"
 
-const socket = io("http://10.88.54.29:5000", {
+const socket = io("http://192.168.1.12:5000", {
   transports: ["websocket"],
   withCredentials: true,
 })
+
 
 const ChatWithStaff = () => {
   const { user } = useAuth()

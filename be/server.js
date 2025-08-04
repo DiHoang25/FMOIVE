@@ -13,65 +13,68 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: [
-      "http://localhost:3000",        // Cho chính bạn           
-    ],
+    origin: ["http://localhost:3000"],
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
 
-
 app.locals.io = io;
 
-const employeeSockets = new Map(); // username -> socket.id
-const userSockets = new Map();     // username -> Set<socket.id>
+// Bản đồ lưu socket
+const employeeSockets = new Map();             // employeeUsername -> socketId
+const userSockets = new Map();                 // username -> Set<socketId>
+const latestUserSocket = new Map();            // username -> latest socketId
 
 io.on('connection', (socket) => {
   console.log('🟢 Socket connected:', socket.id);
 
-socket.on("register", (data) => {
-  const username = data?.username || data;
-  const role = data?.role || 'customer';
+  socket.on("register", (data) => {
+    const username = data?.username || data;
+    const role = data?.role || 'customer';
+    if (!username) return;
 
-  if (!username) return;
+    socket.username = username;
+    socket.role = role;
 
-  socket.username = username;
-  socket.role = role;
-
-  socket.join(username);
-  console.log(`✅ ${username} (role: ${role}) đã join phòng '${username}'`);
-
-  if (role === 'employee') {
-    employeeSockets.set(username, socket.id);
-  } else {
-    // Nếu user đã tồn tại socket id, kiểm tra và xoá các socket đã disconnect
-    if (!userSockets.has(username)) {
-      userSockets.set(username, new Set());
+    // Tham gia vào phòng cá nhân
+    if (!socket.rooms.has(username)) {
+      socket.join(username);
+      console.log(`✅ ${username} (role: ${role}) đã join phòng '${username}'`);
     }
-    const socketSet = userSockets.get(username);
 
-    // Xoá các socketId không còn hợp lệ (phòng hờ reconnect hoặc refresh)
-    const updatedSocketSet = new Set();
-    socketSet.forEach((sockId) => {
-      const sock = io.sockets.sockets.get(sockId);
-      if (sock) {
-        updatedSocketSet.add(sockId);
+// Thay đoạn trong socket.on("register", ...) bằng đoạn này:
+
+if (role === 'employee') {
+  employeeSockets.set(username, socket.id);
+} else {
+  const existingSockets = userSockets.get(username) || new Set();
+
+  for (const oldSocketId of existingSockets) {
+    if (oldSocketId !== socket.id) {
+      const oldSocket = io.sockets.sockets.get(oldSocketId);
+      if (oldSocket) {
+        oldSocket.emit("forceLogout", {
+          message: "Tài khoản đã đăng nhập ở thiết bị khác.",
+        });
+        console.log(`🔁 Đã đăng xuất socket cũ của ${username}: ${oldSocketId}`);
+        oldSocket.disconnect(true);
       }
-    });
-
-    updatedSocketSet.add(socket.id); // thêm socket hiện tại
-    userSockets.set(username, updatedSocketSet);
-
-    // Gửi userOnline cho tất cả nhân viên
-    for (const empSocketId of employeeSockets.values()) {
-      io.to(empSocketId).emit('userOnline', username);
     }
   }
-});
 
+  // Cập nhật lại danh sách socket (xóa hết cũ và thêm socket hiện tại)
+  const newSocketSet = new Set();
+  newSocketSet.add(socket.id);
+  userSockets.set(username, newSocketSet);
 
-  // User gửi tin nhắn cho nhân viên
+  for (const empSocketId of employeeSockets.values()) {
+    io.to(empSocketId).emit('userOnline', username);
+  }
+}
+
+  });
+
   socket.on('sendMessageToEmployee', ({ sender, message }) => {
     console.log(`📨 Tin nhắn từ user ${sender}: ${message}`);
     for (const empSocketId of employeeSockets.values()) {
@@ -79,10 +82,9 @@ socket.on("register", (data) => {
     }
   });
 
-  // Nhân viên gửi tin nhắn cho user cụ thể
   socket.on('sendMessage', ({ sender, receiver, message }) => {
     const targetSockets = userSockets.get(receiver);
-    if (targetSockets && targetSockets.size > 0) {
+    if (targetSockets?.size) {
       for (const sockId of targetSockets) {
         io.to(sockId).emit('receiveMessage', { sender, message });
       }
@@ -96,10 +98,10 @@ socket.on("register", (data) => {
     console.log('🔴 Socket disconnected:', socket.id);
 
     // Nếu là nhân viên
-    for (const [username, id] of employeeSockets.entries()) {
-      if (id === socket.id) {
-        employeeSockets.delete(username);
-        console.log(`❌ Nhân viên ${username} đã offline`);
+    for (const [emp, sockId] of employeeSockets.entries()) {
+      if (sockId === socket.id) {
+        employeeSockets.delete(emp);
+        console.log(`❌ Nhân viên ${emp} đã offline`);
         return;
       }
     }
@@ -109,12 +111,11 @@ socket.on("register", (data) => {
       if (socketSet.has(socket.id)) {
         socketSet.delete(socket.id);
 
-        // Nếu user không còn kết nối nào
         if (socketSet.size === 0) {
           userSockets.delete(username);
+          latestUserSocket.delete(username);
           console.log(`❌ User ${username} đã offline`);
 
-          // Gửi thông báo đến tất cả nhân viên
           for (const empSocketId of employeeSockets.values()) {
             io.to(empSocketId).emit('userOffline', username);
           }

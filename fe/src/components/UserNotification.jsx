@@ -30,59 +30,91 @@ const UserNotification = () => {
     const navigate = useNavigate()
     const socket = useRef(null)
 
+
     const fetchData = async () => {
-        setLoading(true)
+        setLoading(true);
         try {
-            const res = await fetch("http://localhost:5000/api/home")
-            if (!res.ok) throw new Error("Failed to fetch")
-            const data = await res.json()
-            const sortedComing = (data?.comingSoon || []).sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
-            const hotList = data?.hotMovies || []
+            // Gọi song song 2 API
+            const [homeRes, moviesRes] = await Promise.all([
+                fetch("http://localhost:5000/api/home"),
+                fetch("http://localhost:5000/api/movies"),
+            ]);
 
-            if (sortedComing.length !== comingSoon.length || hotList.length !== hotMovies.length) {
-                setHasNew(true)
+            if (!homeRes.ok || !moviesRes.ok) throw new Error("Failed to fetch");
+
+            const homeData = await homeRes.json();
+            const moviesData = await moviesRes.json();
+
+            // Sắp xếp danh sách coming soon theo ngày chiếu
+            const sortedComing = (homeData?.comingSoon || []).sort(
+                (a, b) => new Date(a.start_date) - new Date(b.start_date)
+            );
+
+            // Lọc các phim hot đang còn hoạt động
+            const activeHotMovies = moviesData
+                .filter((movie) => checkHotMovie(movie))
+                .sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
+
+            // So sánh để kiểm tra có dữ liệu mới không
+            if (
+                sortedComing.length !== comingSoon.length ||
+                activeHotMovies.length !== hotMovies.length
+            ) {
+                setHasNew(true);
             }
-            setComingSoon(sortedComing)
-            setHotMovies(hotList)
+
+            setComingSoon(sortedComing);
+            setHotMovies(activeHotMovies);
         } catch (err) {
-            console.error(err)
-            setError("Failed to fetch notifications")
+            console.error(err);
+            setError("Failed to fetch notifications");
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }
+    };
 
-const fetchUserReplies = async () => {
-    if (!user?.username) return;
+    const checkHotMovie = (movie) => {
+        const now = new Date();
+        return (
+            movie.is_hot &&
+            new Date(movie.start_date) <= now &&
+            new Date(movie.end_date) >= now
+        );
+    };
 
-    try {
-        const res = await fetch(`http://localhost:5000/api/replies?username=${user.username}`);
-        if (!res.ok) throw new Error("Failed to fetch user replies");
 
-        const data = await res.json();
 
-        const sorted = data
-            .sort((a, b) => new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt)) // ưu tiên timestamp nếu có
-            .slice(0, 5)
-            .map((item) => ({
-                ...item,
-                message: `Bạn có phản hồi từ ${item.sender || item.author}`,
-                reply: item.reply || item.message,
-                timestamp: item.timestamp || new Date(item.createdAt).getTime(),
-                link: item.link, // ✅ đã có sẵn từ backend, không cần tự tạo
-            }));
+    const fetchUserReplies = async () => {
+        if (!user?.username) return;
 
-        setNotifications(sorted);
-        localStorage.setItem("userReplies", JSON.stringify(sorted));
-    } catch (err) {
-        console.error("❌ Error fetching user replies:", err);
-    }
-};
+        try {
+            const res = await fetch(`http://localhost:5000/api/replies?username=${user.username}`);
+            if (!res.ok) throw new Error("Failed to fetch user replies");
+
+            const data = await res.json();
+
+            const sorted = data
+                .sort((a, b) => new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt)) // ưu tiên timestamp nếu có
+                .slice(0, 5)
+                .map((item) => ({
+                    ...item,
+                    message: `Bạn có phản hồi từ ${item.sender || item.author}`,
+                    reply: item.reply || item.message,
+                    timestamp: item.timestamp || new Date(item.createdAt).getTime(),
+                    link: item.link, // ✅ đã có sẵn từ backend, không cần tự tạo
+                }));
+
+            setNotifications(sorted);
+            localStorage.setItem("userReplies", JSON.stringify(sorted));
+        } catch (err) {
+            console.error("❌ Error fetching user replies:", err);
+        }
+    };
 
     useEffect(() => {
         if (user?.username) {
             console.log("👤 Detected user login, fetching latest replies...")
-fetchUserReplies() // ✅ gọi API để load reply mới
+            fetchUserReplies() // ✅ gọi API để load reply mới
         }
     }, [user?.username])
 
@@ -173,7 +205,7 @@ fetchUserReplies() // ✅ gọi API để load reply mới
         }
 
         socket.current.on("notification", handleNotification)
-socket.current.on("new_reply", handleNotification)
+        socket.current.on("new_reply", handleNotification)
 
         return () => {
             console.log("🔌 Cleaning up socket listeners...")
@@ -244,7 +276,7 @@ socket.current.on("new_reply", handleNotification)
                 title={
                     <div className="flex items-center w-full min-h-[30px] py-0.1">
                         <div
-className="w-6 h-7 mr-6 rounded-full flex items-center justify-center transition-transform duration-300 ease-in-out hover:scale-110 cursor-pointer hover:bg-gray-700"
+                            className="w-6 h-7 mr-6 rounded-full flex items-center justify-center transition-transform duration-300 ease-in-out hover:scale-110 cursor-pointer hover:bg-gray-700"
                             onClick={() => setIsOpen(false)}
                         >
                             <span className="text-white text-3xl font-bold leading-none">×</span>
@@ -297,7 +329,7 @@ className="w-6 h-7 mr-6 rounded-full flex items-center justify-center transition
                                         </div>
                                         <div>
                                             <h3 className="font-semibold text-base text-white">User Replies</h3>
-<p className="text-xs text-gray-400">{notifications.length} new messages</p>
+                                            <p className="text-xs text-gray-400">{notifications.length} new messages</p>
                                         </div>
                                     </div>
 
@@ -335,7 +367,7 @@ className="w-6 h-7 mr-6 rounded-full flex items-center justify-center transition
                                                     {/* Content */}
                                                     <div className="relative z-10">
                                                         <div className="flex items-start justify-between mb-2">
-<div className="flex items-center gap-2">
+                                                            <div className="flex items-center gap-2">
                                                                 <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
                                                                 <span className="text-xs text-blue-300 font-medium">New Reply</span>
                                                             </div>
@@ -375,7 +407,7 @@ className="w-6 h-7 mr-6 rounded-full flex items-center justify-center transition
                                         <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
                                             <CalendarOutlined className="text-white text-sm" />
                                         </div>
-<div>
+                                        <div>
                                             <h3 className="font-semibold text-base text-white">Coming Soon</h3>
                                             <p className="text-xs text-gray-400">{comingSoon.length} upcoming releases</p>
                                         </div>
@@ -409,7 +441,7 @@ className="w-6 h-7 mr-6 rounded-full flex items-center justify-center transition
                                                     </div>
 
                                                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-<div className="w-1 h-8 bg-gradient-to-b from-green-400 to-green-600 rounded-full" />
+                                                        <div className="w-1 h-8 bg-gradient-to-b from-green-400 to-green-600 rounded-full" />
                                                     </div>
                                                 </div>
                                             </motion.div>
@@ -449,7 +481,7 @@ className="w-6 h-7 mr-6 rounded-full flex items-center justify-center transition
                                                     <div className="relative z-10">
                                                         <div className="flex items-start justify-between mb-2">
                                                             <div className="flex items-center gap-2">
-<motion.div
+                                                                <motion.div
                                                                     className="w-2 h-2 bg-red-400 rounded-full"
                                                                     animate={{ scale: [1, 1.2, 1] }}
                                                                     transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2 }}
