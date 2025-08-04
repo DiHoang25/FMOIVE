@@ -108,7 +108,7 @@ const PaymentPage = () => {
 
             console.log('Calling Cash Payment API with bookingId:', bookingId);
             const response = await axios.post(
-                `${API_BASE_URL}/api/cash-payment`,
+                `${API_BASE_URL}/api/cash-payment/pay`,
                 { bookingId }, // Gửi bookingId 
                 {
                     headers: { 'Authorization': `Bearer ${token}` }

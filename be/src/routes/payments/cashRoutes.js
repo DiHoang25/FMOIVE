@@ -8,7 +8,7 @@ const employeeMiddleware = require('../../middleware/employeeMiddleware');
 // [POST] /api/booking/cash-payment
 // Endpoint để xử lý thanh toán bằng tiền mặt
 // Yêu cầu xác thực và chỉ cho phép nhân viên/admin
-router.post('/cash-payment', authMiddleware, employeeMiddleware, async (req, res) => {
+router.post('/pay', authMiddleware, employeeMiddleware, async (req, res) => {
     const { bookingId } = req.body;
 
     if (!bookingId) {
@@ -17,7 +17,7 @@ router.post('/cash-payment', authMiddleware, employeeMiddleware, async (req, res
 
     try {
         // 1. Tìm booking
-        const booking = await Booking.findById(bookingId).populate('user._id');
+        const booking = await Booking.findOne({bookingId}).populate('user._id');
         if (!booking) {
             return res.status(404).json({ message: 'Booking không tìm thấy.' });
         }
@@ -61,3 +61,5 @@ router.post('/cash-payment', authMiddleware, employeeMiddleware, async (req, res
         res.status(500).json({ message: 'Đã xảy ra lỗi hệ thống khi xử lý thanh toán.' });
     }
 });
+
+module.exports = router;

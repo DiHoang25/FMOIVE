@@ -41,7 +41,7 @@ const PaymentPage = () => {
     const paymentMethods = [
         {
             id: 'payos',
-            label: 'PayOS (Napas)',
+            label: 'PayOS (VietQR)',
             desc: 'Secure payment via PayOS with various methods',
             icon: PayosIcon // Use the imported PayOS icon
         },

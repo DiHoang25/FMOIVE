@@ -158,7 +158,7 @@ function AppContent() {
             <Route path="/payment" element={<RequireRole allowedRoles={['customer']}><PaymentPage /></RequireRole>} />
             <Route path="/payment-status" element={<PaymentStatusPage />} />
             <Route path="/ticket-detail" element={<RequireRole allowedRoles={['customer']}><TicketDetail /></RequireRole>} />
-            <Route path="/counter-payment-status" element={<RequireRole allowedRoles={['employee']}><CounterPaymentStatus /></RequireRole>} />
+            <Route path="/employee/counter-payment-status" element={<RequireRole allowedRoles={['employee']}><CounterPaymentStatus /></RequireRole>} />
 
             {/* Admin */}
             <Route path="/admin" element={<RequireRole allowedRoles={['admin']}><AdminDashboard /></RequireRole>} />
