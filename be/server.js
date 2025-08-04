@@ -23,57 +23,59 @@ app.locals.io = io;
 
 // Bản đồ lưu socket
 const employeeSockets = new Map();             // employeeUsername -> socketId
-const userSockets = new Map();                 // username -> Set<socketId>
-const latestUserSocket = new Map();            // username -> latest socketId
+const userSockets = new Map();                 // username -> Map<deviceId, socketId>
 
 io.on('connection', (socket) => {
   console.log('🟢 Socket connected:', socket.id);
 
-  socket.on("register", (data) => {
-    const username = data?.username || data;
-    const role = data?.role || 'customer';
-    if (!username) return;
+  const { deviceId } = socket.handshake.query;
 
-    socket.username = username;
-    socket.role = role;
+socket.on("register", (data) => {
+  const username = data?.username || data;
+  const role = data?.role || 'customer';
 
-    // Tham gia vào phòng cá nhân
-    if (!socket.rooms.has(username)) {
-      socket.join(username);
-      console.log(`✅ ${username} (role: ${role}) đã join phòng '${username}'`);
-    }
+  if (!username || !deviceId) return;
 
-// Thay đoạn trong socket.on("register", ...) bằng đoạn này:
+  socket.username = username;
+  socket.role = role;
+  socket.deviceId = deviceId;
 
-if (role === 'employee') {
-  employeeSockets.set(username, socket.id);
-} else {
-  const existingSockets = userSockets.get(username) || new Set();
+  if (!socket.rooms.has(username)) {
+    socket.join(username);
+    console.log(`✅ ${username} (role: ${role}) đã join phòng '${username}'`);
+  }
 
-  for (const oldSocketId of existingSockets) {
-    if (oldSocketId !== socket.id) {
-      const oldSocket = io.sockets.sockets.get(oldSocketId);
-      if (oldSocket) {
-        oldSocket.emit("forceLogout", {
-          message: "Tài khoản đã đăng nhập ở thiết bị khác.",
-        });
-        console.log(`🔁 Đã đăng xuất socket cũ của ${username}: ${oldSocketId}`);
-        oldSocket.disconnect(true);
+  if (role === 'employee') {
+    employeeSockets.set(username, socket.id);
+  } else {
+    let deviceMap = userSockets.get(username) || new Map();
+
+    // 👇 Di chuyển phần cập nhật map xuống sau khi kiểm tra
+    // Kiểm tra tất cả socketId cũ khác deviceId hiện tại
+    for (const [oldDeviceId, oldSocketId] of deviceMap.entries()) {
+      if (oldDeviceId !== deviceId) {
+        const oldSocket = io.sockets.sockets.get(oldSocketId);
+        if (oldSocket) {
+          oldSocket.emit("forceLogout", {
+            message: "Tài khoản đã đăng nhập ở thiết bị khác.",
+          });
+          console.log(`🔁 Đã đăng xuất socket cũ của ${username} (device: ${oldDeviceId})`);
+          oldSocket.disconnect(true);
+          deviceMap.delete(oldDeviceId); // 👈 xoá deviceId cũ sau khi disconnect
+        }
       }
     }
+
+    // Lưu lại socket mới (ghi đè hoặc thêm)
+    deviceMap.set(deviceId, socket.id);
+    userSockets.set(username, deviceMap);
+
+    for (const empSocketId of employeeSockets.values()) {
+      io.to(empSocketId).emit('userOnline', username);
+    }
   }
+});
 
-  // Cập nhật lại danh sách socket (xóa hết cũ và thêm socket hiện tại)
-  const newSocketSet = new Set();
-  newSocketSet.add(socket.id);
-  userSockets.set(username, newSocketSet);
-
-  for (const empSocketId of employeeSockets.values()) {
-    io.to(empSocketId).emit('userOnline', username);
-  }
-}
-
-  });
 
   socket.on('sendMessageToEmployee', ({ sender, message }) => {
     console.log(`📨 Tin nhắn từ user ${sender}: ${message}`);
@@ -83,10 +85,10 @@ if (role === 'employee') {
   });
 
   socket.on('sendMessage', ({ sender, receiver, message }) => {
-    const targetSockets = userSockets.get(receiver);
-    if (targetSockets?.size) {
-      for (const sockId of targetSockets) {
-        io.to(sockId).emit('receiveMessage', { sender, message });
+    const deviceMap = userSockets.get(receiver);
+    if (deviceMap?.size) {
+      for (const socketId of deviceMap.values()) {
+        io.to(socketId).emit('receiveMessage', { sender, message });
       }
       console.log(`📤 Nhân viên ${sender} gửi tin nhắn đến ${receiver}: ${message}`);
     } else {
@@ -107,20 +109,20 @@ if (role === 'employee') {
     }
 
     // Nếu là user
-    for (const [username, socketSet] of userSockets.entries()) {
-      if (socketSet.has(socket.id)) {
-        socketSet.delete(socket.id);
+    const username = socket.username;
+    const deviceId = socket.deviceId;
 
-        if (socketSet.size === 0) {
-          userSockets.delete(username);
-          latestUserSocket.delete(username);
-          console.log(`❌ User ${username} đã offline`);
+    if (username && deviceId && userSockets.has(username)) {
+      const deviceMap = userSockets.get(username);
+      deviceMap.delete(deviceId);
 
-          for (const empSocketId of employeeSockets.values()) {
-            io.to(empSocketId).emit('userOffline', username);
-          }
+      if (deviceMap.size === 0) {
+        userSockets.delete(username);
+        console.log(`❌ User ${username} đã offline`);
+
+        for (const empSocketId of employeeSockets.values()) {
+          io.to(empSocketId).emit('userOffline', username);
         }
-        break;
       }
     }
   });

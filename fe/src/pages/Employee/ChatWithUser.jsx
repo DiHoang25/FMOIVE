@@ -5,7 +5,7 @@ import io from "socket.io-client"
 import { useAuth } from "../../contexts/AuthContext"
 import SidebarLayout from "../../components/Sidebar-Employee"
 
-const socket = io("http://192.168.1.12:5000", {
+const socket = io("http://10.88.54.58:5000", {
   transports: ["websocket"],
   withCredentials: true,
 })
