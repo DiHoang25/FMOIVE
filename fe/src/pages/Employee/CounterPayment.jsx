@@ -5,6 +5,10 @@ import SidebarLayout from '../../components/Sidebar-Employee';
 import axios from 'axios';
 import { message } from 'antd'; // Sử dụng Ant Design cho thông báo
 import { Spin } from 'antd'; // Sử dụng Ant Design cho loading
+//icon
+import VnpayIcon from '../../assets/vnpay-icon.png';
+import PayosIcon from '../../assets/payos.png';
+import CashIcon from '../../assets/money.png';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
 
@@ -40,14 +44,22 @@ const PaymentPage = () => {
 
     const paymentMethods = [
         {
+            id: 'payos',
+            label: 'PayOS (VietQR)',
+            desc: 'Secure payment via PayOS with various methods',
+            icon: PayosIcon
+        },
+        {
             id: 'vnpay',
             label: 'VN Pay',
             desc: 'Scan to pay with VN Pay (Online Payment)',
+            icon: VnpayIcon
         },
         {
             id: 'cash',
             label: 'Cash Payment',
             desc: 'Confirm payment with staff at the counter',
+            icon: CashIcon
         },
     ];
 
@@ -85,6 +97,34 @@ const PaymentPage = () => {
             } catch (error) {
                 console.error('Lỗi khi tạo yêu cầu VNPay:', error.response?.data || error.message);
                 message.error(error.response?.data?.message || 'Lỗi khi tạo yêu cầu thanh toán VNPay.');
+            } finally {
+                setIsPaying(false);
+            }
+        } else if (selectedMethod === 'payos') {
+            // Logic cho PayOS, gọi API tạo URL thanh toán
+            try {
+                setIsPaying(true);
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('Bạn cần đăng nhập để thực hiện chức năng này.');
+                }
+
+                console.log('Calling PayOS API with bookingId:', bookingId);
+                const response = await axios.post(`${API_BASE_URL}/api/payos-payment/create-payment`, {
+                    bookingId, // Gửi bookingId
+                }, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.data && response.data.payosPaymentUrl) {
+                    window.location.href = response.data.payosPaymentUrl;
+                } else {
+                    throw new Error('Failed to get PayOS payment URL.');
+                }
+
+            } catch (error) {
+                console.error('Lỗi khi tạo yêu cầu PayOS:', error.response?.data || error.message);
+                message.error(error.response?.data?.message || 'Lỗi khi tạo yêu cầu thanh toán PayOS.');
             } finally {
                 setIsPaying(false);
             }
@@ -170,24 +210,30 @@ const PaymentPage = () => {
 
                     {/* Payment Methods */}
                     <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-gray-200">Choose Payment Method:</h3>
-                        {paymentMethods.map((method) => (
-                            <button
-                                key={method.id}
-                                onClick={() => setSelectedMethod(method.id)}
-                                className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 ${selectedMethod === method.id
-                                    ? 'border-red-600 bg-slate-700 shadow-lg'
-                                    : 'border-slate-700 bg-slate-900 hover:border-zinc-600'
-                                    }`}
-                            >
-                                <span className="text-3xl">{method.icon}</span>
-                                <div>
-                                    <p className="font-semibold text-lg">{method.label}</p>
-                                    <p className="text-sm text-gray-400 mt-1">{method.desc}</p>
-                                </div>
-                            </button>
-                        ))}
-                    </div>
+                    <h2 className="text-xl font-semibold text-gray-200">Select Method</h2>
+                    {paymentMethods.map((method) => (
+                        <button
+                            key={method.id}
+                            onClick={() => setSelectedMethod(method.id)}
+                            className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-all duration-300 transform hover:scale-[1.01]
+                                ${selectedMethod === method.id
+                                    ? 'border-red-600 bg-zinc-900 shadow-lg'
+                                    : 'border-slate-700 bg-slate-700/60 hover:bg-slate-700/80'
+                                } flex items-center gap-4`}
+                        >
+                            {method.icon && <img src={method.icon} alt={method.label} className="w-10 h-10 object-contain rounded-md" />}
+                            <div>
+                                <p className="font-semibold text-lg text-white">{method.label}</p>
+                                <p className="text-sm text-gray-400">{method.desc}</p>
+                            </div>
+                            {selectedMethod === method.id && (
+                                <svg className="w-6 h-6 text-red-500 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                            )}
+                        </button>
+                    ))}
+                </div>
 
                     {/* Price Summary */}
                     <div className="bg-slate-700 rounded-lg p-5 text-base space-y-3 shadow-inner">
@@ -228,15 +274,20 @@ const PaymentPage = () => {
                     {/* Confirm Notice / Action Button */}
                     <div className="mt-6">
                         {selectedMethod === 'vnpay' && (
-                            <p className="text-xs text-center text-white bg-gray-700 rounded-md py-3 px-4 font-semibold">
-                                You'll be directed to the VN Pay gateway to complete your transaction.
-                            </p>
-                        )}
-                        {selectedMethod === 'cash' && (
-                            <p className="text-xs text-center text-white bg-red-600 rounded-md py-3 px-4 font-semibold">
-                                Please collect cash from the customer and then confirm payment below.
-                            </p>
-                        )}
+                        <p className="text-xs text-center text-white bg-gray-700 rounded-md py-3 px-4 font-semibold">
+                            You'll be directed to the VN Pay gateway to complete your transaction.
+                        </p>
+                    )}
+                    {selectedMethod === 'payos' && (
+                        <p className="text-xs text-center text-white bg-blue-600 rounded-md py-3 px-4 font-semibold">
+                            You'll be directed to the PayOS gateway to complete your transaction.
+                        </p>
+                    )}
+                    {selectedMethod === 'cash' && (
+                        <p className="text-xs text-center text-white bg-red-600 rounded-md py-3 px-4 font-semibold">
+                            Please collect cash from the customer and then confirm payment below.
+                        </p>
+                    )}
 
                         <button
                             onClick={handlePayNow}

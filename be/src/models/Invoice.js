@@ -59,7 +59,6 @@ const invoiceSchema = new mongoose.Schema({
         amount: { type: Number },
         description: { type: String },
         status: { type: String }, // 'PAID', 'CANCELLED', 'FAILED', etc.
-        paymentMethod: { type: String }, // 'VIETQR', 'ZALO_PAY', etc.
         paidAt: { type: Date }, // Thời gian thanh toán thành công
         checksum: { type: String }, // Chữ ký nhận được từ PayOS (tùy chọn)
         _id: false // Không tạo _id cho subdocument này

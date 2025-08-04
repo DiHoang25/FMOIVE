@@ -93,7 +93,6 @@ const processPaymentConfirmation = async (payosOrderCode, payosTransactionData) 
                         amount: payosTransactionData.amount,
                         description: payosTransactionData.description,
                         status: payosTransactionData.status,
-                        paymentMethod: payosTransactionData.paymentMethod || 'UNKNOWN',
                         paidAt: new Date(),
                     }
                 });
@@ -116,7 +115,7 @@ const processPaymentConfirmation = async (payosOrderCode, payosTransactionData) 
 // --- Hàm xử lý khi thanh toán thất bại/hủy/hết hạn (idempotent) ---
 // Hàm này sẽ cập nhật trạng thái booking thành CANCELLED/FAILED/EXPIRED
 const processPaymentFailure = async (payosOrderCode, reason = 'CANCELLED') => {
-    console.log(`[Helper] processPaymentFailure được gọi cho orderCode: ${payosOrderCode}, lý do: ${reason}`);
+    console.log(`[Helper] processPaymentFailure được gọi cho orderCode: ${payosOrderCode}`);
     try {
         let booking = await Booking.findOne({ payosOrderCode: payosOrderCode });
 
@@ -181,8 +180,8 @@ router.post('/create-payment', async (req, res) => {
         // Nếu PayOS yêu cầu đơn vị nhỏ nhất (ví dụ: xu), bạn cần nhân thêm: amount: Math.round(booking.grandTotal * 100)
         console.log(`[DEBUG] Amount: ${amount}`);
 
-        // const description = `Thanh toán cho Booking ID: ${booking.bookingId || booking._id}`; // Mô tả chi tiết hơn
-        const description = `TestDonHang`; // Mô tả chi tiết hơn
+        const description = `BookingFilm:${booking.bookingId}`; // Mô tả chi tiết hơn
+        //const description = `TestDonHang`; // Mô tả chi tiết hơn
 
         const { name: userName, email: userEmail } = booking.user;
         // Kiểm tra sự tồn tại của userName và userEmail
