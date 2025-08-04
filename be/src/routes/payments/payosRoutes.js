@@ -66,7 +66,7 @@ const processPaymentConfirmation = async (payosOrderCode, payosTransactionData) 
         // Chỉ cập nhật nếu trạng thái booking chưa phải là 'PAID'
         if (booking.status !== 'PAID') {
             booking.status = 'PAID';
-            booking.payosTransaction = payosTransactionData; // Lưu đầy đủ dữ liệu giao dịch PayOS
+            //booking.payosTransaction = payosTransactionData; // Lưu đầy đủ dữ liệu giao dịch PayOS
             await booking.save();
             console.log(`[Helper] processPaymentConfirmation: Booking ${booking.bookingId || booking._id} đã được cập nhật thành PAID.`);
 
@@ -195,7 +195,7 @@ router.post('/create-payment', async (req, res) => {
         // URL trả về và callback từ PayOS.
         // Giữ localhost như bạn đã chỉ ra, nhưng cần lưu ý về môi trường thực tế.
         const returnUrl = `${PAYOS_CONFIG.FRONTEND_URL}/payment-status?bookingId=${booking.bookingId}&payosOrderCode=${payosOrderCode}`;
-const cancelUrl = `${PAYOS_CONFIG.FRONTEND_URL}/payment-status?bookingId=${booking.bookingId}&payosOrderCode=${payosOrderCode}&status=cancelled`;
+        const cancelUrl = `${PAYOS_CONFIG.FRONTEND_URL}/payment-status?bookingId=${booking.bookingId}&payosOrderCode=${payosOrderCode}&status=cancelled`;
         const callbackUrl = `${PAYOS_CONFIG.BACKEND_URL}/api/payos-payment/webhook`; // URL webhook của backend
 
         console.log(`[DEBUG] Return URL: ${returnUrl}`);
@@ -305,8 +305,9 @@ router.get('/payment-link/:orderCode', async (req, res) => {
         };
 
         // Giả định PayOS có endpoint GET /v2/payment-requests/{orderCode}
-        const url = `${PAYOS_CONFIG.API_URL}/v2/payment-requests/${orderCode}`;
+        const url = `${PAYOS_CONFIG.API_URL}/${orderCode}`;
         console.log(`[PayOS] Đang lấy thông tin link thanh toán cho Order Code: ${orderCode}`);
+        console.log(`[DEBUG] Request URL: ${url}`);
 
         const payosResponse = await axios.get(url, { headers });
         const responseData = payosResponse.data;
@@ -350,7 +351,7 @@ router.post('/payment-link/:orderCode/cancel', async (req, res) => {
         };
 
         const body = {}; // Gửi body rỗng nếu API không yêu cầu dữ liệu cụ thể để hủy
-        const url = `${PAYOS_CONFIG.API_URL}/v2/payment-requests/${orderCode}/cancel`; // Giả định endpoint
+        const url = `${PAYOS_CONFIG.API_URL}/${orderCode}/cancel`; // Giả định endpoint
         console.log(`[PayOS] Đang hủy link thanh toán với Order Code: ${orderCode}`);
 
         const payosResponse = await axios.post(url, body, { headers });
