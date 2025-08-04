@@ -96,135 +96,142 @@ const CinemaRoomDetail = () => {
     setRoomData(data.room);
   };
 
-  const handleConvertToVIP = () => {
-    const vipCount = selectedRows.length;
-    if (vipCount === 0) return;
+const handleConvertToVIP = () => {
+  const hasSelection = selectMode === 'row' ? selectedRows.length > 0 : selectedSeats.length > 0;
+  if (!hasSelection) return;
 
-    const selectedRowLabels = selectedRows.map(r => String.fromCharCode(64 + Number(r))).join(", ");
+  const labelString = selectMode === 'row'
+    ? selectedRows.map(r => String.fromCharCode(64 + Number(r))).join(", ")
+    : selectedSeats.join(", ");
 
-    Modal.confirm({
-      title: 'Xác nhận chuyển VIP',
-      icon: <ExclamationCircleFilled />,
-      content: `Bạn có chắc muốn chuyển hàng [${selectedRowLabels}] thành ghế VIP?`,
-      okText: 'Xác nhận',
-      cancelText: 'Hủy',
-      okType: 'primary',
-      okButtonProps: {
-        style: {
-          backgroundColor: '#f59e0b',
-          color: 'white',
-          borderColor: '#f59e0b',
-        },
+  Modal.confirm({
+    title: 'Xác nhận chuyển VIP',
+    icon: <ExclamationCircleFilled />,
+    content: `Bạn có chắc muốn chuyển ${selectMode === 'row' ? `hàng [${labelString}]` : `ghế [${labelString}]`} thành ghế VIP?`,
+    okText: 'Xác nhận',
+    cancelText: 'Hủy',
+    okType: 'primary',
+    okButtonProps: {
+      style: {
+        backgroundColor: '#f59e0b',
+        color: 'white',
+        borderColor: '#f59e0b',
       },
-      onOk: async () => {
-        try {
-          const token = localStorage.getItem("token");
-          const currentNormalPrice = roomData.seats.find(s => s.type === "Normal")?.price || 90000;
-          const currentVIPPrice =
-            roomData.seats.find(s => s.type === "VIP")?.price ||
-            roomData.vipPrice || 600000;
+    },
+    onOk: async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const currentNormalPrice = roomData.seats.find(s => s.type === "Normal")?.price || 90000;
+        const currentVIPPrice = roomData.seats.find(s => s.type === "VIP")?.price || roomData.vipPrice || 600000;
 
-          const currentVIP = roomData.seats.filter(s => s.type === "VIP").map(s => s.label);
-          const newVIP = roomData.seats.filter(s => selectedRows.includes(s.row)).map(s => s.label);
-          const updatedVIP = Array.from(new Set([...currentVIP, ...newVIP]));
-          const updatedNormal = roomData.seats.map(s => s.label).filter(l => !updatedVIP.includes(l));
+        const currentVIP = roomData.seats.filter(s => s.type === "VIP").map(s => s.label);
+        const newVIP = selectMode === 'row'
+          ? roomData.seats.filter(s => selectedRows.includes(s.row)).map(s => s.label)
+          : selectedSeats;
 
-          const res = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}/update-seat-types`, {
+        const updatedVIP = Array.from(new Set([...currentVIP, ...newVIP]));
+        const updatedNormal = roomData.seats.map(s => s.label).filter(l => !updatedVIP.includes(l));
+
+        const res = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}/update-seat-types`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            vipSeats: updatedVIP,
+            normalSeats: updatedNormal,
+            vipPrice: currentVIPPrice,
+            normalPrice: currentNormalPrice,
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Cập nhật thất bại");
+
+        message.success("Successfully transferred to VIP seat.");
+        setSelectedRows([]);
+        setSelectedSeats([]);
+        await fetchAndRefreshRoom();
+      } catch (err) {
+        message.error(`Lỗi khi cập nhật: ${err.message}`);
+      }
+    },
+  });
+};
+
+
+const handleConvertToNormal = () => {
+  const hasSelection = selectMode === 'row' ? selectedRows.length > 0 : selectedSeats.length > 0;
+  if (!hasSelection) return;
+
+  const labelString = selectMode === 'row'
+    ? selectedRows.map(r => String.fromCharCode(64 + Number(r))).join(", ")
+    : selectedSeats.join(", ");
+
+  Modal.confirm({
+    title: 'Xác nhận chuyển về ghế thường',
+    icon: <ExclamationCircleFilled />,
+    content: `Bạn có chắc muốn chuyển ${selectMode === 'row' ? `hàng [${labelString}]` : `ghế [${labelString}]`} thành ghế thường không?`,
+    okText: 'Xác nhận',
+    cancelText: 'Hủy',
+    okType: 'danger',
+    okButtonProps: {
+      style: {
+        backgroundColor: '#dc2626',
+        color: 'white',
+        borderColor: '#dc2626',
+      },
+    },
+    onOk: async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const currentNormalPrice = roomData.seats.find(s => s.type === "Normal")?.price || 90000;
+        const currentVIPPrice = roomData.seats.find(s => s.type === "VIP")?.price || 150000;
+
+        const currentVIPSeats = roomData.seats
+          .filter((s) => s.type === "VIP")
+          .map((s) => s.label);
+
+        const toBeNormalSeats = selectMode === 'row'
+          ? roomData.seats.filter(s => selectedRows.includes(s.row)).map(s => s.label)
+          : selectedSeats;
+
+        const updatedVIPSeats = currentVIPSeats.filter(
+          (label) => !toBeNormalSeats.includes(label)
+        );
+
+        const res = await fetch(
+          `http://localhost:5000/api/theater/rooms/${roomId}/update-seat-types`,
+          {
             method: "PATCH",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
-              vipSeats: updatedVIP,
-              normalSeats: updatedNormal,
+              vipSeats: updatedVIPSeats,
+              normalSeats: toBeNormalSeats,
               vipPrice: currentVIPPrice,
               normalPrice: currentNormalPrice,
             }),
-          });
+          }
+        );
 
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.message || "Cập nhật thất bại");
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Cập nhật thất bại");
 
-          message.success("Đã chuyển thành công hàng sang VIP.");
-          setSelectedRows([]);
-          await fetchAndRefreshRoom();
-        } catch (err) {
-          message.error(`Lỗi khi cập nhật: ${err.message}`);
-        }
-      },
-    });
-  };
+        message.success("Successfully transferred to normal seat.");
+        setSelectedRows([]);
+        setSelectedSeats([]);
+        await fetchAndRefreshRoom();
+      } catch (err) {
+        message.error(`Cập nhật thất bại: ${err.message}`);
+      }
+    },
+  });
+};
 
-  const handleConvertToNormal = () => {
-    const selectedRowLabels = selectedRows.map(r => String.fromCharCode(64 + Number(r))).join(", ");
-    const currentNormalPrice = roomData.seats.find(s => s.type === "Normal")?.price || 90000;
-    const currentVIPPrice = roomData.seats.find(s => s.type === "VIP")?.price || 150000;
-
-    Modal.confirm({
-      title: 'Xác nhận chuyển về ghế thường',
-      icon: <ExclamationCircleFilled />,
-      content: `Bạn có chắc muốn chuyển hàng [${selectedRowLabels}] thành ghế thường không?`,
-      okText: 'Xác nhận',
-      cancelText: 'Hủy',
-      okType: 'danger',
-      okButtonProps: {
-        style: {
-          backgroundColor: '#dc2626',
-          color: 'white',
-          borderColor: '#dc2626',
-        },
-      },
-      onOk: async () => {
-        try {
-          const token = localStorage.getItem("token");
-          const currentVIPSeats = roomData.seats
-            .filter((s) => s.type === "VIP")
-            .map((s) => s.label);
-
-          const toBeNormalSeats = roomData.seats
-            .filter((s) => selectedRows.includes(s.row))
-            .map((s) => s.label);
-
-          const updatedVIPSeats = currentVIPSeats.filter(
-            (label) => !toBeNormalSeats.includes(label)
-          );
-
-          const res = await fetch(
-            `http://localhost:5000/api/theater/rooms/${roomId}/update-seat-types`,
-            {
-              method: "PATCH",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                vipSeats: updatedVIPSeats,
-                normalSeats: toBeNormalSeats,
-                vipPrice: currentVIPPrice,
-                normalPrice: currentNormalPrice,
-              }),
-            }
-          );
-
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.message || "Cập nhật thất bại");
-
-          message.success("Đã chuyển thành công hàng sang ghế thường.");
-          setSelectedRows([]);
-
-          const updated = await fetch(`http://localhost:5000/api/theater/rooms/${roomId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const updatedData = await updated.json();
-          setRoomData(updatedData.room);
-        } catch (err) {
-          console.error("❌ Lỗi:", err.message);
-          message.error(`Cập nhật thất bại: ${err.message}`);
-        }
-      },
-    });
-  };
 
   if (error) {
     return (
@@ -255,9 +262,9 @@ const CinemaRoomDetail = () => {
         >
           {/* Header */}
           <div className="text-center mb-8">
-            <motion.div 
-              initial={{ scale: 0.9 }} 
-              animate={{ scale: 1 }} 
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
               transition={{ duration: 0.5 }}
               className="flex items-center justify-between mb-6"
             >
@@ -268,11 +275,11 @@ const CinemaRoomDetail = () => {
                 <ArrowLeft className="w-5 h-5 text-white" />
                 <span className="text-white font-medium">Back</span>
               </button>
-              
+
               <h1 className="text-3xl md:text-4xl font-bold text-white bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 Cinema Room Management
               </h1>
-              
+
               <div className="w-24"></div> {/* Spacer for centering */}
             </motion.div>
           </div>
@@ -307,8 +314,8 @@ const CinemaRoomDetail = () => {
                 textColor: 'text-purple-300',
               },
             ].map((card, idx) => (
-              <Card 
-                key={idx} 
+              <Card
+                key={idx}
                 className="bg-slate-800/80 border border-slate-600/50 backdrop-blur-sm transition-all duration-300 hover:border-opacity-50 hover:scale-105"
                 style={{ borderRadius: '16px' }}
               >
@@ -337,9 +344,9 @@ const CinemaRoomDetail = () => {
             >
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/8 via-transparent to-cyan-600/8 pointer-events-none" />
               <div className="relative p-6 lg:p-8">
-                
+
                 {/* Screen */}
-                <motion.div 
+                <motion.div
                   className="mb-8"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -359,28 +366,26 @@ const CinemaRoomDetail = () => {
                 </motion.div>
 
                 {/* Mode Selection */}
-                <motion.div 
+                <motion.div
                   className="mb-8 flex justify-center gap-4"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.6, delay: 0.5 }}
                 >
                   <button
-                    className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg ${
-                      selectMode === "single"
+                    className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg ${selectMode === "single"
                         ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white border-2 border-blue-400"
                         : "bg-slate-700/70 text-slate-300 border-2 border-slate-600/50 hover:bg-slate-600/70"
-                    }`}
+                      }`}
                     onClick={() => setSelectMode("single")}
                   >
                     Single Selection
                   </button>
                   <button
-                    className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg ${
-                      selectMode === "row"
+                    className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg ${selectMode === "row"
                         ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white border-2 border-blue-400"
                         : "bg-slate-700/70 text-slate-300 border-2 border-slate-600/50 hover:bg-slate-600/70"
-                    }`}
+                      }`}
                     onClick={() => setSelectMode("row")}
                   >
                     Row Selection
@@ -388,7 +393,7 @@ const CinemaRoomDetail = () => {
                 </motion.div>
 
                 {/* Seat Grid */}
-                <motion.div 
+                <motion.div
                   className="mb-8"
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -401,8 +406,8 @@ const CinemaRoomDetail = () => {
                         const rowSeats = roomData.seats.filter((s) => Number(s.row) === rIdx + 1)
 
                         return (
-                          <motion.div 
-                            key={rowLetter} 
+                          <motion.div
+                            key={rowLetter}
                             className="flex items-center justify-center gap-3"
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -446,7 +451,7 @@ const CinemaRoomDetail = () => {
                 </motion.div>
 
                 {/* Legend */}
-                <motion.div 
+                <motion.div
                   className="mb-8"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -473,14 +478,17 @@ const CinemaRoomDetail = () => {
                 </motion.div>
 
                 {/* Action Buttons */}
-                <motion.div 
+                <motion.div
                   className="flex justify-center gap-4 mb-8"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.9 }}
                 >
                   <button
-                    disabled={selectedRows.length === 0}
+                    disabled={
+                      (selectMode === "row" && selectedRows.length === 0) ||
+                      (selectMode === "single" && selectedSeats.length === 0)
+                    }
                     onClick={handleConvertToVIP}
                     className="px-8 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-black font-bold rounded-xl shadow-lg transition-all duration-300 hover:scale-105"
                   >
@@ -488,13 +496,17 @@ const CinemaRoomDetail = () => {
                   </button>
 
                   <button
-                    disabled={selectedRows.length === 0}
+                    disabled={
+                      (selectMode === "row" && selectedRows.length === 0) ||
+                      (selectMode === "single" && selectedSeats.length === 0)
+                    }
                     onClick={handleConvertToNormal}
                     className="px-8 py-3 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 disabled:from-gray-700 disabled:to-gray-800 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg transition-all duration-300 hover:scale-105"
                   >
                     Convert to Normal
                   </button>
                 </motion.div>
+
 
                 {/* Pricing Info */}
                 <motion.div
@@ -517,7 +529,7 @@ const CinemaRoomDetail = () => {
                         return (
                           <>
                             {normalSeat && (
-                              <motion.div 
+                              <motion.div
                                 className="flex items-center justify-between p-4 bg-slate-800/40 rounded-xl border border-slate-600/20 transition-all duration-300 hover:scale-105"
                                 whileHover={{ scale: 1.02 }}
                               >
@@ -533,7 +545,7 @@ const CinemaRoomDetail = () => {
                               </motion.div>
                             )}
                             {vipSeat && (
-                              <motion.div 
+                              <motion.div
                                 className="flex items-center justify-between p-4 bg-slate-800/40 rounded-xl border border-slate-600/20 transition-all duration-300 hover:scale-105"
                                 whileHover={{ scale: 1.02 }}
                               >

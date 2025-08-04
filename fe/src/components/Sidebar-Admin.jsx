@@ -33,7 +33,7 @@ const SidebarLayout = ({ children }) => {
 
   const handleLogout = () => {
     logout();
-    message.success('Đăng xuất thành công!', 3);
+    message.success('Log out successfully!', 3);
     navigate('/login');
   };
 

@@ -64,69 +64,72 @@ export const AuthProvider = ({ children }) => {
       }
     } else {
       console.log("No token found in localStorage. User not authenticated.");
-      logout(); // Gọi luôn logout
+      setIsAuthenticated(false);
+      setUser(null);
+      dispatch(setReduxUser(null));
     }
+
 
     setLoading(false);
   }, [authToken, dispatch, logout]);
 
   // Nghe event từ socket để tự động logout khi bị forceLogout
-useEffect(() => {
-  const handleForceLogout = (data) => {
-    console.warn("⚠️ Nhận forceLogout từ server:", data?.message);
+  useEffect(() => {
+    const handleForceLogout = (data) => {
+      console.warn("⚠️ Nhận forceLogout từ server:", data?.message);
 
-    // 🟡 Hiển thị thông báo
-    message.warning({
-      content: "Your account was logged in from another device. You've been logged out.",
-      duration: 5,
-    });
+      // 🟡 Hiển thị thông báo
+      message.warning({
+        content: "Your account was logged in from another device. You've been logged out.",
+        duration: 5,
+      });
 
-    logout();
-  };
+      logout();
+    };
 
-  socketInstance.on("forceLogout", handleForceLogout);
+    socketInstance.on("forceLogout", handleForceLogout);
 
-  return () => {
-    socketInstance.off("forceLogout", handleForceLogout);
-  };
-}, [socketInstance, logout]);
+    return () => {
+      socketInstance.off("forceLogout", handleForceLogout);
+    };
+  }, [socketInstance, logout]);
 
 
 
   // Hàm login
-const login = (token) => {
-  if (!token) {
-    console.error("Login failed: Token is undefined or null.");
-    return;
-  }
-  try {
-    localStorage.setItem("token", token);
-    setAuthToken(token);
-
-    // 👉 Ngắt socket cũ và tạo socket mới với deviceId mới
-    socketInstance?.disconnect();
-    const newSocket = createSocket(true);
-    setSocketInstance(newSocket);
-
-    // 👉 Gửi lại thông tin người dùng (nếu cần)
-    const decoded = jwtDecode(token);
-    if (decoded?.user) {
-      newSocket.emit("register", {
-        username: decoded.user.username,
-        role: decoded.user.role || "customer",
-      });
+  const login = (token) => {
+    if (!token) {
+      console.error("Login failed: Token is undefined or null.");
+      return;
     }
+    try {
+      localStorage.setItem("token", token);
+      setAuthToken(token);
 
-    // 👉 Lắng nghe forceLogout với socket mới
-    newSocket.on("forceLogout", () => {
-      console.warn("⚠️ forceLogout từ socket mới");
-      logout();
-    });
+      // 👉 Ngắt socket cũ và tạo socket mới với deviceId mới
+      socketInstance?.disconnect();
+      const newSocket = createSocket(true);
+      setSocketInstance(newSocket);
 
-  } catch (error) {
-    console.error("Error setting token during login:", error);
-  }
-};
+      // 👉 Gửi lại thông tin người dùng (nếu cần)
+      const decoded = jwtDecode(token);
+      if (decoded?.user) {
+        newSocket.emit("register", {
+          username: decoded.user.username,
+          role: decoded.user.role || "customer",
+        });
+      }
+
+      // 👉 Lắng nghe forceLogout với socket mới
+      newSocket.on("forceLogout", () => {
+        console.warn("⚠️ forceLogout từ socket mới");
+        logout();
+      });
+
+    } catch (error) {
+      console.error("Error setting token during login:", error);
+    }
+  };
 
 
   return (

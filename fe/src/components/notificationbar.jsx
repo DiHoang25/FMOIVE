@@ -15,7 +15,7 @@ const NotificationBar = () => {
 
   const handleLogout = () => {
     logout();
-    message.success('Đăng xuất thành công!', 3);
+    message.success('Logout successful!', 3);
     navigate('/login');
   };
 
@@ -27,14 +27,14 @@ const NotificationBar = () => {
       });
 
       const handleForceLogout = (data) => {
-        message.error(data?.message || 'Tài khoản đã đăng nhập ở thiết bị khác.');
+        message.error(data?.message || 'Your account has been logged in on another device.');
         handleLogout();
       };
 
       const handleDisconnect = (reason) => {
         // Chỉ logout nếu chưa phải tự logout (tránh lặp)
         if (user?.username) {
-          message.error('Phiên đăng nhập đã kết thúc hoặc bị ngắt kết nối.');
+          message.error('Your login session has expired or was disconnected.');
           handleLogout();
         }
       };
