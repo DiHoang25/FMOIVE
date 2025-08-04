@@ -53,6 +53,9 @@ const createSignature = (data, key) => {
 //     return crypto.createHmac('sha256', key).update(stringToSign).digest('hex');
 // };
 
+
+
+
 const processPaymentConfirmation = async (payosOrderCode, payosTransactionData) => {
     console.log(`[Helper] processPaymentConfirmation được gọi cho orderCode: ${payosOrderCode}`);
     try {
@@ -77,16 +80,12 @@ const processPaymentConfirmation = async (payosOrderCode, payosTransactionData) 
             } else {
                 console.log(`[Helper] processPaymentConfirmation: Đang tạo Invoice mới cho Booking ${booking.bookingId || booking._id}...`);
                 const newInvoice = new Invoice({
-                    invoiceId: `INV-${Date.now()}-${booking._id.toString().slice(-4)}`,
+                    invoiceCode: `INV-${Date.now()}-${booking._id.toString().slice(-4)}`,
                     booking: booking._id,
                     bookingId: booking.bookingId,
-                    user: {
-                        _id: booking.user ? booking.user._id : null, // Đảm bảo lấy đúng _id của user
-                        name: booking.user ? booking.user.fullname : 'Unknown User', // Giả định trường fullname
-                        email: booking.user ? booking.user.email : 'unknown@example.com'
-                    },
+                    userId: booking.user._id,
                     amount: booking.grandTotal,
-                    status: 'PAID',
+                    paymentStatus: 'PAID',
                     paymentMethod: 'PAYOS',
                     payosDetails: {
                         orderCode: payosTransactionData.orderCode,
@@ -99,7 +98,7 @@ const processPaymentConfirmation = async (payosOrderCode, payosTransactionData) 
                     }
                 });
                 await newInvoice.save();
-                console.log(`[Helper] processPaymentConfirmation: Invoice ${newInvoice.invoiceId} đã được tạo cho Booking ${booking.bookingId || booking._id}.`);
+                console.log(`[Helper] processPaymentConfirmation: Invoice ${newInvoice.invoiceCode} đã được tạo cho Booking ${booking.bookingId || booking._id}.`);
                 // TODO: Gửi email xác nhận, thông báo...
             }
             return { success: true, message: 'Thanh toán thành công, booking đã được xác nhận và invoice đã tạo.' };
@@ -314,7 +313,27 @@ router.get('/payment-link/:orderCode', async (req, res) => {
 
         if (responseData && responseData.code === '00') {
             console.log(`[PayOS] Đã lấy thông tin link thanh toán thành công cho Order Code: ${orderCode}.`);
-            res.status(200).json(responseData.data);
+            //res.status(200).json(responseData.data);
+            const payosTransactionData = responseData.data;
+            const payosStatus = payosTransactionData.status;
+
+            // Dựa vào trạng thái từ PayOS để cập nhật database
+            let updateResult;
+            if (payosStatus === 'PAID') {
+                updateResult = await processPaymentConfirmation(orderCode, payosTransactionData);
+            } else if (['CANCELLED', 'EXPIRED', 'FAILED'].includes(payosStatus)) { // handle lung tung xà beng
+                updateResult = await processPaymentFailure(orderCode, payosStatus);
+            } else {
+                console.log(`[Route] Status '${payosStatus}' không yêu cầu cập nhật database.`);
+                updateResult = { success: true, message: 'Không cần cập nhật.' };
+            }
+            
+            if (!updateResult.success) {
+                 console.error(`[Route] Lỗi khi cập nhật database: ${updateResult.message}`);
+                 // Vẫn trả về thành công cho frontend để hiển thị trạng thái hiện tại
+            }
+
+            res.status(200).json(payosTransactionData);
         } else {
             console.error('Lỗi khi lấy thông tin link thanh toán từ PayOS:', responseData);
             res.status(404).json({ message: 'Không tìm thấy link thanh toán hoặc có lỗi xảy ra.', error: responseData });
