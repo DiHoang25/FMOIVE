@@ -56,7 +56,7 @@ const PaymentStatusPage = () => {
 
         // --- Kiểm tra xem đây là phản hồi từ VNPAY hay PayOS ---
         const vnpay_TxnRef = queryParams.get('vnp_TxnRef'); // VNPAY
-        const payosBookingId = queryParams.get('bookingId'); // PayOS
+        const payosOrderCode = queryParams.get('orderCode'); // PayOS
 
         if (vnpay_TxnRef) { // Đây là phản hồi từ VNPAY (GIỮ NGUYÊN)
             setTransactionRef(vnpay_TxnRef);
@@ -116,38 +116,35 @@ const PaymentStatusPage = () => {
             };
             verifyVnPayPayment();
 
-        } else if (payosBookingId) { // Đây là phản hồi từ PayOS (ĐÃ ĐIỀU CHỈNH)
-            setTransactionRef(queryParams.get('orderCode') || payosBookingId);
-
-            // Trang này chỉ hiển thị trạng thái cuối cùng.
-            // Việc xử lý thanh toán và cập nhật database được thực hiện an toàn qua webhook ở backend.
+        } else if (payosOrderCode) { // Xử lý phản hồi từ PayOS
+            setTransactionRef(payosOrderCode);
             const checkPayosStatus = async () => {
                 setIsLoading(true);
                 hasFetched.current = true;
 
                 try {
-                    // Thêm một khoảng chờ ngắn để cho webhook của PayOS có thời gian xử lý ở backend.
-                    // Điều này rất quan trọng để tránh trường hợp frontend hỏi trạng thái quá sớm.
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-
-                    // API này lấy trạng thái cuối cùng của booking từ server.
-                    // Dữ liệu trên server được cập nhật bởi webhook an toàn của PayOS.
-                    const requestUrl = `${BACKEND_BASE_URL}/api/payos-payment/status/${payosBookingId}`;
+                    // Gọi tuyến API của backend để lấy trạng thái giao dịch từ PayOS
+                    // Tuyến này sẽ tự động cập nhật database
+                    const requestUrl = `${BACKEND_BASE_URL}/api/payos-payment/payment-link/${payosOrderCode}`;
                     console.log('[PayOS Status] Frontend calling Backend URL:', requestUrl);
 
                     const response = await axios.get(requestUrl);
-                    const { bookingStatus, message: backendMessage } = response.data;
+                    const payosData = response.data;
 
-                    if (bookingStatus === 'PAID') {
+                    // Giả định backend trả về status của giao dịch PayOS
+                    if (payosData.status === 'PAID') {
                         setPaymentStatus('Payment Successful!');
-                        setMessage(backendMessage || 'Your booking has been successfully confirmed and paid via PayOS.');
-                        dispatch(resetBooking()); // Reset giỏ hàng sau khi thanh toán thành công
-                    } else if (bookingStatus === 'CANCELLED' || bookingStatus === 'FAILED') {
+                        setMessage('Your booking has been successfully confirmed and paid via PayOS.');
+                        dispatch(resetBooking()); // Reset giỏ hàng
+                    } else if (payosData.status === 'CANCELLED' || payosData.status === 'FAILED') {
                         setPaymentStatus('Payment Failed or Cancelled');
-                        setMessage(backendMessage || 'Your PayOS payment failed, was cancelled, or expired. Please try again.');
-                    } else { // PENDING_PAYMENT
+                        setMessage('Your PayOS payment failed, was cancelled, or expired. Please try again.');
+                    } else if (payosData.status === 'PENDING') {
                         setPaymentStatus('Payment Pending');
-                        setMessage(backendMessage || 'Your payment is being processed. We will notify you once confirmed. Please check your bookings page for updates.');
+                        setMessage('Your payment is being processed. We will notify you once confirmed.');
+                    } else {
+                        setPaymentStatus('Unknown Status');
+                        setMessage('An unknown error occurred. Please check your bookings page or contact support.');
                     }
                 } catch (error) {
                     console.error('[PayOS Status] Error checking payment status with backend:', error);
@@ -157,7 +154,6 @@ const PaymentStatusPage = () => {
                     setIsLoading(false);
                 }
             };
-
             checkPayosStatus();
         } else {
             // Không có tham số VNPAY hoặc PayOS

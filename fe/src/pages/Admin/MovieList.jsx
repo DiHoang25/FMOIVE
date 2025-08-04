@@ -70,7 +70,7 @@ const MovieList = () => {
     });
   }, [movies]);
 
-useEffect(() => {
+  useEffect(() => {
     setCurrentPage(0);
   }, [searchTerm]);
 
@@ -121,7 +121,7 @@ useEffect(() => {
   const confirmToggleHotStatus = (movie) => {
     const isCurrentlyHot = movie.is_hot;
     const action = isCurrentlyHot ? "remove from hot" : "mark as hot";
-    
+
     Modal.confirm({
       title: "Confirm Status Change",
       content: `Are you sure you want to ${action} "${movie.name}"?`,
@@ -130,8 +130,10 @@ useEffect(() => {
       okType: "primary",
       onOk: async () => {
         try {
-          const response = await axios.patch(`http://localhost:5000/api/movies/${movie._id}/toggle-hot`);
-          const updatedMovies = movies.map(m => 
+          const response = await axios.patch(
+            `http://localhost:5000/api/movies/${movie._id}/toggle-hot`
+          );
+          const updatedMovies = movies.map((m) =>
             m._id === movie._id ? { ...m, is_hot: response.data.is_hot } : m
           );
           setMovies(updatedMovies);
@@ -414,14 +416,16 @@ useEffect(() => {
                                   </td>
                                   <td className="px-6 py-4 text-center">
                                     <button
-                                      onClick={() => confirmToggleHotStatus(movie)}
+                                      onClick={() =>
+                                        confirmToggleHotStatus(movie)
+                                      }
                                       className={`px-3 py-1 rounded-full text-sm font-semibold transition-all duration-200 ${
                                         movie.is_hot
-                                          ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg hover:shadow-xl'
-                                          : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
+                                          ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg hover:shadow-xl"
+                                          : "bg-slate-600 text-slate-300 hover:bg-slate-500"
                                       }`}
                                     >
-                                      {movie.is_hot ? 'HOT' : 'Normal'}
+                                      {movie.is_hot ? "HOT" : "Normal"}
                                     </button>
                                   </td>
                                   <td className="px-6 py-4 text-center">
