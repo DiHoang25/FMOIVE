@@ -40,6 +40,11 @@ const PaymentPage = () => {
 
     const paymentMethods = [
         {
+            id: 'payos',
+            label: 'PayOS (VietQR)',
+            desc: 'Secure payment via PayOS with various methods',
+        },
+        {
             id: 'vnpay',
             label: 'VN Pay',
             desc: 'Scan to pay with VN Pay (Online Payment)',
@@ -85,6 +90,34 @@ const PaymentPage = () => {
             } catch (error) {
                 console.error('Lỗi khi tạo yêu cầu VNPay:', error.response?.data || error.message);
                 message.error(error.response?.data?.message || 'Lỗi khi tạo yêu cầu thanh toán VNPay.');
+            } finally {
+                setIsPaying(false);
+            }
+        } else if (selectedMethod === 'payos') {
+            // Logic cho PayOS, gọi API tạo URL thanh toán
+            try {
+                setIsPaying(true);
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('Bạn cần đăng nhập để thực hiện chức năng này.');
+                }
+
+                console.log('Calling PayOS API with bookingId:', bookingId);
+                const response = await axios.post(`${API_BASE_URL}/api/payos-payment/create-payment`, {
+                    bookingId, // Gửi bookingId
+                }, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.data && response.data.payosPaymentUrl) {
+                    window.location.href = response.data.payosPaymentUrl;
+                } else {
+                    throw new Error('Failed to get PayOS payment URL.');
+                }
+
+            } catch (error) {
+                console.error('Lỗi khi tạo yêu cầu PayOS:', error.response?.data || error.message);
+                message.error(error.response?.data?.message || 'Lỗi khi tạo yêu cầu thanh toán PayOS.');
             } finally {
                 setIsPaying(false);
             }
@@ -228,15 +261,20 @@ const PaymentPage = () => {
                     {/* Confirm Notice / Action Button */}
                     <div className="mt-6">
                         {selectedMethod === 'vnpay' && (
-                            <p className="text-xs text-center text-white bg-gray-700 rounded-md py-3 px-4 font-semibold">
-                                You'll be directed to the VN Pay gateway to complete your transaction.
-                            </p>
-                        )}
-                        {selectedMethod === 'cash' && (
-                            <p className="text-xs text-center text-white bg-red-600 rounded-md py-3 px-4 font-semibold">
-                                Please collect cash from the customer and then confirm payment below.
-                            </p>
-                        )}
+                        <p className="text-xs text-center text-white bg-gray-700 rounded-md py-3 px-4 font-semibold">
+                            You'll be directed to the VN Pay gateway to complete your transaction.
+                        </p>
+                    )}
+                    {selectedMethod === 'payos' && (
+                        <p className="text-xs text-center text-white bg-blue-600 rounded-md py-3 px-4 font-semibold">
+                            You'll be directed to the PayOS gateway to complete your transaction.
+                        </p>
+                    )}
+                    {selectedMethod === 'cash' && (
+                        <p className="text-xs text-center text-white bg-red-600 rounded-md py-3 px-4 font-semibold">
+                            Please collect cash from the customer and then confirm payment below.
+                        </p>
+                    )}
 
                         <button
                             onClick={handlePayNow}
